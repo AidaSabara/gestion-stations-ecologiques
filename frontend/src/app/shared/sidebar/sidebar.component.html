@@ -1,0 +1,58 @@
+<!-- Aside -->
+<aside
+  class="bsb-sidebar-1 offcanvas offcanvas-start"
+  tabindex="-1"
+  id="bsbSidebar1"
+  aria-labelledby="bsbSidebarLabel1"
+>
+  <div class="offcanvas-header">
+    <a class="sidebar-brand" [routerLink]="['']">
+      <img
+        src="./assets/img/branding/console-logo.svg"
+        id="bsbSidebarLabel1"
+        class="bsb-tpl-logo"
+        alt="BootstrapBrain Logo"
+      />
+    </a>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"
+    ></button>
+  </div>
+  <div class="offcanvas-body pt-0">
+    <hr class="sidebar-divider mb-3" />
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a
+          class="nav-link p-3 bg-light rounded active"
+          [routerLink]="['']"
+          routerLinkActive="router-link-active"
+          role="button"
+        >
+          <div class="nav-link-icon text-primary">
+            <i class="bi bi-grid"></i>
+          </div>
+          <span class="nav-link-text fw-bold">Dashboards</span>
+        </a>
+      </li>
+      <li class="nav-item mt-3">
+        <h6 class="py-1 text-secondary text-uppercase fs-7">Tools</h6>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link p-3"
+          [routerLink]="['stations']"
+          routerLinkActive="router-link-active"
+          role="button"
+        >
+          <div class="nav-link-icon text-primary">
+            <i class="bi bi-menu-button-wide-fill"></i>
+          </div>
+          <span class="nav-link-text fw-bold">Stations</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>

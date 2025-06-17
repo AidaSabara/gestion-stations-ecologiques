@@ -1,0 +1,29 @@
+{
+  "name": "kuzzle-application",
+  "version": "1.0.0",
+  "description": "Kuzzle application template",
+  "author": "The Kuzzle Team <support@kuzzle.io>",
+  "scripts": {
+    "build": "tsc --build tsconfig.json",
+    "test": "vitest run --fileParallelism false",
+    "dev": "NODE_ENV=development tsx watch app.ts",
+    "lint": "eslint ./lib --ext .ts --config .eslintrc.json"
+  },
+  "main": "app.ts",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "kuzzle": "2.43.2",
+    "kuzzle-plugin-prometheus": "4.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "22",
+    "eslint-plugin-kuzzle": "0.0.14",
+    "ts-node": "10.9.2",
+    "tsx": "4.19.4",
+    "typescript": "5.4.*",
+    "vitest": "3.2.3"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
