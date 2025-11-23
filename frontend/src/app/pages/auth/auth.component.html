@@ -1,0 +1,111 @@
+    <div class="container-fluid vh-100 bg-light">
+      <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-md-6 col-lg-4">
+
+          <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center py-4">
+              <i class="bi bi-shield-lock display-4 mb-3"></i>
+              <h2 class="card-title mb-0">Authentification</h2>
+              <p class="mb-0 mt-2">Accès aux Stations</p>
+            </div>
+
+            <div class="card-body p-4">
+
+              <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                {{ errorMessage }}
+                <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+              </div>
+
+              <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+
+                <div class="mb-3">
+                  <label for="email" class="form-label fw-bold">
+                    <i class="bi bi-envelope me-2"></i>Email
+                  </label>
+                  <input
+                    type="email"
+                    class="form-control form-control-lg"
+                    id="email"
+                    formControlName="email"
+                    placeholder="votre@email.com"
+                    [class.is-invalid]="authForm.get('email')?.invalid && authForm.get('email')?.touched"
+                  >
+                  <div *ngIf="authForm.get('email')?.invalid && authForm.get('email')?.touched" class="invalid-feedback">
+                    <div *ngIf="authForm.get('email')?.errors?.['required']">Email requis</div>
+                    <div *ngIf="authForm.get('email')?.errors?.['email']">Email invalide</div>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="password" class="form-label fw-bold">
+                    <i class="bi bi-key me-2"></i>Mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    class="form-control form-control-lg"
+                    id="password"
+                    formControlName="password"
+                    placeholder="••••••••"
+                    [class.is-invalid]="authForm.get('password')?.invalid && authForm.get('password')?.touched"
+                  >
+                  <div *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched" class="invalid-feedback">
+                    <div *ngIf="authForm.get('password')?.errors?.['required']">Mot de passe requis</div>
+                    <div *ngIf="authForm.get('password')?.errors?.['minlength']">Minimum 6 caractères</div>
+                  </div>
+                </div>
+
+                <div class="d-grid mb-3">
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg"
+                    [disabled]="isLoading || authForm.invalid"
+                  >
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+                  </button>
+                </div>
+
+              </form>
+
+              <!-- Comptes de test utilisant la MÊME collection User -->
+              <div class="alert alert-info">
+                <h6 class="alert-heading">Comptes de test (même collection):</h6>
+                <div class="row g-2">
+                  <div class="col-4">
+                    <button
+                      class="btn btn-sm btn-outline-danger w-100"
+                      (click)="useTestAccount('admin')"
+                      [disabled]="isLoading"
+                    >
+                      Admin
+                    </button>
+                  </div>
+                  <div class="col-4">
+                    <button
+                      class="btn btn-sm btn-outline-warning w-100"
+                      (click)="useTestAccount('supervisor')"
+                      [disabled]="isLoading"
+                    >
+                      Supervisor
+                    </button>
+                  </div>
+                  <div class="col-4">
+                    <button
+                      class="btn btn-sm btn-outline-info w-100"
+                      (click)="useTestAccount('agent')"
+                      [disabled]="isLoading"
+                    >
+                      Agent
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>

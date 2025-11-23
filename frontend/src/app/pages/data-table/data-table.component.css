@@ -1,0 +1,437 @@
+
+.table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+  padding: 12px 16px;
+}
+
+.table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  border-color: #e9ecef;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.075);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Angular Material Table */
+.mat-mdc-table {
+  width: 100%;
+}
+
+.mat-mdc-header-row {
+  background-color: #f8f9fa;
+}
+
+.mat-mdc-row:hover {
+  background-color: rgba(0, 123, 255, 0.075);
+}
+
+.table-row-hover:hover {
+  background-color: #f8f9fa !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Valeurs colorées selon les seuils */
+.normal-value {
+  color: #28a745 !important;
+  font-weight: 500;
+}
+
+.medium-value {
+  color: #ffc107 !important;
+  font-weight: 600;
+}
+
+.high-value {
+  color: #dc3545 !important;
+  font-weight: bold !important;
+}
+
+/* Styles pour les valeurs de pH */
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-danger.fw-bold {
+  background-color: rgba(220, 53, 69, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
+
+.text-warning.fw-bold {
+  background-color: rgba(255, 193, 7, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.text-success {
+  color: #28a745 !important;
+  background-color: rgba(40, 167, 69, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Badges */
+.badge {
+  padding: 0.35em 0.65em;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+  color: #fff !important;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+  color: #fff !important;
+}
+
+/* Cards Angular Material */
+mat-card {
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+mat-card-content {
+  padding: 1rem;
+}
+
+.water-quality-card {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.water-quality-card mat-card-header {
+  border-radius: 0.375rem 0.375rem 0 0;
+  padding: 1.5rem;
+}
+
+/* En-tête de carte */
+.card-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Formulaires Angular Material */
+mat-form-field {
+  font-size: 14px;
+  width: 100%;
+}
+
+::ng-deep .mat-mdc-form-field {
+  margin-bottom: 0 !important;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  padding: 0 !important;
+}
+
+/* Filtres et toolbar */
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Pagination Material */
+::ng-deep .mat-mdc-paginator {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+::ng-deep .mat-mdc-paginator-container {
+  min-height: 56px;
+  padding: 0 16px;
+}
+
+/* Boutons */
+button.mat-mdc-raised-button {
+  border-radius: 4px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+button.mat-mdc-raised-button[color="primary"] {
+  background-color: #0d6efd;
+  color: white;
+}
+
+button.mat-mdc-raised-button:disabled {
+  opacity: 0.6;
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3em;
+}
+
+.spinner-border.text-primary {
+  color: #0d6efd !important;
+}
+
+/* Message vide */
+.text-center.py-5 {
+  background-color: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+  padding: 3rem 1rem !important;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Icônes Bootstrap */
+.bi {
+  vertical-align: middle;
+}
+
+.fs-1 {
+  font-size: 2.5rem !important;
+}
+
+/* Statistiques rapides */
+.text-center h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  color: #212529;
+}
+
+.text-center p.text-muted {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+
+  mat-form-field {
+    font-size: 12px;
+  }
+
+  .badge {
+    font-size: 0.75em;
+  }
+
+  .text-center h3 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Scrollbar personnalisée */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Animation de chargement */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card,
+mat-card {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Tri des colonnes Material */
+::ng-deep .mat-sort-header-arrow {
+  color: #0d6efd;
+}
+
+::ng-deep .mat-sort-header-sorted {
+  color: #0d6efd !important;
+}
+
+/* États des colonnes triées */
+::ng-deep th.mat-header-cell.cdk-column-ph,
+::ng-deep th.mat-header-cell.cdk-column-nitrates_mg_l,
+::ng-deep th.mat-header-cell.cdk-column-coliformes_fecaux_cfu_100ml {
+  font-weight: 700;
+}
+
+/* Alignement du texte */
+.text-end {
+  text-align: right !important;
+}
+
+.text-start {
+  text-align: left !important;
+}
+
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+/* Gap entre éléments */
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.d-flex {
+  display: flex;
+}
+
+/* Ombre sur hover pour les cards */
+mat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Bordures arrondies */
+.rounded {
+  border-radius: 0.375rem !important;
+}
+
+/* Marges et padding utilitaires */
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+.mt-3 {
+  margin-top: 1rem !important;
+}
+
+.p-3 {
+  padding: 1rem !important;
+}
+
+.py-3 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* Couleurs de fond */
+.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+.text-white {
+  color: #fff !important;
+}
+
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Largeurs */
+.w-100 {
+  width: 100% !important;
+}
+
+/* Amélioration visuelle des valeurs */
+td[class*="text-"] strong {
+  font-size: 1.05em;
+}
+
+/* Effet de surbrillance sur les valeurs anormales */
+.high-value {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Style pour les en-têtes collants */
+::ng-deep th.mat-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8f9fa;
+}
+
+/* Amélioration de la lisibilité */
+td.mat-cell,
+th.mat-header-cell {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Légende */
+.card .row small {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+hr {
+  margin: 1rem 0;
+  border: 0;
+  border-top: 1px solid #dee2e6;
+}

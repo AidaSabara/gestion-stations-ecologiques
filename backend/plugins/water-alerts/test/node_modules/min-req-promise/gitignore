@@ -1,0 +1,9 @@
+node_modules
+
+# nyc
+/.nyc_output
+/coverage
+
+# dev
+/.idea
+.*.swp

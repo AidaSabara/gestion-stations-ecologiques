@@ -1,0 +1,80 @@
+/* Map View Styles */
+.map-container {
+  height: 500px;
+  width: 100%;
+  position: relative;
+}
+
+/* Supprimer le fond de dégradé qui pourrait cacher la carte */
+.map-container {
+  background: transparent !important;
+}
+
+.map-placeholder {
+  text-align: center;
+  color: #1976d2;
+}
+
+.map-placeholder i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.station-item {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+
+.station-item:hover {
+  background-color: #f8f9fa;
+  border-left-color: #007bff;
+  transform: translateX(3px);
+}
+
+.station-item.selected {
+  background-color: #e3f2fd;
+  border-left-color: #1976d2;
+  font-weight: 600;
+}
+
+.station-info {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 15px;
+}
+
+.station-info h6 {
+  color: #1976d2;
+  margin-bottom: 10px;
+}
+
+/* Légende */
+.map-legend {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.legend-color.online { background-color: #28a745; }
+.legend-color.offline { background-color: #6c757d; }
+.legend-color.alert { background-color: #dc3545; }

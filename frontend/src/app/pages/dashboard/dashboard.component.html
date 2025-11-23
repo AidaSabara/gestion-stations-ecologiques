@@ -1,338 +1,492 @@
-  <!-- Main -->
-  <main id="main">
+<!-- Main -->
+<main id="main">
 
-    <!-- Section - Bootstrap Brain Component -->
-    <!-- Breadcrumb -->
-    <section class="py-3 py-md-4 py-xl-5 bg-light">
-      <div class="container">
-        <div class="row">
-          <div class="col-12">
-            <h1 class="h4">Dashboard Stations Écologiques</h1>
-            <nav aria-label="breadcrumb">
-              <ol class="breadcrumb m-0 fs-7">
-                <li class="breadcrumb-item"><a class="link-primary text-decoration-none" [routerLink]="['']" >Accueil</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
-              </ol>
-            </nav>
-          </div>
+  <!-- Breadcrumb -->
+  <section class="py-3 py-md-4 py-xl-5 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <h1 class="h4">Dashboard Stations Écologiques</h1>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb m-0 fs-7">
+              <li class="breadcrumb-item"><a class="link-primary text-decoration-none" [routerLink]="['']">Accueil</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+            </ol>
+          </nav>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Résumé -->
-    <app-resume></app-resume>
+  <!-- Résumé -->
+  <app-resume></app-resume>
 
-    <!-- Section - Bootstrap Brain Component -->
-    <section class="pb-3 pb-md-4 pb-xl-5 bg-light">
-      <div class="container">
-        <div class="row gy-3 gy-md-4">
-          <div class="col-12 col-lg-6 col-xl-7">
-            <!-- Chart 1 - Bootstrap Brain Component -->
-            <div class="card widget-card border-light shadow-sm h-100">
-              <div class="card-body p-4">
-                <div class="d-block d-sm-flex align-items-center justify-content-between mb-3">
-                  <div class="mb-3 mb-sm-0">
-                    <h5 class="card-title widget-card-title">Sales Overview</h5>
-                  </div>
-                  <div>
-                    <select class="form-select text-secondary border-light-subtle">
-                      <option value="1">March 2023</option>
-                      <option value="2">April 2023</option>
-                      <option value="3">May 2023</option>
-                      <option value="4">June 2023</option>
-                    </select>
-                  </div>
-                </div>
-                <div id="bsb-chart-1"></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-6 col-xl-5">
-            <!-- Chart 4 - Bootstrap Brain Component -->
-            <div class="card widget-card border-light shadow-sm h-100">
-              <div class="card-body p-4">
-                <div class="d-block d-sm-flex align-items-center justify-content-between mb-3">
-                  <div class="mb-3 mb-sm-0">
-                    <h5 class="card-title widget-card-title">Department Sales</h5>
-                  </div>
-                  <div>
-                    <select class="form-select text-secondary border-light-subtle">
-                      <option value="1">March 2023</option>
-                      <option value="2">April 2023</option>
-                      <option value="3">May 2023</option>
-                      <option value="4">June 2023</option>
-                    </select>
-                  </div>
-                </div>
-                <div id="bsb-chart-4"></div>
-              </div>
-            </div>
-          </div>
+  <!-- KPIs -->
+  <app-kpis></app-kpis>
+   <!--Contrôles de période APRÈS la section KPIs -->
+<section class="py-3">
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="btn-group" role="group">
+          <button type="button"
+                  class="btn btn-outline-primary"
+                  [class.active]="currentTimeRange === '24h'"
+                  (click)="onTimeRangeChange('24h')">
+            24H
+          </button>
+          <button type="button"
+                  class="btn btn-outline-primary"
+                  [class.active]="currentTimeRange === '7d'"
+                  (click)="onTimeRangeChange('7d')">
+            7J
+          </button>
+          <button type="button"
+                  class="btn btn-outline-primary"
+                  [class.active]="currentTimeRange === '30d'"
+                  (click)="onTimeRangeChange('30d')">
+            30J
+          </button>
         </div>
       </div>
-    </section>
+      <div class="col-md-6 text-end">
+        <small class="text-muted">
+          Période active: {{ currentTimeRange }} |
+          Page: {{ currentPage }} |
+          Affichage: {{ pageSize }} éléments
+        </small>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Carte des stations -->
-     <app-map></app-map>
+  <!-- Panel Alertes -->
+<div class="card border-warning mb-3" *ngIf="alerts && alerts.length > 0">
+  <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-exclamation-triangle-fill"></i> Alertes Actives (Temps Réel)</span>
+    <span class="badge bg-danger">{{ alerts.length }}</span>
+  </div>
+  <div class="list-group list-group-flush max-height-200 overflow-auto">
+    <div class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center"
+         *ngFor="let alert of alerts">
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between">
+          <strong>{{ alert.station }}</strong>
+          <small class="text-muted">{{ alert.time }}</small>
+        </div>
+        <p class="mb-1">{{ alert.message }}</p>
+        <small class="badge bg-secondary">{{ alert.type }}</small>
+          <small class="badge"
+              [class.bg-danger]="alert.severity === 'critical'"
+              [class.bg-warning]="alert.severity === 'high'"
+              [class.bg-primary]="alert.severity === 'medium'"
+              [class.bg-info]="alert.severity === 'warning'"
+              [class.bg-success]="alert.severity === 'low'"
+              [class.bg-secondary]="alert.severity === 'info'">
+                {{ alert.severity }}
+          </small>
+      </div>
+      <button class="btn btn-sm btn-outline-success ms-2"
+              (click)="resolveAlert(alert)"
+              title="Marquer comme résolue">
+        <i class="bi bi-check-lg"></i>
+      </button>
+    </div>
+  </div>
+</div>
 
-    <!-- Section - Bootstrap Brain Component -->
-    <section class="pb-3 pb-md-4 pb-xl-5 bg-light">
-      <div class="container">
-        <div class="row gy-3 gy-md-4">
-          <div class="col-12 col-lg-6 col-xl-7">
-            <!-- Chart 3 - Bootstrap Brain Component -->
-            <div class="card widget-card border-light shadow-sm h-100">
-              <div class="card-body p-4">
-                <h5 class="card-title widget-card-title mb-3">Revenue Stats</h5>
-                <div id="bsb-chart-3"></div>
-              </div>
+<!-- Styles optionnels pour limiter la hauteur du panneau -->
+<style>
+  .max-height-200 {
+    max-height: 200px;
+  }
+</style>
+
+
+  <!-- Section Données de Qualité de l'Eau -->
+  <section class="py-4 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+
+          <!-- En-tête avec statistiques rapides -->
+          <div class="row mb-4" *ngIf="getWaterQualityStats() as stats">
+            <div class="col-md-3">
+              <mat-card class="text-center">
+                <mat-card-content>
+                  <i class="bi bi-droplet-fill text-primary fs-1"></i>
+                  <h3 class="mt-2 mb-1">{{ stats.totalSamples }}</h3>
+                  <p class="text-muted mb-0">Échantillons</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            <div class="col-md-3">
+              <mat-card class="text-center">
+                <mat-card-content>
+                  <i class="bi bi-funnel text-info fs-1"></i>
+                  <h3 class="mt-2 mb-1">{{ stats.uniqueFilters }}</h3>
+                  <p class="text-muted mb-0">Filtres actifs</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            <div class="col-md-3">
+              <mat-card class="text-center">
+                <mat-card-content>
+                  <i class="bi bi-thermometer-half text-success fs-1"></i>
+                  <h3 class="mt-2 mb-1">{{ stats.avgPH | number:'1.1-1' }}</h3>
+                  <p class="text-muted mb-0">pH moyen</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            <div class="col-md-3">
+              <mat-card class="text-center">
+                <mat-card-content>
+                  <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+                  <h3 class="mt-2 mb-1">{{ stats.abnormalPH }}</h3>
+                  <p class="text-muted mb-0">Valeurs anormales</p>
+                </mat-card-content>
+              </mat-card>
             </div>
           </div>
-          <div class="col-12 col-lg-6 col-xl-5">
-            <!-- Card 2 - Bootstrap Brain Component -->
-            <div class="card widget-card border-light shadow-sm h-100">
-              <div class="card-body p-4">
-                <h5 class="card-title widget-card-title mb-4">Payment Overview</h5>
-                <div class="row gy-4">
-                  <div class="col-12">
-                    <div class="row align-items-center">
-                      <div class="col-8">
-                        <div class="d-flex align-items-center">
-                          <div>
-                            <div class="fs-5 bsb-w-50 bsb-h-50 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center me-3">
-                              <i class="bi bi-paypal"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <h6 class="m-0">PayPal</h6>
-                            <p class="text-secondary m-0 fs-7">Funds Received</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <h6 class="text-end">$5,432</h6>
-                      </div>
-                    </div>
+
+          <!-- Tableau Principal -->
+          <mat-card class="water-quality-card">
+            <mat-card-header class="bg-primary text-white p-3">
+              <mat-card-title class="text-white">
+                <i class="bi bi-water me-2"></i>
+                Données de Qualité de l'Eau - Station Sanar
+              </mat-card-title>
+              <mat-card-subtitle class="text-white-50">
+                Analyses en temps réel des paramètres de qualité
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="p-0">
+
+              <!-- Barre d'outils -->
+              <div class="p-3 border-bottom bg-light">
+                <div class="row align-items-center">
+                  <div class="col-md-6">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>Rechercher</mat-label>
+                      <input matInput (keyup)="applyFilter($event)" placeholder="Filtrer les données...">
+                      <mat-icon matSuffix>search</mat-icon>
+                    </mat-form-field>
                   </div>
-                  <div class="col-12">
-                    <div class="row align-items-center">
-                      <div class="col-8">
-                        <div class="d-flex align-items-center">
-                          <div>
-                            <div class="fs-5 bsb-w-50 bsb-h-50 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center me-3">
-                              <i class="bi bi-stripe"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <h6 class="m-0">Stripe</h6>
-                            <p class="text-secondary m-0 fs-7">Invoice Paid</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <h6 class="text-end">$325</h6>
-                      </div>
-                    </div>
+                  <div class="col-md-3">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>Phase</mat-label>
+                      <select matNativeControl #phaseSelect (change)="filterByPhase(phaseSelect.value)">
+                        <option value="all">Toutes les phases</option>
+                        <option *ngFor="let phase of getUniquePhases()" [value]="phase">{{ phase }}</option>
+                      </select>
+                    </mat-form-field>
                   </div>
-                  <div class="col-12">
-                    <div class="row align-items-center">
-                      <div class="col-8">
-                        <div class="d-flex align-items-center">
-                          <div>
-                            <div class="fs-5 bsb-w-50 bsb-h-50 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center me-3">
-                              <i class="bi bi-credit-card-fill"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <h6 class="m-0">Credit Card</h6>
-                            <p class="text-secondary m-0 fs-7">Top Up</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <h6 class="text-end">$99</h6>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-12">
-                    <div class="row align-items-center">
-                      <div class="col-8">
-                        <div class="d-flex align-items-center">
-                          <div>
-                            <div class="fs-5 bsb-w-50 bsb-h-50 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center me-3">
-                              <i class="bi bi-bank2"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <h6 class="m-0">Bank</h6>
-                            <p class="text-secondary m-0 fs-7">Check Deposited</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <h6 class="text-end">$2,432</h6>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-12">
-                    <div class="row align-items-center">
-                      <div class="col-8">
-                        <div class="d-flex align-items-center">
-                          <div>
-                            <div class="fs-5 bsb-w-50 bsb-h-50 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center me-3">
-                              <i class="bi bi-wallet-fill"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <h6 class="m-0">Wallet</h6>
-                            <p class="text-secondary m-0 fs-7">Bill Payment</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <h6 class="text-end">$750</h6>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-12">
-                    <div class="row align-items-center">
-                      <div class="col-8">
-                        <div class="d-flex align-items-center">
-                          <div>
-                            <div class="fs-5 bsb-w-50 bsb-h-50 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center me-3">
-                              <i class="bi bi-arrow-up-left-circle-fill"></i>
-                            </div>
-                          </div>
-                          <div>
-                            <h6 class="m-0">Refund</h6>
-                            <p class="text-secondary m-0 fs-7">Case Closed</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <h6 class="text-end">$289</h6>
-                      </div>
+                  <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                      <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
+                        <mat-icon>refresh</mat-icon>
+                        Actualiser
+                      </button>
+                      <button mat-raised-button (click)="exportData()">
+                        <mat-icon>download</mat-icon>
+                        Export
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Message d'erreur -->
+              <div *ngIf="errorMessage" class="alert alert-danger m-3">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <!-- Loading spinner -->
+              <div *ngIf="isLoading" class="text-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="mt-3 text-muted">Chargement des données...</p>
+              </div>
+
+              <!-- Message si aucune donnée -->
+              <div *ngIf="!isLoading && !errorMessage && waterData.length === 0" class="text-center p-5">
+                <i class="bi bi-database text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">Aucune donnée disponible</h5>
+                <p class="text-muted">Les données de qualité de l'eau seront affichées ici une fois disponibles.</p>
+                <button mat-raised-button color="primary" (click)="refreshData()">
+                  <mat-icon>refresh</mat-icon>
+                  Actualiser
+                </button>
+              </div>
+
+              <!-- Tableau des données -->
+              <div *ngIf="!isLoading && !errorMessage && waterData.length > 0" class="table-responsive">
+                <table mat-table [dataSource]="dataSource" matSort class="w-100">
+
+                  <!-- Colonne Filtre -->
+                  <ng-container matColumnDef="id_filtre">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Filtre</th>
+                    <td mat-cell *matCellDef="let element">
+                      <span class="badge bg-secondary">{{ element.body.id_filtre }}</span>
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne Phase -->
+                  <ng-container matColumnDef="phase">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Phase</th>
+                    <td mat-cell *matCellDef="let element">
+                      <span [class]="getPhaseClass(element.body.phase)">
+                        {{ element.body.phase }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne pH -->
+                  <ng-container matColumnDef="ph">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>pH</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('ph', element.body.ph)">
+                      <strong>{{ formatValue(element.body.ph) }}</strong>
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne DBO5 -->
+                  <ng-container matColumnDef="dbo5_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>DBO5 (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('dbo5_mg_l', element.body.dbo5_mg_l)">
+                      {{ formatValue(element.body.dbo5_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne DCO -->
+                  <ng-container matColumnDef="dco_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>DCO (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('dco_mg_l', element.body.dco_mg_l)">
+                      {{ formatValue(element.body.dco_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne MES -->
+                  <ng-container matColumnDef="mes_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>MES (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('mes_mg_l', element.body.mes_mg_l)">
+                      {{ formatValue(element.body.mes_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne Nitrates -->
+                  <ng-container matColumnDef="nitrates_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Nitrates (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('nitrates_mg_l', element.body.nitrates_mg_l)">
+                      {{ formatValue(element.body.nitrates_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne Ammonium -->
+                  <ng-container matColumnDef="ammonium_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Ammonium (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('ammonium_mg_l', element.body.ammonium_mg_l)">
+                      {{ formatValue(element.body.ammonium_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne Azote Total -->
+                  <ng-container matColumnDef="azote_total_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Azote total (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('azote_total_mg_l', element.body.azote_total_mg_l)">
+                      {{ formatValue(element.body.azote_total_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne Phosphates -->
+                  <ng-container matColumnDef="phosphates_mg_l">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Phosphates (mg/L)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('phosphates_mg_l', element.body.phosphates_mg_l)">
+                      {{ formatValue(element.body.phosphates_mg_l) }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Colonne Coliformes -->
+                  <ng-container matColumnDef="coliformes_fecaux_cfu_100ml">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Coliformes (CFU/100ml)</th>
+                    <td mat-cell *matCellDef="let element"
+                        [class]="getValueColor('coliformes_fecaux_cfu_100ml', element.body.coliformes_fecaux_cfu_100ml)">
+                      {{ formatValue(element.body.coliformes_fecaux_cfu_100ml) }}
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                      class="table-row-hover"></tr>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+             <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]"
+                [pageSize]="pageSize"
+                [pageIndex]="currentPage - 1"
+                [length]="paginatedData?.total || 0"
+                (page)="onPageChange($event)"
+                showFirstLastButtons
+                class="border-top">
+              </mat-paginator>
+
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carte des stations -->
+  <app-map
+      [waterData]="waterData"
+      [alerts]="alerts"
+      [stations]="stations">
+  </app-map>
+
+  <!-- Graphique de température -->
+  <app-temperature-chart></app-temperature-chart>
+
+  <!-- Section graphiques -->
+  <section class="pb-3 pb-md-4 pb-xl-5 bg-light">
+    <div class="container">
+      <div class="row gy-3 gy-md-4">
+        <div class="col-12 col-lg-6">
+          <!-- Graphique pH -->
+          <div class="card widget-card border-light shadow-sm h-100">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="card-title widget-card-title">Évolution du pH</h5>
+                <div>
+                  <select class="form-select text-secondary border-light-subtle"
+                          #filterSelect (change)="filterByFilter(filterSelect.value)">
+                    <option value="all">Tous les filtres</option>
+                    <option *ngFor="let filter of getUniqueFilters()" [value]="filter">
+                      {{ filter }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div style="height: 300px;">
+                <canvas id="phChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <!-- Graphique température -->
+          <div class="card widget-card border-light shadow-sm h-100">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="card-title widget-card-title">Température Stations</h5>
+              </div>
+              <div style="height: 300px;">
+                <canvas id="temperatureChart"></canvas>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Section - Bootstrap Brain Component -->
-    <section class="pb-3 pb-md-4 pb-xl-5 bg-light">
-      <div class="container">
-        <div class="row gy-3 gy-md-4">
-          <div class="col-12 col-lg-6 col-xl-5">
-            <!-- Calendar 1 - Bootstrap Brain Component -->
-            <div class="card widget-card border-light shadow-sm h-100">
-              <div class="card-body p-4">
-                <div id="bsb-calendar-1" class="fc fc-media-screen fc-direction-ltr fc-theme-bootstrap5 bsb-calendar-theme"></div>
+  <!-- Section résumé des alertes -->
+  <section class="pb-3 pb-md-4 pb-xl-5 bg-light">
+    <div class="container">
+      <div class="row gy-3 gy-md-4">
+        <div class="col-12 col-lg-6 col-xl-7">
+          <!-- Chart humidité -->
+          <div class="card widget-card border-light shadow-sm h-100">
+            <div class="card-body p-4">
+              <h5 class="card-title widget-card-title mb-3">Statistiques de Traitement</h5>
+              <div style="height: 300px;">
+                <canvas id="humidityChart"></canvas>
               </div>
             </div>
           </div>
-          <div class="col-12 col-lg-6 col-xl-7">
-            <!-- Table 1 - Bootstrap Brain Component -->
-            <div class="card widget-card border-light shadow-sm h-100">
-              <div class="card-body p-4">
-                <h5 class="card-title widget-card-title mb-4">Monthly Transactions</h5>
-                <div class="table-responsive">
-                  <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0">
-                    <thead>
-                      <tr>
-                        <th>Invoice</th>
-                        <th>Customer</th>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <h6 class="mb-1">#HO3210</h6>
-                          <span class="text-secondary fs-7">Web, UI Design</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">Oliver</h6>
-                          <span class="text-secondary fs-7">United States</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">Bootstrap</h6>
-                          <span class="text-secondary fs-7">v5.3+</span>
-                        </td>
-                        <td>$495</td>
-                        <td>
-                          <span class="badge rounded-pill bg-danger">Pending</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6 class="mb-1">#DR8672</h6>
-                          <span class="text-secondary fs-7">Web, UX Design</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">Emma</h6>
-                          <span class="text-secondary fs-7">United Kingdom</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">WordPress</h6>
-                          <span class="text-secondary fs-7">v6.3+</span>
-                        </td>
-                        <td>$950</td>
-                        <td>
-                          <span class="badge rounded-pill bg-success">Paid</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6 class="mb-1">#SA2910</h6>
-                          <span class="text-secondary fs-7">Web, SEO</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">Isabella</h6>
-                          <span class="text-secondary fs-7">Canada</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">React</h6>
-                          <span class="text-secondary fs-7">v18+</span>
-                        </td>
-                        <td>$700</td>
-                        <td>
-                          <span class="badge rounded-pill bg-info">On Hold</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <h6 class="mb-1">#BD1019</h6>
-                          <span class="text-secondary fs-7">SEM, SEO</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">William</h6>
-                          <span class="text-secondary fs-7">UAE</span>
-                        </td>
-                        <td>
-                          <h6 class="mb-1">Vue</h6>
-                          <span class="text-secondary fs-7">v3+</span>
-                        </td>
-                        <td>$875</td>
-                        <td>
-                          <span class="badge rounded-pill bg-warning">Negotiating</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+        </div>
+        <div class="col-12 col-lg-6 col-xl-5">
+          <!-- Résumé des alertes qualité -->
+          <div class="card widget-card border-light shadow-sm h-100">
+            <div class="card-body p-4">
+              <h5 class="card-title widget-card-title mb-4">Alertes Qualité de l'Eau</h5>
+              <div class="row gy-4">
+                <div class="col-12">
+                  <div class="row align-items-center">
+                    <div class="col-8">
+                      <div class="d-flex align-items-center">
+                        <div class="fs-5 bg-danger-subtle text-danger rounded-2 d-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px;">
+                          <i class="bi bi-droplet-half"></i>
+                        </div>
+                        <div>
+                          <h6 class="m-0">pH Critique</h6>
+                          <p class="text-secondary m-0 fs-7">Valeurs hors norme détectées</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <h6 class="text-end text-danger">{{ getWaterQualityStats()?.abnormalPH || 0 }}</h6>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="row align-items-center">
+                    <div class="col-8">
+                      <div class="d-flex align-items-center">
+                        <div class="fs-5 bg-warning-subtle text-warning rounded-2 d-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px;">
+                          <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                          <h6 class="m-0">Coliformes Élevés</h6>
+                          <p class="text-secondary m-0 fs-7">Surveillance continue</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <h6 class="text-end text-warning">{{ getWaterQualityStats()?.highColiformes || 0 }}</h6>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="row align-items-center">
+                    <div class="col-8">
+                      <div class="d-flex align-items-center">
+                        <div class="fs-5 bg-success-subtle text-success rounded-2 d-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px;">
+                          <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                          <h6 class="m-0">Traitement Efficace</h6>
+                          <p class="text-secondary m-0 fs-7">Purification optimale</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <h6 class="text-end text-success">✓ OK</h6>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-  </main>
-
-
+</main>

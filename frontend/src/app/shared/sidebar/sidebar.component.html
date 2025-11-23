@@ -40,10 +40,12 @@
       <li class="nav-item mt-3">
         <h6 class="py-1 text-secondary text-uppercase fs-7">Tools</h6>
       </li>
+
+      <!-- Stations avec protection par AuthGuard -->
       <li class="nav-item">
         <a
           class="nav-link p-3"
-          [routerLink]="['stations']"
+          [routerLink]="['/stations']"
           routerLinkActive="router-link-active"
           role="button"
         >
@@ -51,6 +53,29 @@
             <i class="bi bi-menu-button-wide-fill"></i>
           </div>
           <span class="nav-link-text fw-bold">Stations</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a
+          class="nav-link p-3"
+          [routerLink]="['filtres']"
+          routerLinkActive="router-link-active"
+          role="button"
+        >
+          <div class="nav-link-icon text-primary">
+            <i class="bi bi-funnel-fill"></i>
+          </div>
+          <span class="nav-link-text fw-bold">Filtres</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link p-3" routerLink="/predictions" routerLinkActive="active">
+          <div class="nav-link-icon text-primary">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <span class="nav-link-text fw-bold">Prédictions ML</span>
         </a>
       </li>
     </ul>

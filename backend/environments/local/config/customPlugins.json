@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "water-alert": {
+      "activated": true,
+      "thresholds": {
+        "pH": { "min": 5, "max": 9 },
+        "DO": { "min": 2 },
+        "DCO": { "max": 120 },
+        "DBO5": { "max": 25 }
+      }
+    }
+  }
+}

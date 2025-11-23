@@ -1,0 +1,57 @@
+/* Home Page Styles */
+.hero-section {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.min-vh-60 {
+  min-height: 60vh;
+}
+
+.hover-lift {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Effet de brillance sur les icônes */
+.rounded-circle {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.rounded-circle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation de pulsation pour les alertes */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.badge.bg-danger {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2rem;
+  }
+
+  .min-vh-60 {
+    min-height: 50vh;
+  }
+
+  .hero-section .row > div {
+    margin-bottom: 1rem;
+  }
+}

@@ -1,0 +1,50 @@
+/* ===== STYLES POUR LES ALERTES ===== */
+.alert-severity-high {
+  background-color: #ff6b35 !important;
+  color: white !important;
+  border: none;
+}
+
+.alert-severity-critical {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: none;
+}
+
+.alert-severity-medium {
+  background-color: #fd7e14 !important;
+  color: white !important;
+  border: none;
+}
+
+.alert-severity-warning {
+  background-color: #ffc107 !important;
+  color: black !important;
+  border: none;
+}
+
+.alert-severity-info {
+  background-color: #17a2b8 !important;
+  color: white !important;
+  border: none;
+}
+
+/* Style pour le conteneur des alertes */
+.alerts-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.alert-item {
+  border-left: 4px solid;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.alert-item.critical { border-left-color: #dc3545; }
+.alert-item.high { border-left-color: #ff6b35; }
+.alert-item.medium { border-left-color: #fd7e14; }
+.alert-item.warning { border-left-color: #ffc107; }
+.alert-item.info { border-left-color: #17a2b8; }

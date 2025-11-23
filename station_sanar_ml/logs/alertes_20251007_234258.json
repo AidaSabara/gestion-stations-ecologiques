@@ -1,0 +1,4878 @@
+{
+  "timestamp_analyse": "2025-10-07T23:42:58.194288",
+  "nombre_total_echantillons": 63,
+  "nombre_echantillons_conformes": 4,
+  "nombre_alertes": 59,
+  "alertes": [
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.167207",
+      "niveau_global": "ATTENTION",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 2.0,
+          "seuil": 2.0,
+          "ratio": 1.0,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.167807",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 270.0,
+          "seuil": 125.0,
+          "ratio": 2.16,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 70.3,
+          "seuil": 25.0,
+          "ratio": 2.812,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 98.0,
+          "seuil": 30.0,
+          "ratio": 3.2666666666666666,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 21.0,
+          "seuil": 10.0,
+          "ratio": 2.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 46.0,
+          "seuil": 2.0,
+          "ratio": 23.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 3670000.0,
+          "seuil": 10000.0,
+          "ratio": 367.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.168102",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 240.0,
+          "seuil": 125.0,
+          "ratio": 1.92,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 73.2,
+          "seuil": 25.0,
+          "ratio": 2.928,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 67.0,
+          "seuil": 30.0,
+          "ratio": 2.2333333333333334,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 31.0,
+          "seuil": 10.0,
+          "ratio": 3.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 70.8,
+          "seuil": 2.0,
+          "ratio": 35.4,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2330000.0,
+          "seuil": 10000.0,
+          "ratio": 233.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.168253",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 207.0,
+          "seuil": 125.0,
+          "ratio": 1.656,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 61.9,
+          "seuil": 25.0,
+          "ratio": 2.476,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 53.0,
+          "seuil": 30.0,
+          "ratio": 1.7666666666666666,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 48.0,
+          "seuil": 10.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 26.1,
+          "seuil": 2.0,
+          "ratio": 13.05,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2000000.0,
+          "seuil": 10000.0,
+          "ratio": 200.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.168347",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 89.0,
+          "seuil": 100.0,
+          "ratio": 0.89,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 7.5,
+          "seuil": 2.0,
+          "ratio": 3.75,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.85,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.168432",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 11.8,
+          "seuil": 2.0,
+          "ratio": 5.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.22,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.168520",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 64.0,
+          "seuil": 30.0,
+          "ratio": 2.1333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 3.9,
+          "seuil": 2.0,
+          "ratio": 1.95,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.168699",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 237.0,
+          "seuil": 125.0,
+          "ratio": 1.896,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 214.5,
+          "seuil": 25.0,
+          "ratio": 8.58,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 79.0,
+          "seuil": 30.0,
+          "ratio": 2.6333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 21.0,
+          "seuil": 10.0,
+          "ratio": 2.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 40.0,
+          "seuil": 2.0,
+          "ratio": 20.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2670000.0,
+          "seuil": 10000.0,
+          "ratio": 267.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.168789",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 272.0,
+          "seuil": 125.0,
+          "ratio": 2.176,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 205.25,
+          "seuil": 25.0,
+          "ratio": 8.21,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 79.0,
+          "seuil": 30.0,
+          "ratio": 2.6333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 39.0,
+          "seuil": 10.0,
+          "ratio": 3.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 5000000.0,
+          "seuil": 10000.0,
+          "ratio": 500.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.168878",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 215.0,
+          "seuil": 125.0,
+          "ratio": 1.72,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 120.0,
+          "seuil": 25.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 55.0,
+          "seuil": 30.0,
+          "ratio": 1.8333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 49.0,
+          "seuil": 10.0,
+          "ratio": 4.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 47.0,
+          "seuil": 2.0,
+          "ratio": 23.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2670000.0,
+          "seuil": 10000.0,
+          "ratio": 267.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.168960",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 145.0,
+          "seuil": 100.0,
+          "ratio": 1.45,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 8.4,
+          "seuil": 2.0,
+          "ratio": 4.2,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 33300.0,
+          "seuil": 10000.0,
+          "ratio": 3.33,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.08,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.169037",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 10.9,
+          "seuil": 2.0,
+          "ratio": 5.45,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.25,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.169277",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 234.0,
+          "seuil": 125.0,
+          "ratio": 1.872,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 76.0,
+          "seuil": 25.0,
+          "ratio": 3.04,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 55.0,
+          "seuil": 30.0,
+          "ratio": 1.8333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 23.0,
+          "seuil": 10.0,
+          "ratio": 2.3,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 86.0,
+          "seuil": 2.0,
+          "ratio": 43.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 3670000.0,
+          "seuil": 10000.0,
+          "ratio": 367.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.169386",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 280.0,
+          "seuil": 125.0,
+          "ratio": 2.24,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 92.8,
+          "seuil": 25.0,
+          "ratio": 3.7119999999999997,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 58.0,
+          "seuil": 30.0,
+          "ratio": 1.9333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 38.0,
+          "seuil": 10.0,
+          "ratio": 3.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 37.0,
+          "seuil": 2.0,
+          "ratio": 18.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2330000.0,
+          "seuil": 10000.0,
+          "ratio": 233.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.169470",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 210.0,
+          "seuil": 125.0,
+          "ratio": 1.68,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 59.1,
+          "seuil": 25.0,
+          "ratio": 2.364,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 43.0,
+          "seuil": 30.0,
+          "ratio": 1.4333333333333333,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 59.0,
+          "seuil": 10.0,
+          "ratio": 5.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2000000.0,
+          "seuil": 10000.0,
+          "ratio": 200.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.169557",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 107.0,
+          "seuil": 100.0,
+          "ratio": 1.07,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.2,
+          "seuil": 2.0,
+          "ratio": 6.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.72,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.169690",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 92.0,
+          "seuil": 100.0,
+          "ratio": 0.92,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 13.3,
+          "seuil": 2.0,
+          "ratio": 6.65,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.95,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.169790",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 131.0,
+          "seuil": 125.0,
+          "ratio": 1.048,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 19.0,
+          "seuil": 2.0,
+          "ratio": 9.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.169875",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 247.0,
+          "seuil": 125.0,
+          "ratio": 1.976,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 64.7,
+          "seuil": 25.0,
+          "ratio": 2.588,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 50.0,
+          "seuil": 30.0,
+          "ratio": 1.6666666666666667,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 20.0,
+          "seuil": 10.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 11.0,
+          "seuil": 2.0,
+          "ratio": 5.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.169963",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 260.0,
+          "seuil": 125.0,
+          "ratio": 2.08,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 90.0,
+          "seuil": 25.0,
+          "ratio": 3.6,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 61.0,
+          "seuil": 30.0,
+          "ratio": 2.033333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 30.0,
+          "seuil": 10.0,
+          "ratio": 3.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 23.1,
+          "seuil": 2.0,
+          "ratio": 11.55,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 13300000.0,
+          "seuil": 10000.0,
+          "ratio": 1330.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.170049",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 184.0,
+          "seuil": 125.0,
+          "ratio": 1.472,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 39.4,
+          "seuil": 25.0,
+          "ratio": 1.5759999999999998,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 28.0,
+          "seuil": 30.0,
+          "ratio": 0.9333333333333333,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 60.0,
+          "seuil": 10.0,
+          "ratio": 6.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 16.1,
+          "seuil": 2.0,
+          "ratio": 8.05,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.170713",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 101.0,
+          "seuil": 100.0,
+          "ratio": 1.01,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.5,
+          "seuil": 2.0,
+          "ratio": 6.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.21,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.170908",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 136.0,
+          "seuil": 100.0,
+          "ratio": 1.36,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 14.0,
+          "seuil": 2.0,
+          "ratio": 7.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.53,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171007",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171180",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 27.0,
+          "seuil": 30.0,
+          "ratio": 0.9,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 6.6,
+          "seuil": 2.0,
+          "ratio": 3.3,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171317",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 131.0,
+          "seuil": 125.0,
+          "ratio": 1.048,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 64.0,
+          "seuil": 30.0,
+          "ratio": 2.1333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 19.0,
+          "seuil": 2.0,
+          "ratio": 9.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171686",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 25.285041691350507,
+          "seuil": 30.0,
+          "ratio": 0.8428347230450169,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 8.331066358316123,
+          "seuil": 2.0,
+          "ratio": 4.165533179158062,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.2348099535490654,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171778",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.029378786806264,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHb",
+      "timestamp": "2025-10-07T23:42:58.171853",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 3.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172092",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172240",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 247.0,
+          "seuil": 125.0,
+          "ratio": 1.976,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 106.375,
+          "seuil": 25.0,
+          "ratio": 4.255,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 70.5,
+          "seuil": 30.0,
+          "ratio": 2.35,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 21.25,
+          "seuil": 10.0,
+          "ratio": 2.125,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 45.75,
+          "seuil": 2.0,
+          "ratio": 22.875,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2752500.0,
+          "seuil": 10000.0,
+          "ratio": 275.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172328",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 270.0,
+          "seuil": 125.0,
+          "ratio": 2.16,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 214.5,
+          "seuil": 25.0,
+          "ratio": 8.58,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 98.0,
+          "seuil": 30.0,
+          "ratio": 3.2666666666666666,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 23.0,
+          "seuil": 10.0,
+          "ratio": 2.3,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 86.0,
+          "seuil": 2.0,
+          "ratio": 43.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 3670000.0,
+          "seuil": 10000.0,
+          "ratio": 367.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172419",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 234.0,
+          "seuil": 125.0,
+          "ratio": 1.872,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 64.7,
+          "seuil": 25.0,
+          "ratio": 2.588,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 50.0,
+          "seuil": 30.0,
+          "ratio": 1.6666666666666667,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 20.0,
+          "seuil": 10.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 11.0,
+          "seuil": 2.0,
+          "ratio": 5.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172551",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 72.23080483191825,
+          "seuil": 25.0,
+          "ratio": 2.88923219327673,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 30.88014464560251,
+          "seuil": 2.0,
+          "ratio": 15.440072322801255,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1259851.181687742,
+          "seuil": 10000.0,
+          "ratio": 125.9851181687742,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.2338731850098824,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172671",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0299006842117897,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.172758",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.172844",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 263.0,
+          "seuil": 125.0,
+          "ratio": 2.104,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 115.3125,
+          "seuil": 25.0,
+          "ratio": 4.6125,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 66.25,
+          "seuil": 30.0,
+          "ratio": 2.2083333333333335,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 34.5,
+          "seuil": 10.0,
+          "ratio": 3.45,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 52.725,
+          "seuil": 2.0,
+          "ratio": 26.3625,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 5740000.0,
+          "seuil": 10000.0,
+          "ratio": 574.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.172984",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 280.0,
+          "seuil": 125.0,
+          "ratio": 2.24,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 205.25,
+          "seuil": 25.0,
+          "ratio": 8.21,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 79.0,
+          "seuil": 30.0,
+          "ratio": 2.6333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 39.0,
+          "seuil": 10.0,
+          "ratio": 3.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 13300000.0,
+          "seuil": 10000.0,
+          "ratio": 1330.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.173084",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 240.0,
+          "seuil": 125.0,
+          "ratio": 1.92,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 73.2,
+          "seuil": 25.0,
+          "ratio": 2.928,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 58.0,
+          "seuil": 30.0,
+          "ratio": 1.9333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 30.0,
+          "seuil": 10.0,
+          "ratio": 3.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 23.1,
+          "seuil": 2.0,
+          "ratio": 11.55,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2330000.0,
+          "seuil": 10000.0,
+          "ratio": 233.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.173162",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 60.57984228822874,
+          "seuil": 25.0,
+          "ratio": 2.4231936915291494,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 27.05271089311876,
+          "seuil": 2.0,
+          "ratio": 13.52635544655938,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 5194785.847366569,
+          "seuil": 10000.0,
+          "ratio": 519.4785847366569,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.0814861951498535,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.173274",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0098294565922621,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173363",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173443",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 204.0,
+          "seuil": 125.0,
+          "ratio": 1.632,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 70.1,
+          "seuil": 25.0,
+          "ratio": 2.804,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 44.75,
+          "seuil": 30.0,
+          "ratio": 1.4916666666666667,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 54.0,
+          "seuil": 10.0,
+          "ratio": 5.4,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 42.3,
+          "seuil": 2.0,
+          "ratio": 21.15,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1917500.0,
+          "seuil": 10000.0,
+          "ratio": 191.75,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173522",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 215.0,
+          "seuil": 125.0,
+          "ratio": 1.72,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 120.0,
+          "seuil": 25.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 55.0,
+          "seuil": 30.0,
+          "ratio": 1.8333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 60.0,
+          "seuil": 10.0,
+          "ratio": 6.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2670000.0,
+          "seuil": 10000.0,
+          "ratio": 267.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173655",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 184.0,
+          "seuil": 125.0,
+          "ratio": 1.472,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 39.4,
+          "seuil": 25.0,
+          "ratio": 1.5759999999999998,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 28.0,
+          "seuil": 30.0,
+          "ratio": 0.9333333333333333,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 48.0,
+          "seuil": 10.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 16.1,
+          "seuil": 2.0,
+          "ratio": 8.05,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173741",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 34.740658216754255,
+          "seuil": 25.0,
+          "ratio": 1.3896263286701702,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 28.238626028898786,
+          "seuil": 2.0,
+          "ratio": 14.119313014449393,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 688397.8985054113,
+          "seuil": 10000.0,
+          "ratio": 68.83978985054114,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.0893681524183343,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173835",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0109878875924181,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.173922",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174021",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 110.5,
+          "seuil": 100.0,
+          "ratio": 1.105,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 10.15,
+          "seuil": 2.0,
+          "ratio": 5.075,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 11660.0,
+          "seuil": 10000.0,
+          "ratio": 1.166,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.748571428571429,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174261",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 145.0,
+          "seuil": 100.0,
+          "ratio": 1.45,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.5,
+          "seuil": 2.0,
+          "ratio": 6.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 33300.0,
+          "seuil": 10000.0,
+          "ratio": 3.33,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174387",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 89.0,
+          "seuil": 100.0,
+          "ratio": 0.89,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 7.5,
+          "seuil": 2.0,
+          "ratio": 3.75,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.14,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174473",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 2.5696951829610675,
+          "seuil": 2.0,
+          "ratio": 1.2848475914805337,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 14765.335530672282,
+          "seuil": 10000.0,
+          "ratio": 1.4765335530672283,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.4763552096012866,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174586",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0828649718491303,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.174737",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.174877",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 90.75,
+          "seuil": 100.0,
+          "ratio": 0.9075,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.5,
+          "seuil": 2.0,
+          "ratio": 6.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.8116666666666665,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.174973",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 136.0,
+          "seuil": 100.0,
+          "ratio": 1.36,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 14.0,
+          "seuil": 2.0,
+          "ratio": 7.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.25,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.175081",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 10.9,
+          "seuil": 2.0,
+          "ratio": 5.45,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.19,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.175163",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.4124277714541863,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.175263",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0709654897827679,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    }
+  ],
+  "tous_resultats": [
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.167207",
+      "niveau_global": "ATTENTION",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 2.0,
+          "seuil": 2.0,
+          "ratio": 1.0,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.167807",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 270.0,
+          "seuil": 125.0,
+          "ratio": 2.16,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 70.3,
+          "seuil": 25.0,
+          "ratio": 2.812,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 98.0,
+          "seuil": 30.0,
+          "ratio": 3.2666666666666666,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 21.0,
+          "seuil": 10.0,
+          "ratio": 2.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 46.0,
+          "seuil": 2.0,
+          "ratio": 23.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 3670000.0,
+          "seuil": 10000.0,
+          "ratio": 367.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.168102",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 240.0,
+          "seuil": 125.0,
+          "ratio": 1.92,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 73.2,
+          "seuil": 25.0,
+          "ratio": 2.928,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 67.0,
+          "seuil": 30.0,
+          "ratio": 2.2333333333333334,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 31.0,
+          "seuil": 10.0,
+          "ratio": 3.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 70.8,
+          "seuil": 2.0,
+          "ratio": 35.4,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2330000.0,
+          "seuil": 10000.0,
+          "ratio": 233.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.168253",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 207.0,
+          "seuil": 125.0,
+          "ratio": 1.656,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 61.9,
+          "seuil": 25.0,
+          "ratio": 2.476,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 53.0,
+          "seuil": 30.0,
+          "ratio": 1.7666666666666666,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 48.0,
+          "seuil": 10.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 26.1,
+          "seuil": 2.0,
+          "ratio": 13.05,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2000000.0,
+          "seuil": 10000.0,
+          "ratio": 200.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.168347",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 89.0,
+          "seuil": 100.0,
+          "ratio": 0.89,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 7.5,
+          "seuil": 2.0,
+          "ratio": 3.75,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.85,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.168432",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 11.8,
+          "seuil": 2.0,
+          "ratio": 5.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.22,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.168520",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 64.0,
+          "seuil": 30.0,
+          "ratio": 2.1333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 3.9,
+          "seuil": 2.0,
+          "ratio": 1.95,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.168699",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 237.0,
+          "seuil": 125.0,
+          "ratio": 1.896,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 214.5,
+          "seuil": 25.0,
+          "ratio": 8.58,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 79.0,
+          "seuil": 30.0,
+          "ratio": 2.6333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 21.0,
+          "seuil": 10.0,
+          "ratio": 2.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 40.0,
+          "seuil": 2.0,
+          "ratio": 20.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2670000.0,
+          "seuil": 10000.0,
+          "ratio": 267.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.168789",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 272.0,
+          "seuil": 125.0,
+          "ratio": 2.176,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 205.25,
+          "seuil": 25.0,
+          "ratio": 8.21,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 79.0,
+          "seuil": 30.0,
+          "ratio": 2.6333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 39.0,
+          "seuil": 10.0,
+          "ratio": 3.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 5000000.0,
+          "seuil": 10000.0,
+          "ratio": 500.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.168878",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 215.0,
+          "seuil": 125.0,
+          "ratio": 1.72,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 120.0,
+          "seuil": 25.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 55.0,
+          "seuil": 30.0,
+          "ratio": 1.8333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 49.0,
+          "seuil": 10.0,
+          "ratio": 4.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 47.0,
+          "seuil": 2.0,
+          "ratio": 23.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2670000.0,
+          "seuil": 10000.0,
+          "ratio": 267.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.168960",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 145.0,
+          "seuil": 100.0,
+          "ratio": 1.45,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 8.4,
+          "seuil": 2.0,
+          "ratio": 4.2,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 33300.0,
+          "seuil": 10000.0,
+          "ratio": 3.33,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.08,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.169037",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 10.9,
+          "seuil": 2.0,
+          "ratio": 5.45,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.25,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.169175",
+      "niveau_global": "CONFORME",
+      "conforme": true,
+      "nombre_depassements": 0,
+      "depassements": []
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.169277",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 234.0,
+          "seuil": 125.0,
+          "ratio": 1.872,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 76.0,
+          "seuil": 25.0,
+          "ratio": 3.04,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 55.0,
+          "seuil": 30.0,
+          "ratio": 1.8333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 23.0,
+          "seuil": 10.0,
+          "ratio": 2.3,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 86.0,
+          "seuil": 2.0,
+          "ratio": 43.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 3670000.0,
+          "seuil": 10000.0,
+          "ratio": 367.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.169386",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 280.0,
+          "seuil": 125.0,
+          "ratio": 2.24,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 92.8,
+          "seuil": 25.0,
+          "ratio": 3.7119999999999997,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 58.0,
+          "seuil": 30.0,
+          "ratio": 1.9333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 38.0,
+          "seuil": 10.0,
+          "ratio": 3.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 37.0,
+          "seuil": 2.0,
+          "ratio": 18.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2330000.0,
+          "seuil": 10000.0,
+          "ratio": 233.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.169470",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 210.0,
+          "seuil": 125.0,
+          "ratio": 1.68,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 59.1,
+          "seuil": 25.0,
+          "ratio": 2.364,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 43.0,
+          "seuil": 30.0,
+          "ratio": 1.4333333333333333,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 59.0,
+          "seuil": 10.0,
+          "ratio": 5.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2000000.0,
+          "seuil": 10000.0,
+          "ratio": 200.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.169557",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 107.0,
+          "seuil": 100.0,
+          "ratio": 1.07,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.2,
+          "seuil": 2.0,
+          "ratio": 6.1,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.72,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.169690",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 92.0,
+          "seuil": 100.0,
+          "ratio": 0.92,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 13.3,
+          "seuil": 2.0,
+          "ratio": 6.65,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.95,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.169790",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 131.0,
+          "seuil": 125.0,
+          "ratio": 1.048,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 19.0,
+          "seuil": 2.0,
+          "ratio": 9.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.169875",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 247.0,
+          "seuil": 125.0,
+          "ratio": 1.976,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 64.7,
+          "seuil": 25.0,
+          "ratio": 2.588,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 50.0,
+          "seuil": 30.0,
+          "ratio": 1.6666666666666667,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 20.0,
+          "seuil": 10.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 11.0,
+          "seuil": 2.0,
+          "ratio": 5.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.169963",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 260.0,
+          "seuil": 125.0,
+          "ratio": 2.08,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 90.0,
+          "seuil": 25.0,
+          "ratio": 3.6,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 61.0,
+          "seuil": 30.0,
+          "ratio": 2.033333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 30.0,
+          "seuil": 10.0,
+          "ratio": 3.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 23.1,
+          "seuil": 2.0,
+          "ratio": 11.55,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 13300000.0,
+          "seuil": 10000.0,
+          "ratio": 1330.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.170049",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 184.0,
+          "seuil": 125.0,
+          "ratio": 1.472,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 39.4,
+          "seuil": 25.0,
+          "ratio": 1.5759999999999998,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 28.0,
+          "seuil": 30.0,
+          "ratio": 0.9333333333333333,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 60.0,
+          "seuil": 10.0,
+          "ratio": 6.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 16.1,
+          "seuil": 2.0,
+          "ratio": 8.05,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.170713",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 101.0,
+          "seuil": 100.0,
+          "ratio": 1.01,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.5,
+          "seuil": 2.0,
+          "ratio": 6.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.21,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.170908",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 136.0,
+          "seuil": 100.0,
+          "ratio": 1.36,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 14.0,
+          "seuil": 2.0,
+          "ratio": 7.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.53,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171007",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171180",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 27.0,
+          "seuil": 30.0,
+          "ratio": 0.9,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 6.6,
+          "seuil": 2.0,
+          "ratio": 3.3,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171317",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 131.0,
+          "seuil": 125.0,
+          "ratio": 1.048,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 64.0,
+          "seuil": 30.0,
+          "ratio": 2.1333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 19.0,
+          "seuil": 2.0,
+          "ratio": 9.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171540",
+      "niveau_global": "CONFORME",
+      "conforme": true,
+      "nombre_depassements": 0,
+      "depassements": []
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171686",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 25.285041691350507,
+          "seuil": 30.0,
+          "ratio": 0.8428347230450169,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 8.331066358316123,
+          "seuil": 2.0,
+          "ratio": 4.165533179158062,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.2348099535490654,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHa",
+      "timestamp": "2025-10-07T23:42:58.171778",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.029378786806264,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHb",
+      "timestamp": "2025-10-07T23:42:58.171853",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 3.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHb",
+      "timestamp": "2025-10-07T23:42:58.171926",
+      "niveau_global": "CONFORME",
+      "conforme": true,
+      "nombre_depassements": 0,
+      "depassements": []
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FH",
+      "groupe_filtre": "FH",
+      "nom_feuille": "SFHb",
+      "timestamp": "2025-10-07T23:42:58.172000",
+      "niveau_global": "CONFORME",
+      "conforme": true,
+      "nombre_depassements": 0,
+      "depassements": []
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172092",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172240",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 247.0,
+          "seuil": 125.0,
+          "ratio": 1.976,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 106.375,
+          "seuil": 25.0,
+          "ratio": 4.255,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 70.5,
+          "seuil": 30.0,
+          "ratio": 2.35,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 21.25,
+          "seuil": 10.0,
+          "ratio": 2.125,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 45.75,
+          "seuil": 2.0,
+          "ratio": 22.875,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2752500.0,
+          "seuil": 10000.0,
+          "ratio": 275.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172328",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 270.0,
+          "seuil": 125.0,
+          "ratio": 2.16,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 214.5,
+          "seuil": 25.0,
+          "ratio": 8.58,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 98.0,
+          "seuil": 30.0,
+          "ratio": 3.2666666666666666,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 23.0,
+          "seuil": 10.0,
+          "ratio": 2.3,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 86.0,
+          "seuil": 2.0,
+          "ratio": 43.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 3670000.0,
+          "seuil": 10000.0,
+          "ratio": 367.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172419",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 234.0,
+          "seuil": 125.0,
+          "ratio": 1.872,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 64.7,
+          "seuil": 25.0,
+          "ratio": 2.588,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 50.0,
+          "seuil": 30.0,
+          "ratio": 1.6666666666666667,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 20.0,
+          "seuil": 10.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 11.0,
+          "seuil": 2.0,
+          "ratio": 5.5,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172551",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 72.23080483191825,
+          "seuil": 25.0,
+          "ratio": 2.88923219327673,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 30.88014464560251,
+          "seuil": 2.0,
+          "ratio": 15.440072322801255,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1259851.181687742,
+          "seuil": 10000.0,
+          "ratio": 125.9851181687742,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.2338731850098824,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1a",
+      "timestamp": "2025-10-07T23:42:58.172671",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0299006842117897,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.172758",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.172844",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 263.0,
+          "seuil": 125.0,
+          "ratio": 2.104,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 115.3125,
+          "seuil": 25.0,
+          "ratio": 4.6125,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 66.25,
+          "seuil": 30.0,
+          "ratio": 2.2083333333333335,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 34.5,
+          "seuil": 10.0,
+          "ratio": 3.45,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 52.725,
+          "seuil": 2.0,
+          "ratio": 26.3625,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 5740000.0,
+          "seuil": 10000.0,
+          "ratio": 574.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.172984",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 280.0,
+          "seuil": 125.0,
+          "ratio": 2.24,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 205.25,
+          "seuil": 25.0,
+          "ratio": 8.21,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 79.0,
+          "seuil": 30.0,
+          "ratio": 2.6333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 39.0,
+          "seuil": 10.0,
+          "ratio": 3.9,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 13300000.0,
+          "seuil": 10000.0,
+          "ratio": 1330.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.173084",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 240.0,
+          "seuil": 125.0,
+          "ratio": 1.92,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 73.2,
+          "seuil": 25.0,
+          "ratio": 2.928,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 58.0,
+          "seuil": 30.0,
+          "ratio": 1.9333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 30.0,
+          "seuil": 10.0,
+          "ratio": 3.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 23.1,
+          "seuil": 2.0,
+          "ratio": 11.55,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2330000.0,
+          "seuil": 10000.0,
+          "ratio": 233.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.173162",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 60.57984228822874,
+          "seuil": 25.0,
+          "ratio": 2.4231936915291494,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 27.05271089311876,
+          "seuil": 2.0,
+          "ratio": 13.52635544655938,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 5194785.847366569,
+          "seuil": 10000.0,
+          "ratio": 519.4785847366569,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.0814861951498535,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1b",
+      "timestamp": "2025-10-07T23:42:58.173274",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0098294565922621,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173363",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173443",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 204.0,
+          "seuil": 125.0,
+          "ratio": 1.632,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 70.1,
+          "seuil": 25.0,
+          "ratio": 2.804,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 44.75,
+          "seuil": 30.0,
+          "ratio": 1.4916666666666667,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 54.0,
+          "seuil": 10.0,
+          "ratio": 5.4,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 42.3,
+          "seuil": 2.0,
+          "ratio": 21.15,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1917500.0,
+          "seuil": 10000.0,
+          "ratio": 191.75,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173522",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 215.0,
+          "seuil": 125.0,
+          "ratio": 1.72,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 120.0,
+          "seuil": 25.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 55.0,
+          "seuil": 30.0,
+          "ratio": 1.8333333333333333,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 60.0,
+          "seuil": 10.0,
+          "ratio": 6.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 80.0,
+          "seuil": 2.0,
+          "ratio": 40.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 2670000.0,
+          "seuil": 10000.0,
+          "ratio": 267.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173655",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 6,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 184.0,
+          "seuil": 125.0,
+          "ratio": 1.472,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 39.4,
+          "seuil": 25.0,
+          "ratio": 1.5759999999999998,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "mes_mg_l",
+          "valeur": 28.0,
+          "seuil": 30.0,
+          "ratio": 0.9333333333333333,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "ammonium_mg_l",
+          "valeur": 48.0,
+          "seuil": 10.0,
+          "ratio": 4.8,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 16.1,
+          "seuil": 2.0,
+          "ratio": 8.05,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 1000000.0,
+          "seuil": 10000.0,
+          "ratio": 100.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173741",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dbo5_mg_l",
+          "valeur": 34.740658216754255,
+          "seuil": 25.0,
+          "ratio": 1.3896263286701702,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 28.238626028898786,
+          "seuil": 2.0,
+          "ratio": 14.119313014449393,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 688397.8985054113,
+          "seuil": 10000.0,
+          "ratio": 68.83978985054114,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.0893681524183343,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV1",
+      "groupe_filtre": "FV1",
+      "nom_feuille": "SFV1c",
+      "timestamp": "2025-10-07T23:42:58.173835",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0109878875924181,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.173922",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174021",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 4,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 110.5,
+          "seuil": 100.0,
+          "ratio": 1.105,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 10.15,
+          "seuil": 2.0,
+          "ratio": 5.075,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 11660.0,
+          "seuil": 10000.0,
+          "ratio": 1.166,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.748571428571429,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174261",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 145.0,
+          "seuil": 100.0,
+          "ratio": 1.45,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.5,
+          "seuil": 2.0,
+          "ratio": 6.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 33300.0,
+          "seuil": 10000.0,
+          "ratio": 3.33,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174387",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 89.0,
+          "seuil": 100.0,
+          "ratio": 0.89,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 7.5,
+          "seuil": 2.0,
+          "ratio": 3.75,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.14,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174473",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 2.5696951829610675,
+          "seuil": 2.0,
+          "ratio": 1.2848475914805337,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "coliformes_fecaux_cfu_100ml",
+          "valeur": 14765.335530672282,
+          "seuil": 10000.0,
+          "ratio": 1.4765335530672283,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 0.4763552096012866,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2a",
+      "timestamp": "2025-10-07T23:42:58.174586",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0828649718491303,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.174737",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 4.0,
+          "seuil": 2.0,
+          "ratio": 2.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.0,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.174877",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 90.75,
+          "seuil": 100.0,
+          "ratio": 0.9075,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 12.5,
+          "seuil": 2.0,
+          "ratio": 6.25,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.8116666666666665,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.174973",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 3,
+      "depassements": [
+        {
+          "parametre": "dco_mg_l",
+          "valeur": 136.0,
+          "seuil": 100.0,
+          "ratio": 1.36,
+          "niveau": "ALERTE",
+          "action": "Intervention recommandée sous 24h"
+        },
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 14.0,
+          "seuil": 2.0,
+          "ratio": 7.0,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 6.25,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "ATTENTION",
+          "action": "Surveillance renforcée"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.175081",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 2,
+      "depassements": [
+        {
+          "parametre": "phosphates_mg_l",
+          "valeur": 10.9,
+          "seuil": 2.0,
+          "ratio": 5.45,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        },
+        {
+          "parametre": "ph",
+          "valeur": 5.19,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.175163",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.4124277714541863,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    },
+    {
+      "id_station": "Sanar_Station",
+      "filtre": "FV2",
+      "groupe_filtre": "FV2",
+      "nom_feuille": "SFV2b",
+      "timestamp": "2025-10-07T23:42:58.175263",
+      "niveau_global": "CRITIQUE",
+      "conforme": false,
+      "nombre_depassements": 1,
+      "depassements": [
+        {
+          "parametre": "ph",
+          "valeur": 0.0709654897827679,
+          "seuil": "6.5-8.5",
+          "ratio": null,
+          "niveau": "CRITIQUE",
+          "action": "INTERVENTION IMMÉDIATE REQUISE"
+        }
+      ]
+    }
+  ]
+}

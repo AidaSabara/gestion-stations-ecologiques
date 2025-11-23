@@ -1,0 +1,235 @@
+<!-- ============================================ -->
+<!-- STATION-DETAIL.COMPONENT.HTML -->
+<!-- ============================================ -->
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="loading-container">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+  <p class="mt-3 text-muted">Chargement des données de la station...</p>
+</div>
+
+<!-- Contenu principal -->
+<div *ngIf="!isLoading && station">
+
+  <!-- Hero Section (même style que Home) -->
+  <section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+
+      <!-- Bouton retour -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <button class="btn btn-outline-light btn-sm" (click)="goBack()">
+            <i class="bi bi-arrow-left me-2"></i>
+            Retour à la carte
+          </button>
+        </div>
+      </div>
+
+      <div class="row align-items-center">
+        <div class="col-lg-8 mx-auto text-center">
+
+          <!-- Nom de la station avec statut -->
+          <div class="station-status-badge mb-3">
+            <span class="badge {{ getStatusClass() }} fs-6 px-3 py-2">
+              <i class="bi {{ getStationStatus() === 'alert' ? 'bi-exclamation-triangle' : 'bi-check-circle' }} me-1"></i>
+              {{ getStatusText() }}
+            </span>
+          </div>
+
+          <h1 class="display-5 fw-bold mb-3">
+            <i class="bi bi-droplet-fill me-2"></i>
+            {{ getStationName() }}
+          </h1>
+
+          <p class="lead mb-4 opacity-90">
+            Surveillance et gestion de la station d'épuration
+          </p>
+
+          <!-- Stats de cette station -->
+          <div class="row mt-4">
+            <div class="col-6 col-md-3">
+              <div class="text-center stat-item">
+                <h3 class="text-warning mb-1">{{ stats.activeAlerts }}</h3>
+                <p class="mb-0 small">Alertes actives</p>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-center stat-item">
+                <h3 class="text-success mb-1">{{ stats.waterQuality }}%</h3>
+                <p class="mb-0 small">Qualité d'eau</p>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-center stat-item">
+                <h3 class="text-info mb-1">{{ stats.responseTime }}</h3>
+                <p class="mb-0 small">Temps réponse</p>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-center stat-item">
+                <h3 class="text-light mb-1">{{ stats.totalFiltres }}</h3>
+                <p class="mb-0 small">Filtres</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cartes de Navigation (comme ancien Home) -->
+  <section class="py-5 bg-light">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- Carte Alertes -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+            <div class="card-body p-4">
+              <div class="bg-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                   style="width: 80px; height: 80px;">
+                <i class="bi bi-bell-fill text-white fs-2"></i>
+              </div>
+              <h3 class="h5">Alertes</h3>
+              <p class="text-muted mb-3">Anomalies et notifications de cette station</p>
+
+              <div class="mb-3">
+                <span class="badge bg-danger">{{ stats.activeAlerts }} alertes actives</span>
+              </div>
+
+              <a [routerLink]="['/station', stationId, 'alerts']" class="btn btn-danger">
+                Voir les alertes
+                <i class="bi bi-arrow-right ms-2"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte Données -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+            <div class="card-body p-4">
+              <div class="bg-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                   style="width: 80px; height: 80px;">
+                <i class="bi bi-table text-white fs-2"></i>
+              </div>
+              <h3 class="h5">Tableau de Données</h3>
+              <p class="text-muted mb-3">Données brutes et qualité d'eau</p>
+
+              <div class="mb-3">
+                <span class="badge bg-info">{{ waterData.length }} enregistrements</span>
+              </div>
+
+              <button (click)="navigateToData()" class="btn btn-info text-white">
+                Voir les données
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte Graphiques -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+            <div class="card-body p-4">
+              <div class="bg-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                   style="width: 80px; height: 80px;">
+                <i class="bi bi-graph-up text-white fs-2"></i>
+              </div>
+              <h3 class="h5">Analyses & Graphiques</h3>
+              <p class="text-muted mb-3">Visualisations et tendances</p>
+
+              <a [routerLink]="['/station', stationId, 'charts']" class="btn btn-warning text-white">
+                Voir les graphiques
+                <i class="bi bi-arrow-right ms-2"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte Filtres -->
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+            <div class="card-body p-4">
+              <div class="bg-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                   style="width: 80px; height: 80px;">
+                <i class="bi bi-funnel-fill text-white fs-2"></i>
+              </div>
+              <h3 class="h5">Filtres Écologiques</h3>
+              <p class="text-muted mb-3">Suivi du cycle de vie des filtres</p>
+
+              <div class="mb-3">
+                <span class="badge bg-success">{{ stats.totalFiltres }} filtres</span>
+              </div>
+
+              <a [routerLink]="['/station', stationId, 'filtres']" class="btn btn-success">
+                Gérer les filtres
+                <i class="bi bi-arrow-right ms-2"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Infos générales de la station -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <div class="card border-primary shadow-sm">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Informations générales
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>ID Station :</strong> {{ station.id }}</p>
+                  <p><strong>Nom :</strong> {{ station.name }}</p>
+                  <p *ngIf="station.location?.lat">
+                    <strong>Position :</strong>
+                    {{ station.location.lat | number:'1.4-4' }}, {{ station.location.lon | number:'1.4-4' }}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Statut :</strong>
+                    <span class="badge {{ getStatusClass() }}">{{ getStatusText() }}</span>
+                  </p>
+                  <p><strong>Données eau :</strong> {{ waterData.length }} enregistrements</p>
+                  <p><strong>Capteurs :</strong> {{ readings.length }} lectures</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aperçu rapide des alertes -->
+
+
+    </div>
+  </section>
+
+</div>
+
+<!-- Station non trouvée -->
+<div *ngIf="!isLoading && !station" class="container py-5 text-center">
+  <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+  <h3 class="mt-3">Station non trouvée</h3>
+  <p class="text-muted">La station demandée n'existe pas ou a été supprimée.</p>
+  <button class="btn btn-primary" (click)="goBack()">
+    <i class="bi bi-arrow-left me-2"></i>
+    Retour à la carte
+  </button>
+</div>
+<app-station-auth-modal
+  [stationId]="stationId"
+  [stationName]="getStationName()"
+  [redirectUrl]="'/station/' + stationId + '/data'"
+  (authSuccess)="onAuthSuccess()"
+  (authFailed)="onAuthFailed($event)">
+</app-station-auth-modal>

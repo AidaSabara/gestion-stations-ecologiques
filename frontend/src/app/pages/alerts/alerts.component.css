@@ -1,0 +1,94 @@
+/* Alerts Page Styles */
+.alert-item {
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+}
+
+.alert-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+
+.alert-item.border-danger {
+  border-left-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+.alert-item.border-warning {
+  border-left-color: #fd7e14;
+  background-color: rgba(253, 126, 20, 0.05);
+}
+
+.alert-item.border-info {
+  border-left-color: #0dcaf0;
+  background-color: rgba(13, 202, 240, 0.05);
+}
+
+.alert-item.border-secondary {
+  border-left-color: #6c757d;
+  background-color: rgba(108, 117, 125, 0.05);
+}
+
+/* Badge styles */
+.badge {
+  font-size: 0.7em;
+  padding: 0.35em 0.65em;
+  font-weight: 600;
+}
+
+/* Bouton résoudre */
+.btn-success {
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Filtres actifs */
+.btn-group .btn.active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+}
+
+/* Animation pour nouvelles alertes */
+@keyframes highlight {
+  0% { background-color: #fff3cd; }
+  100% { background-color: transparent; }
+}
+
+.alert-item.new-alert {
+  animation: highlight 2s ease;
+}
+
+/* Statut résolu */
+.alert-item.resolved {
+  opacity: 0.7;
+  background-color: #f8f9fa !important;
+}
+
+.alert-item.resolved .btn-success {
+  display: none;
+}
+.card {
+  border-radius: 0.75rem;
+}
+
+.card-header h5 {
+  font-weight: 600;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.table thead th {
+  font-size: 0.9rem;
+}

@@ -1,0 +1,334 @@
+<div class="container-fluid py-4">
+  <!-- EN-TÊTE UNIQUE ET CONDITIONNEL -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center">
+      <!-- Bouton retour seulement en mode station spécifique -->
+      <button *ngIf="isStationSpecific"
+              class="btn btn-outline-primary btn-sm me-3"
+              (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i>
+        Retour
+      </button>
+
+      <div>
+        <h1 class="h3 mb-1">
+          <i class="bi bi-table text-info me-2"></i>
+          Données de Qualité d'Eau
+          <span *ngIf="isStationSpecific" class="text-primary">- {{ stationName }}</span>
+        </h1>
+        <p class="text-muted mb-0">
+          {{ waterData.length }} enregistrement(s)
+          <span *ngIf="isStationSpecific">pour cette station</span>
+          <span *ngIf="!isStationSpecific">- Toutes stations</span>
+          <span class="badge bg-primary ms-2">{{ waterData.length }} échantillons</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Bouton retour conditionnel -->
+    <a *ngIf="!isStationSpecific" [routerLink]="['/']" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>
+      Retour à l'accueil
+    </a>
+  </div>
+
+  <!-- Carte d'information station spécifique (seulement si données) -->
+  <div class="row mb-4" *ngIf="isStationSpecific && waterData.length > 0">
+    <div class="col-12">
+      <div class="card border-primary bg-light">
+        <div class="card-body py-2">
+          <div class="row align-items-center">
+            <div class="col-md-12 text-center">
+              <small class="text-primary">
+                <i class="bi bi-info-circle me-1"></i>
+                Affichage des données spécifiques pour la station <strong>{{ stationName }}</strong>
+                • Dernier échantillon: {{ waterData[0]?.body?.id_filtre }} ({{ waterData[0]?.body?.phase }})
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques rapides -->
+  <div class="row mb-4" *ngIf="getWaterQualityStats() as stats">
+    <div class="col-md-3">
+      <mat-card class="text-center">
+        <mat-card-content>
+          <i class="bi bi-droplet-fill text-primary fs-1"></i>
+          <h3 class="mt-2 mb-1">{{ stats.totalSamples }}</h3>
+          <p class="text-muted mb-0">Échantillons</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-md-3">
+      <mat-card class="text-center">
+        <mat-card-content>
+          <i class="bi bi-funnel text-info fs-1"></i>
+          <h3 class="mt-2 mb-1">{{ stats.uniqueFilters }}</h3>
+          <p class="text-muted mb-0">Filtres actifs</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-md-3">
+      <mat-card class="text-center">
+        <mat-card-content>
+          <i class="bi bi-thermometer-half text-success fs-1"></i>
+          <h3 class="mt-2 mb-1">{{ stats.avgPH | number:'1.1-1' }}</h3>
+          <p class="text-muted mb-0">pH moyen</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-md-3">
+      <mat-card class="text-center">
+        <mat-card-content>
+          <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+          <h3 class="mt-2 mb-1">{{ stats.abnormalPH }}</h3>
+          <p class="text-muted mb-0">Valeurs anormales</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Message si aucune donnée pour une station spécifique -->
+  <div *ngIf="isStationSpecific && !isLoading && waterData.length === 0" class="alert alert-info">
+    <div class="text-center py-4">
+      <i class="bi bi-database-exclamation text-info" style="font-size: 3rem;"></i>
+      <h5 class="mt-3 text-info">Aucune donnée disponible pour cette station</h5>
+      <p class="text-muted">
+        La station <strong>{{ stationName }}</strong> ne contient pas encore de données de qualité d'eau.
+      </p>
+      <button mat-raised-button color="primary" (click)="refreshData()" class="me-2">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+      <button mat-raised-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Retour à la station
+      </button>
+    </div>
+  </div>
+
+  <!-- Tableau Principal -->
+  <mat-card class="water-quality-card" *ngIf="!isLoading && waterData.length > 0">
+    <mat-card-header class="bg-primary text-white p-3">
+      <mat-card-title class="text-white">
+        <i class="bi bi-water me-2"></i>
+        Analyses Complètes
+        <span *ngIf="isStationSpecific" class="badge bg-light text-primary ms-2">{{ stationName }}</span>
+      </mat-card-title>
+      <mat-card-subtitle class="text-white-50">
+        <span *ngIf="isStationSpecific">Données détaillées pour la station {{ stationName }}</span>
+        <span *ngIf="!isStationSpecific">Données détaillées de qualité de l'eau - Toutes stations</span>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content class="p-0">
+      <!-- Barre d'outils -->
+      <div class="p-3 border-bottom bg-light">
+        <div class="row align-items-center">
+          <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Rechercher</mat-label>
+              <input matInput (keyup)="applyFilter($event)" placeholder="Filtrer les données...">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+          </div>
+          <div class="col-md-3">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Phase</mat-label>
+              <select matNativeControl #phaseSelect (change)="filterByPhase(phaseSelect.value)">
+                <option value="all">Toutes les phases</option>
+                <option *ngFor="let phase of getUniquePhases()" [value]="phase">{{ phase }}</option>
+              </select>
+            </mat-form-field>
+          </div>
+          <div class="col-md-3">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Filtre</mat-label>
+              <select matNativeControl #filterSelect (change)="filterByFilter(filterSelect.value)">
+                <option value="all">Tous les filtres</option>
+                <option *ngFor="let filter of getUniqueFilters()" [value]="filter">{{ filter }}</option>
+              </select>
+            </mat-form-field>
+          </div>
+          <div class="col-md-2">
+            <div class="d-flex gap-2">
+              <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
+                <mat-icon>refresh</mat-icon>
+                Actualiser
+              </button>
+              <button mat-raised-button (click)="exportData()">
+                <mat-icon>download</mat-icon>
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau des données -->
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" matSort class="w-100">
+
+          <!-- Colonnes restent identiques -->
+          <ng-container matColumnDef="id_filtre">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Filtre</th>
+            <td mat-cell *matCellDef="let element">
+              <span class="badge bg-secondary">{{ element.body.id_filtre }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="phase">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Phase</th>
+            <td mat-cell *matCellDef="let element">
+              <span [class]="getPhaseClass(element.body.phase)">
+                {{ element.body.phase }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="ph">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>pH</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('ph', element.body.ph)">
+              <strong>{{ formatValue(element.body.ph) }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="dbo5_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>DBO5 (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('dbo5_mg_l', element.body.dbo5_mg_l)">
+              {{ formatValue(element.body.dbo5_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="dco_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>DCO (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('dco_mg_l', element.body.dco_mg_l)">
+              {{ formatValue(element.body.dco_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="mes_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>MES (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('mes_mg_l', element.body.mes_mg_l)">
+              {{ formatValue(element.body.mes_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="nitrates_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nitrates (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('nitrates_mg_l', element.body.nitrates_mg_l)">
+              {{ formatValue(element.body.nitrates_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="ammonium_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Ammonium (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('ammonium_mg_l', element.body.ammonium_mg_l)">
+              {{ formatValue(element.body.ammonium_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="azote_total_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Azote total (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('azote_total_mg_l', element.body.azote_total_mg_l)">
+              {{ formatValue(element.body.azote_total_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="phosphates_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Phosphates (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('phosphates_mg_l', element.body.phosphates_mg_l)">
+              {{ formatValue(element.body.phosphates_mg_l) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="coliformes_fecaux_cfu_100ml">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Coliformes (CFU/100ml)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('coliformes_fecaux_cfu_100ml', element.body.coliformes_fecaux_cfu_100ml)">
+              {{ formatValue(element.body.coliformes_fecaux_cfu_100ml) }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              class="table-row-hover"></tr>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]"
+                     showFirstLastButtons
+                     class="border-top">
+      </mat-paginator>
+
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading spinner -->
+  <div *ngIf="isLoading" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p class="mt-3 text-muted">Chargement des données...</p>
+  </div>
+
+  <!-- Message si aucune donnée (vue globale) -->
+  <div *ngIf="!isStationSpecific && !isLoading && waterData.length === 0" class="text-center p-5">
+    <i class="bi bi-database text-muted" style="font-size: 3rem;"></i>
+    <h5 class="mt-3 text-muted">Aucune donnée disponible</h5>
+    <p class="text-muted">Les données de qualité de l'eau seront affichées ici une fois disponibles.</p>
+    <button mat-raised-button color="primary" (click)="refreshData()">
+      <mat-icon>refresh</mat-icon>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- Légende -->
+  <div class="row mt-4" *ngIf="!isLoading && waterData.length > 0">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            Légende des Valeurs
+          </h6>
+          <div class="row">
+            <div class="col-md-4">
+              <span class="text-success me-2">●</span>
+              <strong>Valeurs normales</strong> - Dans les seuils recommandés
+            </div>
+            <div class="col-md-4">
+              <span class="text-warning me-2">●</span>
+              <strong>Valeurs moyennes</strong> - Attention requise
+            </div>
+            <div class="col-md-4">
+              <span class="text-danger me-2">●</span>
+              <strong>Valeurs élevées</strong> - Hors normes
+            </div>
+          </div>
+          <hr>
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <small class="text-muted">
+                <strong>Normes de référence:</strong>
+                pH: 6.5-8.5 | DBO5: ≤ 25 mg/L | Nitrates: ≤ 25 mg/L | Coliformes: ≤ 100 CFU/100ml
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

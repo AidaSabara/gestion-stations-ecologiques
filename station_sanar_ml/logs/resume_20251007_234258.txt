@@ -1,0 +1,969 @@
+======================================================================
+  RAPPORT D'ANALYSE - STATION SANAR
+  Date: 2025-10-07 23:42:58
+======================================================================
+
+Échantillons analysés : 63
+Conformes : 4
+Non-conformes : 59
+
+ALERTES DÉTAILLÉES:
+----------------------------------------------------------------------
+
+ALERTE #1
+Filtre: FH (FH)
+Niveau: ATTENTION
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - phosphates_mg_l: 2.00 (seuil: 2.0)
+    Action requise: Surveillance renforcée
+
+----------------------------------------------------------------------
+
+ALERTE #2
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 270.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 70.30 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 98.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 21.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 46.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 3670000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #3
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 240.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 73.20 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 67.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 31.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 70.80 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2330000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #4
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 207.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 61.90 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 53.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 48.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 26.10 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #5
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 89.00 (seuil: 100.0)
+    Action requise: Surveillance renforcée
+  - phosphates_mg_l: 7.50 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.85 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #6
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 11.80 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.22 (seuil: 6.5-8.5)
+    Action requise: Surveillance renforcée
+
+----------------------------------------------------------------------
+
+ALERTE #7
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - mes_mg_l: 64.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 3.90 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #8
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 237.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 214.50 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 79.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 21.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 40.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2670000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #9
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 272.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 205.25 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 79.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 39.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 80.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 5000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #10
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 215.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 120.00 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 55.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 49.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 47.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2670000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #11
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 4
+
+Détails des dépassements:
+  - dco_mg_l: 145.00 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 8.40 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 33300.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.08 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #12
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 10.90 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.25 (seuil: 6.5-8.5)
+    Action requise: Surveillance renforcée
+
+----------------------------------------------------------------------
+
+ALERTE #13
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 234.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 76.00 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 55.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 23.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 86.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 3670000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #14
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 280.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 92.80 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 58.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 38.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 37.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2330000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #15
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 210.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 59.10 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 43.00 (seuil: 30.0)
+    Action requise: Intervention recommandée sous 24h
+  - ammonium_mg_l: 59.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 80.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #16
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 107.00 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 12.20 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.72 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #17
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 92.00 (seuil: 100.0)
+    Action requise: Surveillance renforcée
+  - phosphates_mg_l: 13.30 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.95 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #18
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - dco_mg_l: 131.00 (seuil: 125.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 19.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #19
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 247.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 64.70 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 50.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 20.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 11.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 1000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #20
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 260.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 90.00 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 61.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 30.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 23.10 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 13300000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #21
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 184.00 (seuil: 125.0)
+    Action requise: Intervention recommandée sous 24h
+  - dbo5_mg_l: 39.40 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 28.00 (seuil: 30.0)
+    Action requise: Surveillance renforcée
+  - ammonium_mg_l: 60.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 16.10 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 1000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #22
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 101.00 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 12.50 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.21 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #23
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 136.00 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 14.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.53 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #24
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - phosphates_mg_l: 4.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #25
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - mes_mg_l: 27.00 (seuil: 30.0)
+    Action requise: Surveillance renforcée
+  - phosphates_mg_l: 6.60 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #26
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 131.00 (seuil: 125.0)
+    Action requise: Intervention recommandée sous 24h
+  - mes_mg_l: 64.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 19.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #27
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - mes_mg_l: 25.29 (seuil: 30.0)
+    Action requise: Surveillance renforcée
+  - phosphates_mg_l: 8.33 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 0.23 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #28
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.03 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #29
+Filtre: FH (FH)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 3.00 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #30
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 4.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.00 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #31
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 247.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 106.38 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 70.50 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 21.25 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 45.75 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2752500.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #32
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 270.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 214.50 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 98.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 23.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 86.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 3670000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #33
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 234.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 64.70 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 50.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 20.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 11.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 1000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #34
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 4
+
+Détails des dépassements:
+  - dbo5_mg_l: 72.23 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 30.88 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 1259851.18 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 0.23 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #35
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.03 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #36
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 4.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.00 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #37
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 263.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 115.31 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 66.25 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 34.50 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 52.73 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 5740000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #38
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 280.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 205.25 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 79.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 39.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 80.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 13300000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #39
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 240.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 73.20 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 58.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 30.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 23.10 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2330000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #40
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 4
+
+Détails des dépassements:
+  - dbo5_mg_l: 60.58 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 27.05 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 5194785.85 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 0.08 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #41
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.01 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #42
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 4.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.00 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #43
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 204.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 70.10 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 44.75 (seuil: 30.0)
+    Action requise: Intervention recommandée sous 24h
+  - ammonium_mg_l: 54.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 42.30 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 1917500.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #44
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 215.00 (seuil: 125.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - dbo5_mg_l: 120.00 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 55.00 (seuil: 30.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ammonium_mg_l: 60.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 80.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 2670000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #45
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 6
+
+Détails des dépassements:
+  - dco_mg_l: 184.00 (seuil: 125.0)
+    Action requise: Intervention recommandée sous 24h
+  - dbo5_mg_l: 39.40 (seuil: 25.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - mes_mg_l: 28.00 (seuil: 30.0)
+    Action requise: Surveillance renforcée
+  - ammonium_mg_l: 48.00 (seuil: 10.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - phosphates_mg_l: 16.10 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 1000000.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #46
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 4
+
+Détails des dépassements:
+  - dbo5_mg_l: 34.74 (seuil: 25.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 28.24 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 688397.90 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 0.09 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #47
+Filtre: FV1 (FV1)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.01 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #48
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - phosphates_mg_l: 4.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #49
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 4
+
+Détails des dépassements:
+  - dco_mg_l: 110.50 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 10.15 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 11660.00 (seuil: 10000.0)
+    Action requise: Intervention recommandée sous 24h
+  - ph: 5.75 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #50
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 145.00 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 12.50 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - coliformes_fecaux_cfu_100ml: 33300.00 (seuil: 10000.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #51
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 89.00 (seuil: 100.0)
+    Action requise: Surveillance renforcée
+  - phosphates_mg_l: 7.50 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.14 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #52
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - phosphates_mg_l: 2.57 (seuil: 2.0)
+    Action requise: Intervention recommandée sous 24h
+  - coliformes_fecaux_cfu_100ml: 14765.34 (seuil: 10000.0)
+    Action requise: Intervention recommandée sous 24h
+  - ph: 0.48 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #53
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.08 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #54
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 4.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.00 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #55
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 90.75 (seuil: 100.0)
+    Action requise: Surveillance renforcée
+  - phosphates_mg_l: 12.50 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.81 (seuil: 6.5-8.5)
+    Action requise: Intervention recommandée sous 24h
+
+----------------------------------------------------------------------
+
+ALERTE #56
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 3
+
+Détails des dépassements:
+  - dco_mg_l: 136.00 (seuil: 100.0)
+    Action requise: Intervention recommandée sous 24h
+  - phosphates_mg_l: 14.00 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 6.25 (seuil: 6.5-8.5)
+    Action requise: Surveillance renforcée
+
+----------------------------------------------------------------------
+
+ALERTE #57
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 2
+
+Détails des dépassements:
+  - phosphates_mg_l: 10.90 (seuil: 2.0)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+  - ph: 5.19 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #58
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.41 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+
+ALERTE #59
+Filtre: FV2 (FV2)
+Niveau: CRITIQUE
+Nombre de dépassements: 1
+
+Détails des dépassements:
+  - ph: 0.07 (seuil: 6.5-8.5)
+    Action requise: INTERVENTION IMMÉDIATE REQUISE
+
+----------------------------------------------------------------------
+

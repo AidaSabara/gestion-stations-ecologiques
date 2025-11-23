@@ -1,0 +1,95 @@
+.predictions-dashboard {
+  padding: 20px;
+}
+
+.predictions-dashboard .card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.predictions-dashboard .card:hover {
+  transform: translateY(-3px);
+}
+
+.predictions-dashboard .alert {
+  border-left: 5px solid;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.predictions-dashboard .alert.alert-critical {
+  background-color: #ffebee;
+  border-color: #c62828;
+  color: #b71c1c;
+}
+
+.predictions-dashboard .alert.alert-high {
+  background-color: #fff3e0;
+  border-color: #ef6c00;
+  color: #e65100;
+}
+
+.predictions-dashboard .alert.alert-medium {
+  background-color: #fffde7;
+  border-color: #fbc02d;
+  color: #f9a825;
+}
+
+.predictions-dashboard .alert.alert-low {
+  background-color: #e8f5e9;
+  border-color: #2e7d32;
+  color: #1b5e20;
+}
+
+.predictions-dashboard h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.predictions-dashboard table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.predictions-dashboard th,
+.predictions-dashboard td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.predictions-dashboard th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.predictions-dashboard tr:hover {
+  background-color: #f9f9f9;
+}
+
+.predictions-dashboard .status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.predictions-dashboard .status.good {
+  background-color: #c8e6c9;
+  color: #256029;
+}
+
+.predictions-dashboard .status.warning {
+  background-color: #fff9c4;
+  color: #8d6e63;
+}
+
+.predictions-dashboard .status.danger {
+  background-color: #ffcdd2;
+  color: #c62828;
+}

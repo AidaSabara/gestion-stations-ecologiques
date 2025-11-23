@@ -1,0 +1,148 @@
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+  <div class="container">
+    <div class="row align-items-center min-vh-60">
+      <div class="col-lg-8 mx-auto text-center">
+        <h1 class="display-4 fw-bold mb-4">
+          Plateforme de Surveillance Écologique
+        </h1>
+        <p class="lead mb-4">
+          Surveillance en temps réel de {{ stats.totalStations }} stations de traitement des eaux
+        </p>
+        <div class="row mt-5">
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3 class="text-warning">{{ stats.activeAlerts }}</h3>
+              <p class="mb-0">Alertes actives</p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3 class="text-success">{{ stats.waterQuality }}%</h3>
+              <p class="mb-0">Qualité d'eau</p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3 class="text-info">{{ stats.responseTime }}</h3>
+              <p class="mb-0">Temps réponse</p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3 class="text-primary">{{ stats.totalStations }}</h3>
+              <p class="mb-0">Stations</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cartes de Navigation -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- Carte Alertes -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+          <div class="card-body p-4">
+            <div class="bg-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                 style="width: 80px; height: 80px;">
+              <i class="bi bi-bell-fill text-white fs-2"></i>
+            </div>
+            <h3 class="h5">Alertes en Temps Réel</h3>
+            <p class="text-muted mb-3">Surveillance des anomalies et notifications instantanées</p>
+
+            <div class="mb-2">
+              <span class="badge bg-danger">{{ navigationCards[0].count }} alertes actives</span>
+            </div>
+
+            <a [routerLink]="['/alerts']" class="btn btn-danger">
+              Voir les alertes
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carte Cartographie -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+          <div class="card-body p-4">
+            <div class="bg-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                 style="width: 80px; height: 80px;">
+              <i class="bi bi-geo-alt-fill text-white fs-2"></i>
+            </div>
+            <h3 class="h5">Cartographie Interactive</h3>
+            <p class="text-muted mb-3">Localisation géographique des stations en temps réel</p>
+            <a [routerLink]="['/map']" class="btn btn-success">
+              Explorer la carte
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carte Données -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+          <div class="card-body p-4">
+            <div class="bg-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                 style="width: 80px; height: 80px;">
+              <i class="bi bi-table text-white fs-2"></i>
+            </div>
+            <h3 class="h5">Tableau de Données</h3>
+            <p class="text-muted mb-3">Données brutes et analyses détaillées de qualité d'eau</p>
+            <a [routerLink]="['/data']" class="btn btn-info text-white">
+              Voir les données
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carte Graphiques -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center border-0 shadow-sm hover-lift">
+          <div class="card-body p-4">
+            <div class="bg-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                 style="width: 80px; height: 80px;">
+              <i class="bi bi-graph-up text-white fs-2"></i>
+            </div>
+            <h3 class="h5">Analyses & Graphiques</h3>
+            <p class="text-muted mb-3">Visualisations avancées et tendances des données</p>
+            <a [routerLink]="['/charts']" class="btn btn-warning text-white">
+              Voir les graphiques
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Lien vers ancien dashboard -->
+    <div class="row mt-5">
+      <div class="col-12 text-center">
+        <div class="card border-primary">
+          <div class="card-body py-4">
+            <h4 class="h5 text-primary mb-3">
+              <i class="bi bi-speedometer2 me-2"></i>
+              Vue d'ensemble complète
+            </h4>
+            <p class="text-muted mb-3">
+              Accédez au dashboard traditionnel avec tous les composants sur une seule page
+            </p>
+            <a [routerLink]="['/dashboard']" class="btn btn-outline-primary btn-lg">
+              <i class="bi bi-layout-sidebar me-2"></i>
+              Ouvrir le Dashboard Complet
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

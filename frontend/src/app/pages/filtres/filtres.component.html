@@ -1,0 +1,443 @@
+<div class="filter-management-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>🔧 Gestion des Filtres - Station Sanar</h1>
+    <p>Analyse de performance de la chaîne de traitement : Général → Filtre Vertical → Filtre Horizontal</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des données depuis Kuzzle...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-container">
+    <p>❌ {{ error }}</p>
+    <button (click)="refreshData()" class="btn-retry">🔄 Réessayer</button>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && !error" class="main-content">
+
+    <!-- Chaîne de Traitement -->
+    <div class="chain-section" *ngIf="filterChain.overallEfficiency > 0">
+      <h2>🔗 Chaîne de Traitement</h2>
+      <div class="chain-visualization">
+        <div class="chain-step" [class.active]="filterChain.general">
+          <div class="step-icon">🌊</div>
+          <div class="step-label">Entrée Générale</div>
+          <div class="step-efficiency" *ngIf="filterChain.general">
+            {{ formatNumber(filterChain.general.efficacite_dbo5) }}%
+          </div>
+        </div>
+
+        <div class="chain-arrow">→</div>
+
+        <div class="chain-step" [class.active]="filterChain.vertical">
+          <div class="step-icon">⬇️</div>
+          <div class="step-label">Filtre Vertical</div>
+          <div class="step-efficiency" *ngIf="filterChain.vertical">
+            {{ formatNumber(filterChain.vertical.efficacite_dbo5) }}%
+          </div>
+        </div>
+
+        <div class="chain-arrow">→</div>
+
+        <div class="chain-step" [class.active]="filterChain.horizontal">
+          <div class="step-icon">↔️</div>
+          <div class="step-label">Filtre Horizontal</div>
+          <div class="step-efficiency" *ngIf="filterChain.horizontal">
+            {{ formatNumber(filterChain.horizontal.efficacite_dbo5) }}%
+          </div>
+        </div>
+      </div>
+
+      <div class="chain-stats">
+        <div class="chain-stat">
+          <span class="stat-label">Efficacité Globale:</span>
+          <span class="stat-value">{{ formatNumber(filterChain.overallEfficiency) }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contrôles de Vue -->
+    <div class="view-controls" *ngIf="filterPerformances.length > 0">
+      <div class="view-toggle">
+        <button
+          [class.active]="activeView === 'list'"
+          (click)="switchView('list')"
+          class="view-btn"
+        >
+          📋 Vue Liste
+        </button>
+        <button
+          [class.active]="activeView === 'map'"
+          (click)="switchView('map')"
+          class="view-btn"
+        >
+          🗺️ Vue Carte
+        </button>
+      </div>
+    </div>
+
+    <!-- Carte Interactive -->
+    <div *ngIf="activeView === 'map' && filterPerformances.length > 0" class="map-section">
+      <h2>🗺️ Carte des Filtres - Station Sanar</h2>
+      <div class="map-container">
+        <div id="filterMap" class="filter-map"></div>
+        <div class="map-legend">
+          <h4>Légende</h4>
+          <div class="legend-item">
+            <div class="legend-color" [style.background-color]="getStatusColor('Optimal')"></div>
+            <span>Optimal</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" [style.background-color]="getStatusColor('Bon')"></div>
+            <span>Bon</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" [style.background-color]="getStatusColor('Moyen')"></div>
+            <span>Moyen</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" [style.background-color]="getStatusColor('Critique')"></div>
+            <span>Critique</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-section" *ngIf="filterPerformances.length > 0">
+      <h2>📈 Analytics</h2>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <canvas id="performanceChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="removalChart"></canvas>
+        </div>
+        <div class="chart-container full-width">
+          <canvas id="kpiChart"></canvas>
+        </div>
+        <div class="chart-container full-width">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si pas de données -->
+    <div *ngIf="filterPerformances.length === 0" class="no-data-message">
+      <p>📊 Aucune donnée de performance disponible pour les filtres.</p>
+      <p>Vérifiez que vous avez des données d'entrée et de sortie pour chaque filtre.</p>
+    </div>
+
+    <!-- Filtres de Recherche -->
+    <div class="filters-bar" *ngIf="filterPerformances.length > 0 && activeView === 'list'">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="🔍 Rechercher un filtre..."
+        class="search-input"
+      />
+
+      <select [(ngModel)]="selectedStation" class="filter-select">
+        <option value="all">Toutes les stations</option>
+        <option *ngFor="let station of uniqueStations" [value]="station">
+          {{ station }}
+        </option>
+      </select>
+
+      <select [(ngModel)]="selectedType" class="filter-select">
+        <option value="all">Tous les types</option>
+        <option *ngFor="let type of uniqueTypes" [value]="type">
+          {{ type }}
+        </option>
+      </select>
+
+      <div class="results-count">
+        {{ filteredPerformances.length }} filtre(s)
+      </div>
+    </div>
+
+    <!-- Grille des Filtres -->
+    <div *ngIf="activeView === 'list' && filteredPerformances.length > 0" class="filters-grid">
+      <div
+        *ngFor="let filter of filteredPerformances"
+        class="filter-card"
+        [class.selected]="selectedFilter?.id_filtre === filter.id_filtre"
+        (click)="selectFilter(filter)"
+      >
+        <div class="filter-card-header">
+          <div class="filter-id">{{ filter.id_filtre }}</div>
+          <div
+            class="status-badge"
+            [style.backgroundColor]="getStatusColor(filter.statut)"
+          >
+            {{ filter.statut }}
+          </div>
+        </div>
+
+        <!-- Score KPI -->
+        <div class="kpi-score" [style.background-color]="getScoreColor(filter.scorePerformance)">
+          🏆 Score: {{ filter.scorePerformance }}/100
+        </div>
+
+        <div class="filter-info">
+          <div class="info-row">
+            <span class="label">Station:</span>
+            <span class="value">{{ filter.station }}</span>
+          </div>
+        </div>
+
+        <!-- Efficacités -->
+        <div class="efficiencies-grid">
+          <div class="efficiency-item">
+            <div class="eff-label">DBO5</div>
+            <div class="eff-value">{{ formatNumber(filter.efficacite_dbo5) }}%</div>
+          </div>
+          <div class="efficiency-item">
+            <div class="eff-label">DCO</div>
+            <div class="eff-value">{{ formatNumber(filter.efficacite_dco) }}%</div>
+          </div>
+          <div class="efficiency-item">
+            <div class="eff-label">MES</div>
+            <div class="eff-value">{{ formatNumber(filter.efficacite_mes) }}%</div>
+          </div>
+          <div class="efficiency-item">
+            <div class="eff-label">Coliformes</div>
+            <div class="eff-value">{{ formatNumber(filter.efficacite_coliformes) }}%</div>
+          </div>
+        </div>
+
+        <div class="filter-card-footer">
+          <span class="data-count">📊 {{ filter.donnees_entree + filter.donnees_sortie }} mesures</span>
+          <span class="last-measure">🕐 {{ filter.dernier_mesure }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL pour les détails du filtre -->
+      <div *ngIf="selectedFilter" class="modal-overlay" (click)="closeModalOnOverlay($event)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+
+        <!-- En-tête du modal -->
+        <div class="modal-header">
+          <h2>📋 Détails du Filtre {{ selectedFilter.id_filtre }}</h2>
+          <button (click)="closeModal()" class="btn-close">✕</button>
+        </div>
+
+        <!-- Contenu du modal avec l'ordre demandé -->
+        <div class="modal-body">
+
+          <!-- 1. Score KPI -->
+          <div class="modal-section">
+            <h3>🏆 Score de Performance KPI</h3>
+            <div class="kpi-overview">
+              <div class="kpi-main-score" [style.background-color]="getScoreColor(selectedFilter.scorePerformance)">
+                {{ selectedFilter.scorePerformance }}/100
+              </div>
+              <div class="kpi-breakdown">
+                <div class="kpi-item">
+                  <span class="kpi-label">DBO5:</span>
+                  <span class="kpi-value">{{ selectedFilter.detailsScore.pointsDBO5 }}/20 pts</span>
+                </div>
+                <div class="kpi-item">
+                  <span class="kpi-label">MES:</span>
+                  <span class="kpi-value">{{ selectedFilter.detailsScore.pointsMES }}/20 pts</span>
+                </div>
+                <div class="kpi-item">
+                  <span class="kpi-label">Nitrates:</span>
+                  <span class="kpi-value">{{ selectedFilter.detailsScore.pointsNitrates }}/20 pts</span>
+                </div>
+                <div class="kpi-item">
+                  <span class="kpi-label">Coliformes:</span>
+                  <span class="kpi-value">{{ selectedFilter.detailsScore.pointsColiformes }}/20 pts</span>
+                </div>
+                <div class="kpi-item">
+                  <span class="kpi-label">Stabilité pH:</span>
+                  <span class="kpi-value">{{ selectedFilter.detailsScore.pointsPH }}/10 pts</span>
+                </div>
+                <div class="kpi-item">
+                  <span class="kpi-label">Qualité données:</span>
+                  <span class="kpi-value">{{ selectedFilter.detailsScore.pointsDonnees }}/10 pts</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Efficacités Détaillées -->
+          <div class="modal-section">
+            <h3>🎯 Efficacités de Traitement</h3>
+            <div class="efficiency-bars">
+              <div class="efficiency-bar">
+                <div class="bar-label">DBO5</div>
+                <div class="bar-container">
+                  <div
+                    class="bar-fill"
+                    [style.width.%]="selectedFilter.efficacite_dbo5"
+                    [style.backgroundColor]="selectedFilter.efficacite_dbo5 > 70 ? '#10b981' : '#ef4444'"
+                  ></div>
+                </div>
+                <div class="bar-value">{{ formatNumber(selectedFilter.efficacite_dbo5) }}%</div>
+              </div>
+
+              <div class="efficiency-bar">
+                <div class="bar-label">DCO</div>
+                <div class="bar-container">
+                  <div
+                    class="bar-fill"
+                    [style.width.%]="selectedFilter.efficacite_dco"
+                    [style.backgroundColor]="selectedFilter.efficacite_dco > 70 ? '#10b981' : '#ef4444'"
+                  ></div>
+                </div>
+                <div class="bar-value">{{ formatNumber(selectedFilter.efficacite_dco) }}%</div>
+              </div>
+
+              <div class="efficiency-bar">
+                <div class="bar-label">MES</div>
+                <div class="bar-container">
+                  <div
+                    class="bar-fill"
+                    [style.width.%]="selectedFilter.efficacite_mes"
+                    [style.backgroundColor]="selectedFilter.efficacite_mes > 80 ? '#10b981' : '#ef4444'"
+                  ></div>
+                </div>
+                <div class="bar-value">{{ formatNumber(selectedFilter.efficacite_mes) }}%</div>
+              </div>
+
+              <div class="efficiency-bar">
+                <div class="bar-label">Nitrates</div>
+                <div class="bar-container">
+                  <div
+                    class="bar-fill"
+                    [style.width.%]="selectedFilter.efficacite_nitrates"
+                    [style.backgroundColor]="selectedFilter.efficacite_nitrates > 50 ? '#10b981' : '#ef4444'"
+                  ></div>
+                </div>
+                <div class="bar-value">{{ formatNumber(selectedFilter.efficacite_nitrates) }}%</div>
+              </div>
+
+              <div class="efficiency-bar">
+                <div class="bar-label">Coliformes</div>
+                <div class="bar-container">
+                  <div
+                    class="bar-fill"
+                    [style.width.%]="selectedFilter.efficacite_coliformes"
+                    [style.backgroundColor]="selectedFilter.efficacite_coliformes > 90 ? '#10b981' : '#ef4444'"
+                  ></div>
+                </div>
+                <div class="bar-value">{{ formatNumber(selectedFilter.efficacite_coliformes) }}%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Informations Générales -->
+          <div class="modal-section">
+            <h3>📊 Informations Générales</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Type de Filtre:</span>
+                <span class="info-value">{{ selectedFilter.type_filtre }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Station:</span>
+                <span class="info-value">{{ selectedFilter.station }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Données Entrée:</span>
+                <span class="info-value">{{ selectedFilter.donnees_entree }} mesures</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Données Sortie:</span>
+                <span class="info-value">{{ selectedFilter.donnees_sortie }} mesures</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Dernière Mesure:</span>
+                <span class="info-value">{{ selectedFilter.dernier_mesure }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Statut:</span>
+                <span
+                  class="info-value status-tag"
+                  [style.backgroundColor]="getStatusColor(selectedFilter.statut)"
+                >
+                  {{ selectedFilter.statut }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Historique des Interventions -->
+          <div class="modal-section" *ngIf="getInterventionsForFilter(selectedFilter.id_filtre).length > 0">
+            <h3>🛠️ Historique des Interventions</h3>
+
+            <!-- Analyse d'impact -->
+            <div class="intervention-impact" *ngIf="analyzeInterventionImpact(selectedFilter.id_filtre) as impact">
+              <div class="impact-card">
+                <div class="impact-item">
+                  <span class="impact-label">Dernière intervention:</span>
+                  <span class="impact-value">{{ impact.derniere_intervention }}</span>
+                </div>
+                <div class="impact-item">
+                  <span class="impact-label">Il y a:</span>
+                  <span class="impact-value">{{ impact.jours_depuis_intervention }} jours</span>
+                </div>
+                <div class="impact-item">
+                  <span class="impact-label">Tendance:</span>
+                  <span class="impact-value"
+                        [style.color]="getTendanceColor(impact.tendance_performance)">
+                    {{ impact.tendance_performance }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline des interventions -->
+            <div class="interventions-timeline">
+              <div
+                *ngFor="let intervention of getInterventionsForFilter(selectedFilter.id_filtre)"
+                class="intervention-item"
+              >
+                <div class="intervention-icon">
+                  {{ getInterventionIcon(intervention.type_intervention) }}
+                </div>
+                <div class="intervention-content">
+                  <div class="intervention-header">
+                    <span class="intervention-type">{{ intervention.type_intervention }}</span>
+                    <span class="intervention-date">{{ formatDate(intervention.date_intervention) }}</span>
+                  </div>
+                  <div class="intervention-description">{{ intervention.description }}</div>
+                  <div class="intervention-meta" *ngIf="intervention.operateur || intervention.duree_minutes">
+                    <span *ngIf="intervention.operateur">👤 {{ intervention.operateur }}</span>
+                    <span *ngIf="intervention.duree_minutes">⏱️ {{ intervention.duree_minutes }} min</span>
+                    <span *ngIf="intervention.cout_estimatif">💰 {{ intervention.cout_estimatif }} FCFA</span>
+                  </div>
+                  <div class="intervention-notes" *ngIf="intervention.notes">
+                    📝 {{ intervention.notes }}
+                  </div>
+                  <div class="intervention-pieces" *ngIf="intervention.pieces_changees && intervention.pieces_changees.length > 0">
+                    <span class="pieces-label">Pièces changées:</span>
+                    <div class="pieces-list">
+                      <span *ngFor="let piece of intervention.pieces_changees" class="piece-tag">
+                        {{ piece }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message si aucune intervention -->
+          <div class="modal-section no-interventions" *ngIf="getInterventionsForFilter(selectedFilter.id_filtre).length === 0">
+            <h3>🛠️ Historique des Interventions</h3>
+            <p class="empty-message">Aucune intervention enregistrée pour ce filtre.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

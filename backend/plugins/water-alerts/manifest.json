@@ -1,0 +1,16 @@
+{
+  "name": "water-alerts",
+  "version": "1.0.0",
+  "kuzzleVersion": ">=2.21.0",
+  "author": "AIda Sabara",
+  "description": "Plugin pour générer des alertes sur la qualité de l'eau",
+  "main": "index.js",
+  "configSchema": {
+    "thresholds": {
+      "pH": { "min": 5, "max": 9 },
+      "DO": { "min": 2 },
+      "DCO": { "max": 120 },
+      "DBO5": { "max": 25 }
+    }
+  }
+}

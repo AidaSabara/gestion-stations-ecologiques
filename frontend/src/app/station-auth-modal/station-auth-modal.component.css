@@ -1,0 +1,31 @@
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  border-bottom: none;
+}
+
+.modal-footer {
+  border-top: none;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+}
+
+.input-group:focus-within .input-group-text {
+  background-color: #e3f2fd;
+  border-color: #0d6efd;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

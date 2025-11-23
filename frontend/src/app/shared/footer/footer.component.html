@@ -1,12 +1,35 @@
-  <!-- Footer -->
-  <footer class="footer py-3 border-top border-light-subtle">
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <div class="py-3">
-            Built by <a href="https://bootstrapbrain.com/" class="link-secondary text-decoration-none">BootstrapBrain</a> with <span class="text-accent">&#9829;</span>
+<!-- Footer avec Statut -->
+<footer class="footer bg-light-subtle border-top py-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <!-- Logo et description -->
+      <div class="col-lg-5 mb-3 mb-lg-0">
+        <div class="d-flex align-items-center justify-content-center justify-content-lg-start">
+          <div class="bg-primary rounded p-2 me-3">
+            <i class="bi bi-droplet-fill text-white fs-5"></i>
+          </div>
+          <div>
+            <h6 class="mb-0 fw-bold text-dark">Plateforme de surveillance environnementale</h6>
+
           </div>
         </div>
       </div>
+
+      <!-- Statut système -->
+      <div class="col-lg-3 text-center mb-3 mb-lg-0">
+        <div class="d-inline-flex align-items-center bg-success bg-opacity-10 px-3 py-1 rounded-pill">
+          <div class="bg-success rounded-circle me-2" style="width: 8px; height: 8px;"></div>
+          <small class="text-success fw-semibold">Système Opérationnel</small>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="col-lg-4 text-center text-lg-end">
+        <p class="mb-0 text-muted small">
+          <i class="bi bi-c-circle me-1"></i>
+          {{ currentYear }} EcoWater Monitor. Tous droits réservés.
+        </p>
+      </div>
     </div>
-  </footer>
+  </div>
+</footer>

@@ -1,0 +1,609 @@
+/* ============================================================================ */
+/* STYLES GÉNÉRAUX */
+/* ============================================================================ */
+
+.container-fluid {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ============================================================================ */
+/* CARTES STATION - DOUBLE-CLIC */
+/* ============================================================================ */
+
+.station-card {
+  transition: all 0.3s ease;
+  cursor: pointer !important;
+  border: 2px solid transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  position: relative;
+}
+
+.station-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  border-color: #6366f1 !important;
+}
+
+.station-card:active {
+  transform: scale(0.98);
+}
+
+/* Animation du badge "Double-clic" */
+.station-card .badge.bg-info {
+  animation: pulse 2s infinite;
+  font-size: 0.7rem;
+  padding: 0.35rem 0.6rem;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(13, 202, 240, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(13, 202, 240, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 202, 240, 0);
+  }
+}
+
+/* Effet de surbrillance au survol */
+.station-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.station-card:hover::before {
+  opacity: 0.05;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Empêcher les boutons d'intercepter le double-clic */
+.station-card .card-footer button {
+  pointer-events: auto;
+  z-index: 20;
+  position: relative;
+}
+
+/* Badge de statut dans l'en-tête */
+.station-card .card-header .badge {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+}
+
+/* Style pour le card-footer */
+.station-card .card-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Amélioration visuelle des boutons dans le footer */
+.station-card .card-footer .btn {
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.station-card .card-footer .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.station-card .card-footer .btn-outline-primary:hover {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+.station-card .card-footer .btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+/* Icônes dans les cartes */
+.station-card .bi {
+  font-size: 1.2rem;
+}
+
+/* ============================================================================ */
+/* MODALS - SYSTÈME UNIFIÉ */
+/* ============================================================================ */
+
+.modal.show {
+  display: block !important;
+  opacity: 1;
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+/* Animation d'apparition du modal */
+.modal.show .modal-dialog {
+  animation: modalSlideDown 0.3s ease-out;
+}
+
+@keyframes modalSlideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Style pour les formulaires dans les modals */
+.modal-body .form-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+.modal-body .form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+/* ============================================================================ */
+/* MODAL D'AUTHENTIFICATION ADMIN - STYLES SPÉCIFIQUES */
+/* ============================================================================ */
+
+/* En-tête du modal admin */
+.modal-header.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
+  border-bottom: 2px solid #ff8f00;
+}
+
+.modal-header.bg-warning .modal-title {
+  font-weight: 700;
+  color: #212529 !important;
+}
+
+/* Bouton de fermeture pour le modal admin */
+.modal-header.bg-warning .btn-close {
+  filter: brightness(0.6);
+  transition: filter 0.2s ease;
+}
+
+.modal-header.bg-warning .btn-close:hover {
+  filter: brightness(0.4);
+}
+
+/* Alerte d'action administrative */
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 1px solid #ffecb5;
+  color: #856404;
+}
+
+.alert-warning .bi-exclamation-triangle {
+  color: #ff9800;
+}
+
+/* Bouton d'authentification admin */
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+  border: 1px solid #ffb300;
+  color: #212529;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffb300 0%, #ff8f00 100%);
+  border-color: #ff8f00;
+  color: #212529;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-warning:active {
+  transform: scale(0.98);
+}
+
+/* Identifiants admin */
+.alert-info {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  border: 1px solid #b6d4fe;
+}
+
+.alert-info strong {
+  color: #0c5460;
+}
+
+/* ============================================================================ */
+/* STATISTIQUES */
+/* ============================================================================ */
+
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info {
+  border: none;
+  transition: transform 0.3s ease;
+}
+
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-info:hover {
+  transform: translateY(-5px);
+}
+
+/* ============================================================================ */
+/* FILTRES */
+/* ============================================================================ */
+
+.filter-section {
+  margin-bottom: 1rem;
+}
+
+.filter-section .form-select {
+  cursor: pointer;
+}
+
+.filter-section .badge {
+  font-size: 0.75rem;
+}
+
+/* ============================================================================ */
+/* ALERTES */
+/* ============================================================================ */
+
+.alert {
+  border-radius: 0.5rem;
+}
+
+.alert .btn-close {
+  font-size: 0.875rem;
+}
+
+/* Badge Mode Admin */
+.badge.bg-success {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%) !important;
+}
+
+/* ============================================================================ */
+/* BOUTONS */
+/* ============================================================================ */
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-group .btn {
+  transition: all 0.2s ease;
+}
+
+/* ============================================================================ */
+/* LOADING SPINNER */
+/* ============================================================================ */
+
+.spinner-border {
+  animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================ */
+/* ÉTAT VIDE */
+/* ============================================================================ */
+
+.empty-state {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+/* ============================================================================ */
+/* RESPONSIVE - MOBILE */
+/* ============================================================================ */
+
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 1rem;
+  }
+
+  .station-card .badge.bg-info {
+    font-size: 0.6rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .station-card {
+    margin-bottom: 1rem;
+  }
+
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    margin-bottom: 0.5rem;
+  }
+
+  .filter-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .card.bg-primary h4,
+  .card.bg-success h4,
+  .card.bg-info h4 {
+    font-size: 1.5rem;
+  }
+
+  .card.bg-primary .bi,
+  .card.bg-success .bi,
+  .card.bg-info .bi {
+    font-size: 2rem;
+  }
+
+  /* Adaptation mobile pour le modal admin */
+  .modal-header.bg-warning .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .alert-warning .fs-3 {
+    font-size: 1.5rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .station-card .card-body {
+    padding: 1rem;
+  }
+
+  .station-card .card-header h5 {
+    font-size: 1rem;
+  }
+
+  .station-card .bi {
+    font-size: 1rem;
+  }
+
+  .modal-header h5 {
+    font-size: 1.1rem;
+  }
+
+  /* Adaptation mobile avancée pour le modal admin */
+  .btn-warning.btn-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+
+  .alert-info small,
+  .alert-secondary small {
+    font-size: 0.8rem;
+  }
+}
+
+/* ============================================================================ */
+/* UTILITAIRES */
+/* ============================================================================ */
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* ============================================================================ */
+/* AMÉLIORATION VISUELLE */
+/* ============================================================================ */
+
+/* Ombre douce sur les cartes */
+.card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* En-tête de carte transparent avec bordure */
+.card-header.bg-transparent {
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Espacements harmonieux */
+.card-body > div {
+  line-height: 1.6;
+}
+
+/* Badges personnalisés */
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Formulaires améliorés */
+.form-control,
+.form-select {
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+.form-control-lg {
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Boutons radio personnalisés */
+.btn-check:checked + .btn {
+  background-color: var(--bs-btn-active-bg);
+  border-color: var(--bs-btn-active-border-color);
+  color: var(--bs-btn-active-color);
+}
+
+/* Messages de validation */
+.invalid-feedback {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+/* Alerts avec icônes */
+.alert i {
+  font-size: 1.2rem;
+  vertical-align: middle;
+}
+
+/* ============================================================================ */
+/* ANIMATIONS PERSONNALISÉES */
+/* ============================================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.station-card {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Animation progressive pour les cartes */
+.station-card:nth-child(1) { animation-delay: 0.05s; }
+.station-card:nth-child(2) { animation-delay: 0.1s; }
+.station-card:nth-child(3) { animation-delay: 0.15s; }
+.station-card:nth-child(4) { animation-delay: 0.2s; }
+.station-card:nth-child(5) { animation-delay: 0.25s; }
+.station-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* Animation spécifique pour le modal admin */
+.modal.show .modal-dialog {
+  animation: modalSlideDown 0.3s ease-out;
+}
+
+/* ============================================================================ */
+/* AMÉLIORATIONS SPÉCIFIQUES POUR L'AUTHENTIFICATION */
+/* ============================================================================ */
+
+/* Style pour les champs de formulaire d'authentification */
+#admin-auth-email:focus,
+#admin-auth-password:focus {
+  border-color: #ffc107;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+/* Style pour les identifiants admin */
+.alert-info code {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  color: #0c5460;
+}
+
+/* Indication visuelle pour le badge admin */
+.badge.bg-success {
+  animation: gentlePulse 3s infinite;
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Style pour le spinner d'authentification admin */
+.btn-warning .spinner-border-sm {
+  color: #212529;
+}
+
+/* ============================================================================ */
+/* ACCESSIBILITÉ ET INTERACTIONS */
+/* ============================================================================ */
+
+/* Focus visible pour l'accessibilité */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.btn-warning:focus {
+  outline: 2px solid #ffc107;
+  outline-offset: 2px;
+}
+
+/* États de désactivation */
+.btn:disabled,
+.form-control:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Transition douce pour tous les états interactifs */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}

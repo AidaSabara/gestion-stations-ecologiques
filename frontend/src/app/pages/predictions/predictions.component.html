@@ -1,0 +1,180 @@
+<!-- Loading -->
+<div *ngIf="loading" class="text-center p-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+</div>
+
+<!-- Error -->
+<div *ngIf="error" class="alert alert-danger">
+  ❌ {{ error }}
+</div>
+
+<!-- Dashboard -->
+<div *ngIf="!loading && !error" class="predictions-dashboard">
+
+  <!-- Header -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-0">🔮 Prédictions ML - Station Sanar</h2>
+          <small class="text-muted">Alertes préventives en temps réel</small>
+        </div>
+        <div class="text-end">
+          <small class="d-block text-muted">Dernière MAJ</small>
+          <strong>{{ derniereMaj | date:'HH:mm:ss' }}</strong>
+          <button class="btn btn-sm btn-primary ms-2" (click)="refresh()">
+            🔄
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="display-4">⚠️</div>
+          <h3>{{ stats.alertes_critiques }}</h3>
+          <p class="text-muted mb-0">Critiques</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="display-4">🟡</div>
+          <h3>{{ stats.alertes_warning }}</h3>
+          <p class="text-muted mb-0">Warnings</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="display-4">✅</div>
+          <h3>{{ stats.taux_conformite }}%</h3>
+          <p class="text-muted mb-0">Conformité</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="display-4">📊</div>
+          <h3>{{ stats.total_alertes }}</h3>
+          <p class="text-muted mb-0">Total Alertes</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="btn-group" role="group">
+        <button
+          *ngFor="let filtre of filtres"
+          [class.active]="filtreSelectionne === filtre"
+          (click)="filtreSelectionne = filtre"
+          class="btn btn-outline-primary">
+          {{ filtre }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes Préventives -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+      <h4 class="mb-0">🔮 Alertes Préventives (ML)</h4>
+      <span class="badge bg-primary">{{ alertesPreventives.length }}</span>
+    </div>
+    <div class="card-body">
+      <div *ngIf="alertesPreventives.length === 0" class="text-center text-muted py-5">
+        ✅ Aucune alerte préventive
+      </div>
+
+      <div *ngFor="let alerte of alertesPreventives"
+           class="alert mb-3"
+           [ngClass]="getLevelClass(alerte._source.level)">
+
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="flex-grow-1">
+            <h5>{{ getLevelIcon(alerte._source.level) }} {{ alerte._source.message }}</h5>
+            <div class="small text-muted mb-2">
+              <span class="me-3">📍 {{ alerte._source.stationId }}</span>
+              <span class="me-3">🔧 {{ alerte._source.metadata?.groupe_filtre || 'N/A' }}</span>
+              <span class="me-3">{{ getMethodeIcon(alerte._source.metadata?.methode_prediction) }}
+                    {{ alerte._source.metadata?.methode_prediction || 'N/A' }}</span>
+              <span>🕐 {{ formatDate(alerte._source.timestamp) }}</span>
+            </div>
+
+            <!-- Détails prédictions - CORRIGÉ -->
+            <div *ngIf="alerte._source.metadata?.predictions" class="mt-2"><div *ngFor="let pred of getPredictionsArray(alerte._source.metadata?.predictions)"
+                   class="d-flex align-items-center mb-1">
+                <strong class="me-2">{{ getParamDisplay(pred.key) }}:</strong>
+                <span class="me-2">{{ pred.value.entree }} mg/L</span>
+                <span class="me-2">→</span>
+                <span class="text-danger me-2">{{ pred.value.sortie_predite }} mg/L</span>
+                <span class="text-muted">({{ pred.value.rendement_predit }}%)</span>
+                <span class="ms-2 badge bg-secondary">{{ getMethodeIcon(pred.value.methode) }} {{ pred.value.methode }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-group-vertical">
+            <button class="btn btn-sm btn-outline-primary" (click)="accuserReception(alerte)">
+              ✓ Accuser
+            </button>
+            <button class="btn btn-sm btn-outline-success" (click)="resoudreAlerte(alerte)">
+              ✅ Résoudre
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes Réactives -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between">
+      <h4 class="mb-0">🚨 Alertes Réactives (Mesures)</h4>
+      <span class="badge bg-danger">{{ alertesReactives.length }}</span>
+    </div>
+    <div class="card-body">
+      <div *ngIf="alertesReactives.length === 0" class="text-center text-muted py-5">
+        ✅ Aucune alerte réactive
+      </div>
+
+      <div *ngFor="let alerte of alertesReactives"
+           class="alert mb-3"
+           [ngClass]="getLevelClass(alerte._source.level)">
+
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5>{{ getLevelIcon(alerte._source.level) }} {{ alerte._source.message }}</h5>
+            <div class="small text-muted">
+              <span class="me-3">📍 {{ alerte._source.stationId }}</span>
+              <span class="me-3">📌 {{ alerte._source.type }}</span>
+              <span>🕐 {{ formatDate(alerte._source.timestamp) }}</span>
+            </div>
+          </div>
+
+          <div class="btn-group-vertical">
+            <button class="btn btn-sm btn-outline-primary" (click)="accuserReception(alerte)">
+              ✓ Accuser
+            </button>
+            <button class="btn btn-sm btn-outline-success" (click)="resoudreAlerte(alerte)">
+              ✅ Résoudre
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

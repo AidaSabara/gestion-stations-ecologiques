@@ -1,0 +1,179 @@
+/* ============================================ */
+/* HOME.COMPONENT.CSS */
+/* ============================================ */
+
+/* Hero Section (conservé de l'ancien) */
+.hero-section {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.min-vh-60 {
+  min-height: 60vh;
+}
+
+/* Carte principale Cartographie */
+.main-card {
+  border-radius: 20px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.main-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(40, 167, 69, 0.25) !important;
+}
+
+/* Animation de l'icône */
+.icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-circle {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
+}
+
+.main-card:hover .icon-circle {
+  transform: scale(1.1);
+}
+
+/* Cercles de pulsation */
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border: 3px solid rgba(40, 167, 69, 0.4);
+  border-radius: 50%;
+  animation: pulse-animation 2s ease-out infinite;
+}
+
+.pulse-ring.delay-1 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-animation {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Features list */
+.features-list {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+}
+
+.feature-item {
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.feature-item:not(:last-child) {
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Bouton principal */
+.main-card .btn-success {
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.main-card .btn-success:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+}
+
+/* Instructions card */
+.instructions-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #0d6efd, #0a58ca);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin: 0 auto 0.5rem;
+}
+
+/* Hover effects (conservé de l'ancien) */
+.hover-lift {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Animation badge alertes (conservé) */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.badge.bg-danger {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2rem;
+  }
+
+  .min-vh-60 {
+    min-height: 50vh;
+  }
+
+  .hero-section .row > div {
+    margin-bottom: 1rem;
+  }
+
+  .icon-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .pulse-ring {
+    width: 100px;
+    height: 100px;
+  }
+
+  .main-card .card-body {
+    padding: 2rem !important;
+  }
+
+  .instructions-card {
+    padding: 1.5rem;
+  }
+}

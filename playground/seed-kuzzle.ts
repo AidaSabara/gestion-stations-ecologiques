@@ -2,6 +2,9 @@
 /* eslint-disable sort-keys */
 import { Kuzzle, WebSocket } from "kuzzle-sdk";
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
+import csv from "csv-parser";
 
 interface Station {
   _id: string;
@@ -26,14 +29,47 @@ interface Reading {
   };
 }
 
+interface WaterQualityReading {
+  _id?: string;
+  body: {
+    id_station: string;
+    phase: string;
+    type_filtre: string;
+    id_filtre: string;
+    date: string | null;
+    mois: string | null;
+    temperature_c: number | null;
+    ph: number | null;
+    conductivite_us_cm: number | null;
+    potentiel_redox_mv: number | null;
+    dbo5_mg_l: number | null;
+    dco_mg_l: number | null;
+    mes_mg_l: number | null;
+    mvs_pct: number | null;
+    nitrates_mg_l: number | null;
+    ammonium_mg_l: number | null;
+    azote_total_mg_l: number | null;
+    phosphates_mg_l: number | null;
+    coliformes_fecaux_cfu_100ml: number | null;
+    oeufs_helminthes: number | null;
+    huiles_graisses: number | null;
+    nom_feuille: string;
+    contient_valeurs_estimees: boolean;
+  };
+}
+
 interface Alert {
   _id: string;
   body: {
     stationId: string;
-    type: string;
-    level: "warning" | "critical";
+    type: "seuil dépassé" | "défaillance d'équipement" | "maintenance_requise";
+    level: "info" | "warning" | "critical";
     message: string;
+    parameter?: string; 
+    value?: number;     
+    threshold?: number;
     timestamp: string;
+    resolved?: boolean; 
   };
 }
 
@@ -72,16 +108,16 @@ const regions = [
 ];
 
 const regionCoords: Record<string, [number, number]> = {
-  Dakar: [14.6928, -17.4467],
-  Thiès: [14.7914, -16.9256],
+  "Dakar": [14.6928, -17.4467],
+  "Thiès": [14.7914, -16.9256],
   "Saint-Louis": [16.0179, -16.4896],
-  Ziguinchor: [12.5833, -16.2667],
-  Kaolack: [14.146, -16.0726],
-  Louga: [15.6144, -16.2286],
-  Tambacounda: [13.7699, -13.6673],
-  Kolda: [12.8833, -14.95],
-  Matam: [15.6559, -13.2559],
-  Fatick: [14.3396, -16.4117],
+  "Ziguinchor": [12.5833, -16.2667],
+  "Kaolack": [14.146, -16.0726],
+  "Louga": [15.6144, -16.2286],
+  "Tambacounda": [13.7699, -13.6673],
+  "Kolda": [12.8833, -14.95],
+  "Matam": [15.6559, -13.2559],
+  "Fatick": [14.3396, -16.4117],
 };
 
 async function createMappings() {
@@ -139,21 +175,158 @@ async function createMappings() {
         },
       },
     },
+    water_quality: {
+      mappings: {
+        properties: {
+          id_station: { type: "keyword" },
+          phase: { type: "keyword" },
+          type_filtre: { type: "keyword" },
+          id_filtre: { type: "keyword" },
+          date: { type: "date" },
+          mois: { type: "keyword" },
+          temperature_c: { type: "float" },
+          ph: { type: "float" },
+          conductivite_us_cm: { type: "float" },
+          potentiel_redox_mv: { type: "float" },
+          dbo5_mg_l: { type: "float" },
+          dco_mg_l: { type: "float" },
+          mes_mg_l: { type: "float" },
+          mvs_pct: { type: "float" },
+          nitrates_mg_l: { type: "float" },
+          ammonium_mg_l: { type: "float" },
+          azote_total_mg_l: { type: "float" },
+          phosphates_mg_l: { type: "float" },
+          coliformes_fecaux_cfu_100ml: { type: "float" },
+          oeufs_helminthes: { type: "float" },
+          huiles_graisses: { type: "float" },
+          nom_feuille: { type: "keyword" },
+          contient_valeurs_estimees: { type: "boolean" },
+        },
+      },
+    },
   };
 
-  await kuzzle.index.create("iot");
+  try {
+    const indexExists = await kuzzle.index.exists("iot");
+    if (!indexExists) {
+      await kuzzle.index.create("iot");
+      console.log("✅ Index 'iot' créé.");
+    } else {
+      console.log("▶️ L'index 'iot' existe déjà.");
+    }
 
-  for (const [collection, def] of Object.entries(mappings)) {
-    await kuzzle.collection.create("iot", collection, def);
-    console.log(`✅ Collection '${collection}' créée.`);
+    for (const [collection, def] of Object.entries(mappings)) {
+      const collectionExists = await kuzzle.collection.exists("iot", collection);
+      if (!collectionExists) {
+        await kuzzle.collection.create("iot", collection, def);
+        console.log(`✅ Collection '${collection}' créée.`);
+      } else {
+        console.log(`▶️ La collection '${collection}' existe déjà.`);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Erreur lors de la création des mappings:", error);
+    throw error;
   }
+}
+
+function parseFloatOrNull(value: string): number | null {
+  if (!value || value.trim() === '' || value === 'null' || value === 'undefined') {
+    return null;
+  }
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? null : parsed;
+}
+
+function parseBoolean(value: string): boolean {
+  if (!value) return false;
+  return value.toLowerCase() === 'true' || value === '1';
+}
+
+async function readAndInsertCSV(filePath: string) {
+  const readings: WaterQualityReading[] = [];
+  
+  return new Promise<WaterQualityReading[]>((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csv({ separator: ',' }))
+      .on('data', (data) => {
+        try {
+          const rawDate = data.Date || data.date;
+          const rawMois = data.Mois || data.mois;
+          
+          const reading: WaterQualityReading = {
+            _id: uuidv4(),
+            body: {
+              id_station: data.ID_Station || data.id_station || 'Sanar_Station',
+              phase: data.Phase || data.phase || '',
+              type_filtre: data.Type_Filtre || data.type_filtre || '',
+              id_filtre: data.ID_Filtre || data.id_filtre || '',
+              
+              date: rawDate || null,
+              mois: rawMois || null,
+              
+              temperature_c: parseFloatOrNull(data.Temperature_C || data.temperature_c),
+              ph: parseFloatOrNull(data.pH || data.ph),
+              conductivite_us_cm: parseFloatOrNull(data.Conductivite_uS_cm || data.conductivite_us_cm),
+              potentiel_redox_mv: parseFloatOrNull(data.Potentiel_Redox_mV || data.potentiel_redox_mv),
+              
+              dbo5_mg_l: parseFloatOrNull(data.DBO5_mg_L || data.dbo5_mg_l),
+              dco_mg_l: parseFloatOrNull(data.DCO_mg_L || data.dco_mg_l),
+              mes_mg_l: parseFloatOrNull(data.MES_mg_L || data.mes_mg_l),
+              mvs_pct: parseFloatOrNull(data.MVS_pct || data.mvs_pct),
+              
+              nitrates_mg_l: parseFloatOrNull(data.Nitrates_mg_L || data.nitrates_mg_l),
+              ammonium_mg_l: parseFloatOrNull(data.Ammonium_mg_L || data.ammonium_mg_l),
+              azote_total_mg_l: parseFloatOrNull(data.Azote_Total_mg_L || data.azote_total_mg_l),
+              phosphates_mg_l: parseFloatOrNull(data.Phosphates_mg_L || data.phosphates_mg_l),
+              
+              coliformes_fecaux_cfu_100ml: parseFloatOrNull(data.Coliformes_Fecaux_CFU_100ml || data.coliformes_fecaux_cfu_100ml),
+              oeufs_helminthes: parseFloatOrNull(data.Oeufs_Helminthes || data.oeufs_helminthes),
+              huiles_graisses: parseFloatOrNull(data.Huiles_Graisses || data.huiles_graisses),
+              
+              nom_feuille: data.Nom_Feuille || data.nom_feuille || '',
+              contient_valeurs_estimees: parseBoolean(data.Contient_Valeurs_Estimees || data.contient_valeurs_estimees),
+            },
+          };
+          
+          readings.push(reading);
+        } catch (error) {
+          console.error('❌ Erreur lors du parsing d\'une ligne:', error, data);
+        }
+      })
+      .on('end', () => {
+        // Statistiques sur les dates
+        const withDates = readings.filter(r => r.body.date !== null).length;
+        const withoutDates = readings.filter(r => r.body.date === null).length;
+        
+        console.log(`✅ ${readings.length} documents de qualité d'eau préparés`);
+        console.log(`📅 ${withDates} avec dates, ${withoutDates} sans dates`);
+        
+        if (withDates > 0) {
+          const dates = readings.filter(r => r.body.date).map(r => r.body.date);
+          const uniqueDates = [...new Set(dates)].sort();
+          console.log(`📊 Période couverte: ${uniqueDates[0]} à ${uniqueDates[uniqueDates.length - 1]}`);
+        }
+        
+        resolve(readings);
+      })
+      .on('error', (error) => {
+        console.error('❌ Erreur lecture CSV:', error);
+        reject(error);
+      });
+  });
 }
 
 function createData() {
   const now = new Date();
 
   const stations: Station[] = regions.map((region, i) => {
-    const [lat, lon] = regionCoords[region];
+    const coords = regionCoords[region];
+    if (!coords) {
+      console.error(`❌ Coordonnées manquantes pour la région: ${region}`);
+      throw new Error(`Coordonnées manquantes pour: ${region}`);
+    }
+    const [lat, lon] = coords;
     return {
       _id: `station-${region.toLowerCase()}-${i}`,
       body: {
@@ -190,7 +363,7 @@ function createData() {
         _id: uuidv4(),
         body: {
           stationId: station._id,
-          type: "threshold_exceeded",
+          type: "seuil dépassé",
           level: Math.random() > 0.5 ? "warning" : "critical",
           message: "Valeur anormale détectée.",
           timestamp: date.toISOString(),
@@ -224,6 +397,21 @@ function createData() {
   return { stations, readings, alerts, users, events };
 }
 
+async function bulkInsert(collection: string, docs: any[]) {
+  if (docs.length === 0) {
+    console.log(`⚠️ Aucun document à insérer dans '${collection}'`);
+    return;
+  }
+  
+  try {
+    await kuzzle.document.mCreate("iot", collection, docs);
+    console.log(`📦 ${docs.length} documents insérés dans '${collection}'`);
+  } catch (error) {
+    console.error(`❌ Erreur lors de l'insertion dans '${collection}':`, error);
+    throw error;
+  }
+}
+
 async function seed() {
   try {
     await kuzzle.connect();
@@ -232,23 +420,37 @@ async function seed() {
     await createMappings();
 
     const { stations, readings, alerts, users, events } = createData();
+    
+    // Utiliser le nouveau fichier avec les dates
+    const csvFilePath = path.join(__dirname, "..", "cleaning_water", "UGB_Sanar_Station_Dataset_Clean.csv");
+    
+    console.log(`📁 Lecture du fichier: ${csvFilePath}`);
+    
+    if (!fs.existsSync(csvFilePath)) {
+      throw new Error(`❌ Fichier CSV introuvable: ${csvFilePath}`);
+    }
 
-    const bulkInsert = async (collection: string, docs: any[]) => {
-      await kuzzle.document.mCreate("iot", collection, docs);
-      console.log(`📦 ${docs.length} documents insérés dans '${collection}'`);
-    };
+    const waterQualityData = await readAndInsertCSV(csvFilePath);
 
+    // Insérer toutes les données
     await bulkInsert("stations", stations);
     await bulkInsert("readings", readings);
     await bulkInsert("alerts", alerts);
     await bulkInsert("users", users);
     await bulkInsert("events", events);
+    
+    // Insérer les données de qualité de l'eau avec dates réelles
+    await bulkInsert("water_quality", waterQualityData);
 
-    console.log("✅ Données injectées avec succès !");
+    console.log("🎉 Toutes les données injectées avec succès !");
+    console.log(`🌊 ${waterQualityData.length} mesures de qualité d'eau importées`);
+    
     kuzzle.disconnect();
+    console.log("🔌 Déconnecté de Kuzzle");
   } catch (error) {
-    console.error("❌ Erreur:", error);
+    console.error("❌ Erreur lors du seed:", error);
     kuzzle.disconnect();
+    process.exit(1);
   }
 }
 

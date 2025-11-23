@@ -1,0 +1,95 @@
+<div class="modal fade" [id]="modalId" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- En-tête -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="authModalLabel">
+          <i class="bi bi-shield-lock me-2"></i>
+          Authentification requise
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Corps -->
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <i class="bi bi-droplet-fill text-primary display-6"></i>
+          <h6 class="mt-2">Accès aux données de la station</h6>
+          <p class="text-muted small">
+            Veuillez vous authentifier pour accéder au tableau de données de
+            <strong>{{ stationName }}</strong>
+          </p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()">
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-envelope"></i>
+              </span>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="votre@email.com"
+                required
+                [class.is-invalid]="errorMessage && !email">
+            </div>
+          </div>
+
+          <!-- Mot de passe -->
+          <div class="mb-3">
+            <label for="password" class="form-label">Mot de passe</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-key"></i>
+              </span>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="Votre mot de passe"
+                required
+                [class.is-invalid]="errorMessage && !password">
+            </div>
+          </div>
+
+          <!-- Message d'erreur -->
+          <div class="alert alert-danger d-flex align-items-center" *ngIf="errorMessage">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div class="small">{{ errorMessage }}</div>
+          </div>
+
+          <!-- Loading -->
+          <div class="alert alert-info d-flex align-items-center" *ngIf="isLoading">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            <div class="small">Vérification en cours...</div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Pied -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>
+          Annuler
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="onSubmit()"
+          [disabled]="isLoading || !email || !password">
+          <i class="bi bi-unlock me-1" *ngIf="!isLoading"></i>
+          <div class="spinner-border spinner-border-sm me-1" *ngIf="isLoading" role="status"></div>
+          Se connecter
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

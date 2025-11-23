@@ -1,0 +1,259 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">
+        <i class="bi bi-geo-alt-fill text-success me-2"></i>
+        Cartographie des Stations
+      </h1>
+      <p class="text-muted mb-0">
+        {{ stations.length }} station(s) - {{ allAlerts.length }} alerte(s) active(s)
+      </p>
+    </div>
+    <a [routerLink]="['/']" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>
+      Retour à l'accueil
+    </a>
+  </div>
+
+  <div class="row">
+    <!-- Carte plein écran -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-light">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+              <i class="bi bi-map me-2"></i>
+              Carte Interactive des Stations
+            </h5>
+            <div>
+              <span class="badge bg-success me-2">
+                <i class="bi bi-circle-fill"></i> Sans alerte: {{ getActiveStationsCount() }}
+              </span>
+              <span class="badge bg-danger">
+                <i class="bi bi-circle-fill"></i> Avec alertes: {{ getAlertStationsCount() }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="map-container">
+            <div id="map" style="height: 600px; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des stations en dessous -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-list-check me-2"></i>
+            Liste des Stations ({{ stations.length }})
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="isLoading" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2 text-muted">Chargement des stations...</p>
+          </div>
+
+          <div class="table-responsive" *ngIf="!isLoading">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Statut</th>
+                  <th>Nom</th>
+                  <th>Coordonnées</th>
+                  <th>Alertes</th>
+                  <th>Dernière mise à jour</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let station of stations"
+                    [class.table-danger]="station.status === 'alert'"
+                    [class.table-success]="station.status === 'active'"
+                    style="cursor: pointer;"
+                    (click)="selectStation(station)">
+                  <td>
+                    <span [ngClass]="getStatusClass(station.status)" class="badge">
+                      {{ station.status === 'alert' ? '🔴 Alerte' : '🟢 En ligne' }}
+                    </span>
+                  </td>
+                  <td><strong>{{ station.name }}</strong></td>
+                  <td>
+                    <small>
+                      {{ station.latitude | number:'1.4-4' }}, {{ station.longitude | number:'1.4-4' }}
+                    </small>
+                  </td>
+                  <td>
+                    <span *ngIf="getStationAlerts(station).length > 0" class="badge bg-warning">
+                      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                      {{ getStationAlerts(station).length }}
+                    </span>
+                    <span *ngIf="getStationAlerts(station).length === 0" class="text-success">
+                      <i class="bi bi-check-circle-fill"></i> Aucune
+                    </span>
+                  </td>
+                  <td>
+                    <small>{{ station.lastUpdate | date:'dd/MM/yyyy HH:mm' }}</small>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" (click)="selectStation(station); $event.stopPropagation()">
+                      <i class="bi bi-geo-alt-fill"></i> Localiser
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="stations.length === 0">
+                  <td colspan="6" class="text-center py-4">
+                    <i class="bi bi-geo-alt text-muted fs-1"></i>
+                    <p class="text-muted mt-2 mb-0">Aucune station trouvée</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Légende et alertes -->
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            Légende de la Carte
+          </h6>
+          <div class="d-flex align-items-center mb-3">
+            <div style="width: 20px; height: 20px; border-radius: 50%; background-color: #28a745; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" class="me-3"></div>
+            <div>
+              <strong>Station en ligne</strong>
+              <br><small class="text-muted">Aucune alerte détectée</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <div style="width: 20px; height: 20px; border-radius: 50%; background-color: #dc3545; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" class="me-3"></div>
+            <div>
+              <strong>Station en alerte</strong>
+              <br><small class="text-muted">Une ou plusieurs alertes actives</small>
+            </div>
+          </div>
+          <hr>
+          <p class="text-muted mb-0">
+            <small><i class="bi bi-info-circle me-1"></i> Survolez une station pour voir les détails et alertes</small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résumé des alertes globales -->
+    <div class="col-md-6" *ngIf="allAlerts.length > 0">
+      <div class="card border-warning">
+        <div class="card-header bg-warning">
+          <h6 class="mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Dernières Alertes ({{ allAlerts.length }})
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+            <div *ngFor="let alert of allAlerts.slice(0, 10)"
+                 class="list-group-item list-group-item-sm">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <small>
+                    <strong>{{ alert.station }}</strong><br>
+                    {{ alert.message }}
+                  </small>
+                  <br>
+                  <small class="text-muted">{{ alert.time }}</small>
+                </div>
+                <span class="badge ms-2"
+                      [ngClass]="{
+                        'bg-danger': alert.severity === 'critical',
+                        'bg-warning': alert.severity === 'high',
+                        'bg-primary': alert.severity === 'medium',
+                        'bg-info': alert.severity === 'warning'
+                      }">
+                  {{ alert.severity }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si aucune alerte -->
+    <div class="col-md-6" *ngIf="allAlerts.length === 0">
+      <div class="card border-success">
+        <div class="card-body text-center">
+          <i class="bi bi-check-circle-fill text-success fs-1"></i>
+          <h6 class="mt-3">Aucune alerte active</h6>
+          <p class="text-muted mb-0">Toutes les stations fonctionnent normalement</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .table-row-hover:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+  }
+
+  .map-container {
+    position: relative;
+  }
+
+  .station-marker {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .station-marker:hover {
+    transform: scale(1.2);
+  }
+
+  .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  }
+
+  .badge-sm {
+    font-size: 0.7rem;
+  }
+
+  .list-group-item-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .table-success {
+    background-color: #d1e7dd !important;
+  }
+
+  .table-danger {
+    background-color: #f8d7da !important;
+  }
+
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s;
+  }
+</style>

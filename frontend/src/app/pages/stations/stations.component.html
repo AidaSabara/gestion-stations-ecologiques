@@ -1,1 +1,1122 @@
-<p>stations works!</p>
+<!-- Stations Component Template -->
+<div class="container-fluid">
+
+  <!-- ========================================== -->
+  <!-- HEADER AVEC BOUTONS -->
+  <!-- ========================================== -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0">Gestion des Stations</h1>
+
+        <!-- Afficher le nom et rôle de l'utilisateur -->
+        <div class="d-flex align-items-center">
+          <div class="user-info me-3" *ngIf="currentUser; else notConnected">
+            <span class="badge bg-info me-2">
+              {{ currentUser.name || 'Utilisateur' }}
+            </span>
+            <span class="badge" [ngClass]="{
+              'bg-danger': currentUser.role === 'admin',
+              'bg-warning text-dark': currentUser.role === 'supervisor',
+              'bg-secondary': currentUser.role === 'agent'
+            }">
+              {{ currentUser.role === 'admin' ? '👑 Admin' :
+                 currentUser.role === 'supervisor' ? '👨‍💼 Superviseur' :
+                 '👤 Agent' }}
+            </span>
+          </div>
+
+          <ng-template #notConnected>
+            <div class="user-info me-3">
+              <span class="badge bg-warning text-dark">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Non connecté
+              </span>
+            </div>
+          </ng-template>
+
+          <div class="btn-group">
+            <!-- Bouton de rechargement (visible pour tous) -->
+            <button
+              class="btn btn-outline-primary"
+              (click)="loadStations()"
+              [disabled]="isLoading"
+              title="Recharger les stations"
+            >
+              <i class="bi" [ngClass]="isLoading ? 'bi-arrow-repeat spinner-border-sm' : 'bi-arrow-clockwise'"></i>
+              {{ isLoading ? 'Chargement...' : 'Recharger' }}
+            </button>
+
+            <!-- Bouton d'ajout (visible uniquement pour Admin) -->
+            <button
+              *ngIf="canAdd()"
+              class="btn btn-primary"
+              (click)="openAddModal()"
+            >
+              <i class="bi bi-plus-circle"></i> Ajouter une station
+            </button>
+
+            <!-- Message si pas de permission d'ajout -->
+            <span *ngIf="!canAdd() && currentUser" class="badge bg-warning text-dark ms-2 p-2">
+              <i class="bi bi-lock-fill me-1"></i>
+              Ajout réservé aux Admins
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- ALERTE INFO - NOMBRE DE STATIONS -->
+  <!-- ========================================== -->
+  <div class="row mb-3" *ngIf="!isLoading">
+    <div class="col-12">
+      <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+        <span>
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>{{ stations.length }}</strong> station{{ stations.length > 1 ? 's' : '' }} chargée{{ stations.length > 1 ? 's' : '' }}
+          <span *ngIf="isAdmin" class="badge bg-success ms-2"></span>
+        </span>
+        <button
+          class="btn btn-sm btn-outline-primary"
+          (click)="debugStations()"
+          title="Afficher les détails dans la console"
+        >
+          <i class="bi bi-bug me-1"></i> Debug
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SECTION FILTRES PAR RÉGION -->
+  <!-- ========================================== -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="filter-section">
+        <label for="region-select" class="form-label fw-bold">
+          Filtrer par région:
+          <span class="badge bg-secondary ms-2">{{ regionsList.length }} régions</span>
+        </label>
+        <select
+          id="region-select"
+          [(ngModel)]="selectedRegion"
+          (change)="filterByRegion()"
+          class="form-select"
+        >
+          <option value="">Toutes les régions ({{ stations.length }})</option>
+          <option *ngFor="let region of regionsList" [value]="region">
+            {{ region }} ({{ getStationCountByRegion(region) }})
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="d-flex align-items-end h-100">
+        <p *ngIf="selectedRegion" class="mb-0 text-muted">
+          Filtre actif: <strong class="text-primary">{{ selectedRegion }}</strong>
+          ({{ filteredStations.length }} station{{ filteredStations.length > 1 ? 's' : '' }})
+        </p>
+        <p *ngIf="!selectedRegion && stations.length > 0" class="mb-0 text-muted">
+          <i class="bi bi-check-circle text-success me-1"></i>
+          Affichage de toutes les stations ({{ stations.length }})
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- CARTES DE STATISTIQUES -->
+  <!-- ========================================== -->
+  <div class="row mb-4">
+    <!-- Total Stations -->
+    <div class="col-md-4">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ stations.length }}</h4>
+              <p class="mb-0">Total Stations</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-hdd-stack fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stations Actives -->
+    <div class="col-md-4">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ getActiveStationsCount() }}</h4>
+              <p class="mb-0">Stations Actives</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-check-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stations Fixes -->
+    <div class="col-md-4">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4 class="mb-0">{{ getFixedStationsCount() }}</h4>
+              <p class="mb-0">Stations Fixes</p>
+            </div>
+            <div class="align-self-center">
+              <i class="bi bi-pin-map fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MESSAGES D'ALERTE (Erreur/Succès) -->
+  <!-- ========================================== -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- LOADING SPINNER -->
+  <!-- ========================================== -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p class="mt-3 fs-5">Chargement des stations...</p>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- GRILLE DES STATIONS -->
+  <!-- ========================================== -->
+  <div *ngIf="!isLoading && filteredStations.length > 0" class="row">
+    <div class="col-12">
+      <div class="row g-4">
+
+        <!-- Carte Station -->
+        <div class="col-xl-4 col-lg-6 col-md-6" *ngFor="let station of filteredStations">
+          <div
+            class="card station-card h-100 shadow-sm"
+            [attr.data-station-id]="station._id"
+            (dblclick)="onStationDoubleClick(station)"
+            style="cursor: pointer; position: relative;"
+            title="Double-cliquez pour accéder à cette station"
+          >
+
+            <!-- Badge d'indication Double-clic -->
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+              <span class="badge bg-info" style="font-size: 0.7rem;">
+                <i class="bi bi-hand-index"></i> Double-clic
+              </span>
+            </div>
+
+            <!-- En-tête de la carte -->
+            <div class="card-header bg-transparent">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 text-truncate">
+                  {{ getStationData(station).name }}
+                </h5>
+                <span
+                  class="badge"
+                  [ngClass]="{
+                    'bg-success': getStationData(station).status === 'active',
+                    'bg-secondary': getStationData(station).status !== 'active'
+                  }"
+                >
+                  {{ getStationData(station).status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Corps de la carte -->
+            <div class="card-body">
+
+              <!-- Région -->
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                <div>
+                  <strong>Région:</strong>
+                  <span class="ms-1">{{ getStationRegion(station) }}</span>
+                </div>
+              </div>
+
+              <!-- Type -->
+              <div class="d-flex align-items-center mb-3">
+                <i
+                  class="bi text-primary me-2"
+                  [ngClass]="getTypeIcon(getStationData(station).type)"
+                ></i>
+                <div>
+                  <strong>Type:</strong>
+                  <span class="ms-1">
+                    {{ getStationData(station).type === 'fixed' ? 'Fixe' : 'Mobile' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Localisation -->
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-geo text-primary me-2"></i>
+                <div>
+                  <strong>Localisation:</strong>
+                  <br>
+                  <small class="text-muted" *ngIf="getStationData(station).location">
+                    {{ getStationData(station).location.lat | number:'1.4-4' }},
+                    {{ getStationData(station).location.lon | number:'1.4-4' }}
+                  </small>
+                  <small class="text-muted" *ngIf="!getStationData(station).location">
+                    Non disponible
+                  </small>
+                </div>
+              </div>
+
+              <!-- Date d'installation -->
+              <div class="d-flex align-items-center">
+                <i class="bi bi-calendar3 text-primary me-2"></i>
+                <div>
+                  <strong>Installée:</strong>
+                  <br>
+                  <small class="text-muted">
+                    {{ formatDate(getStationData(station).installedAt) }}
+                  </small>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Pied de carte avec boutons d'action -->
+            <div class="card-footer bg-transparent">
+              <div class="d-grid gap-2">
+
+                <!-- Bouton Modifier - Visible pour Admin et Supervisor -->
+                <button
+                  *ngIf="canEdit()"
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="$event.stopPropagation(); openEditModal(station)"
+                  [disabled]="isLoading"
+                  style="z-index: 20; position: relative;"
+                >
+                  <i class="bi bi-pencil-square me-1"></i> Modifier
+                </button>
+
+                <!-- Bouton Supprimer - Visible uniquement pour Admin -->
+                <button
+                  *ngIf="canDelete()"
+                  class="btn btn-outline-danger btn-sm"
+                  (click)="$event.stopPropagation(); deleteStation(station._id)"
+                  [disabled]="isLoading"
+                  style="z-index: 20; position: relative;"
+                >
+                  <i class="bi bi-trash me-1"></i> Supprimer
+                </button>
+
+                <!-- Message si pas de permissions -->
+                <div *ngIf="!canEdit() && !canDelete()" class="text-center text-muted small">
+                  <i class="bi bi-lock me-1"></i>
+                  Actions limitées
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <!-- Fin Carte Station -->
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MESSAGE AUCUN RÉSULTAT (Filtrage) -->
+  <!-- ========================================== -->
+  <div *ngIf="!isLoading && filteredStations.length === 0 && selectedRegion" class="text-center py-5">
+    <div class="py-5">
+      <i class="bi bi-search display-1 text-muted"></i>
+      <h3 class="text-muted mt-4">Aucune station trouvée</h3>
+      <p class="text-muted fs-5">Aucune station ne correspond à la région "{{ selectedRegion }}"</p>
+      <button
+        class="btn btn-primary mt-3"
+        (click)="selectedRegion = ''; filterByRegion()"
+      >
+        <i class="bi bi-arrow-left me-2"></i>Voir toutes les stations
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MESSAGE AUCUNE STATION -->
+  <!-- ========================================== -->
+  <div *ngIf="!isLoading && stations.length === 0" class="text-center py-5">
+    <div class="py-5">
+      <i class="bi bi-inbox display-1 text-muted"></i>
+      <h3 class="text-muted mt-4">Aucune station</h3>
+      <p class="text-muted fs-5">Commencez par ajouter votre première station de monitoring</p>
+      <button *ngIf="canAdd()" class="btn btn-primary btn-lg mt-3" (click)="openAddModal()">
+        <i class="bi bi-plus-circle me-2"></i>Ajouter la première station
+      </button>
+      <div *ngIf="!canAdd()" class="alert alert-warning mt-3">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Vous n'avez pas les permissions pour ajouter une station. Contactez un administrateur.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================================ -->
+<!-- MODAL D'AJOUT DE STATION -->
+<!-- ============================================================================ -->
+<div
+  class="modal fade"
+  [class.show]="showAddModal"
+  [style.display]="showAddModal ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="addStationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+
+      <!-- En-tête Modal -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="addStationModalLabel">
+          <i class="bi bi-plus-circle me-2"></i>Ajouter une nouvelle station
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closeAddModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Corps Modal -->
+      <div class="modal-body">
+        <form [formGroup]="stationForm" (ngSubmit)="onSubmit()">
+
+          <!-- Nom de la station -->
+          <div class="mb-4">
+            <label for="name" class="form-label fw-bold">Nom de la station *</label>
+            <input
+              type="text"
+              class="form-control form-control-lg"
+              id="name"
+              formControlName="name"
+              placeholder="Ex: Station Dakar Centre-Ville"
+              [class.is-invalid]="stationForm.get('name')?.invalid && stationForm.get('name')?.touched"
+            >
+            <div *ngIf="stationForm.get('name')?.invalid && stationForm.get('name')?.touched" class="invalid-feedback">
+              <div *ngIf="stationForm.get('name')?.errors?.['required']">
+                Le nom de la station est requis
+              </div>
+              <div *ngIf="stationForm.get('name')?.errors?.['minlength']">
+                Le nom doit faire au moins 3 caractères
+              </div>
+            </div>
+          </div>
+
+          <!-- Région -->
+          <div class="mb-4">
+            <label for="region" class="form-label fw-bold">Région *</label>
+            <select
+              class="form-select form-select-lg"
+              id="region"
+              formControlName="region"
+              [class.is-invalid]="stationForm.get('region')?.invalid && stationForm.get('region')?.touched"
+            >
+              <option value="">Sélectionnez une région</option>
+              <option *ngFor="let region of regions" [value]="region.name">
+                {{ region.name }}
+              </option>
+            </select>
+            <div *ngIf="stationForm.get('region')?.invalid && stationForm.get('region')?.touched" class="invalid-feedback">
+              La région est requise
+            </div>
+          </div>
+
+          <!-- Coordonnées GPS -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="latitude" class="form-label fw-bold">Latitude</label>
+              <input
+                type="number"
+                class="form-control"
+                id="latitude"
+                formControlName="latitude"
+                step="0.0001"
+                readonly
+              >
+              <div class="form-text">Rempli automatiquement selon la région</div>
+            </div>
+            <div class="col-md-6">
+              <label for="longitude" class="form-label fw-bold">Longitude</label>
+              <input
+                type="number"
+                class="form-control"
+                id="longitude"
+                formControlName="longitude"
+                step="0.0001"
+                readonly
+              >
+              <div class="form-text">Rempli automatiquement selon la région</div>
+            </div>
+          </div>
+
+          <!-- Statut et Type -->
+          <div class="row mb-4">
+
+            <!-- Statut -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Statut *</label>
+              <div class="btn-group w-100" role="group">
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="statusActive"
+                  value="active"
+                  formControlName="status"
+                >
+                <label class="btn btn-outline-success" for="statusActive">
+                  <i class="bi bi-check-circle me-2"></i>Active
+                </label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="statusInactive"
+                  value="inactive"
+                  formControlName="status"
+                >
+                <label class="btn btn-outline-secondary" for="statusInactive">
+                  <i class="bi bi-pause-circle me-2"></i>Inactive
+                </label>
+              </div>
+            </div>
+
+            <!-- Type -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Type *</label>
+              <div class="btn-group w-100" role="group">
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="typeFixed"
+                  value="fixed"
+                  formControlName="type"
+                >
+                <label class="btn btn-outline-primary" for="typeFixed">
+                  <i class="bi bi-pin-map me-2"></i>Fixe
+                </label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="typeMobile"
+                  value="mobile"
+                  formControlName="type"
+                >
+                <label class="btn btn-outline-info" for="typeMobile">
+                  <i class="bi bi-geo-alt me-2"></i>Mobile
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Aperçu -->
+          <div class="alert alert-info" *ngIf="stationForm.valid">
+            <h6 class="alert-heading">
+              <i class="bi bi-eye me-2"></i>Aperçu de la station
+            </h6>
+            <p class="mb-1"><strong>Nom:</strong> {{ stationForm.value.name }}</p>
+            <p class="mb-1"><strong>Région:</strong> {{ stationForm.value.region }}</p>
+            <p class="mb-1">
+              <strong>Localisation:</strong>
+              {{ stationForm.value.latitude }}, {{ stationForm.value.longitude }}
+            </p>
+            <p class="mb-0">
+              <strong>Statut:</strong>
+              {{ stationForm.value.status === 'active' ? 'Active' : 'Inactive' }}
+            </p>
+          </div>
+
+          <!-- Pied Modal avec Boutons -->
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeAddModal()"
+            >
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="isSubmitting || stationForm.invalid"
+            >
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-plus-circle me-2" *ngIf="!isSubmitting"></i>
+              {{ isSubmitting ? 'Création en cours...' : 'Créer la station' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Overlay pour Modal d'ajout -->
+<div
+  *ngIf="showAddModal"
+  class="modal-backdrop fade show"
+  (click)="closeAddModal()"
+></div>
+
+<!-- ============================================================================ -->
+<!-- MODAL D'ÉDITION DE STATION -->
+<!-- ============================================================================ -->
+<div
+  class="modal fade"
+  [class.show]="showEditModal"
+  [style.display]="showEditModal ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="editStationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+
+      <!-- En-tête Modal -->
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="editStationModalLabel">
+          <i class="bi bi-pencil-square me-2"></i>Modifier la station
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeEditModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Corps Modal -->
+      <div class="modal-body">
+
+        <!-- Info Station en cours de modification -->
+        <div class="alert alert-info" *ngIf="currentEditingStation">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Station:</strong> {{ currentEditingStation._id }}
+        </div>
+
+        <form [formGroup]="stationForm" (ngSubmit)="onSubmit()">
+
+          <!-- Nom de la station -->
+          <div class="mb-4">
+            <label for="edit-name" class="form-label fw-bold">Nom de la station *</label>
+            <input
+              type="text"
+              class="form-control form-control-lg"
+              id="edit-name"
+              formControlName="name"
+              placeholder="Ex: Station Dakar Centre-Ville"
+              [class.is-invalid]="stationForm.get('name')?.invalid && stationForm.get('name')?.touched"
+            >
+            <div *ngIf="stationForm.get('name')?.invalid && stationForm.get('name')?.touched" class="invalid-feedback">
+              <div *ngIf="stationForm.get('name')?.errors?.['required']">
+                Le nom de la station est requis
+              </div>
+              <div *ngIf="stationForm.get('name')?.errors?.['minlength']">
+                Le nom doit faire au moins 3 caractères
+              </div>
+            </div>
+          </div>
+
+          <!-- Région -->
+          <div class="mb-4">
+            <label for="edit-region" class="form-label fw-bold">Région *</label>
+            <select
+              class="form-select form-select-lg"
+              id="edit-region"
+              formControlName="region"
+              [class.is-invalid]="stationForm.get('region')?.invalid && stationForm.get('region')?.touched"
+            >
+              <option value="">Sélectionnez une région</option>
+              <option *ngFor="let region of regions" [value]="region.name">
+                {{ region.name }}
+              </option>
+            </select>
+            <div *ngIf="stationForm.get('region')?.invalid && stationForm.get('region')?.touched" class="invalid-feedback">
+              La région est requise
+            </div>
+          </div>
+
+          <!-- Coordonnées GPS -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="edit-latitude" class="form-label fw-bold">Latitude *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="edit-latitude"
+                formControlName="latitude"
+                step="0.0001"
+                [class.is-invalid]="stationForm.get('latitude')?.invalid && stationForm.get('latitude')?.touched"
+              >
+              <div class="form-text">Modifiable manuellement</div>
+            </div>
+            <div class="col-md-6">
+              <label for="edit-longitude" class="form-label fw-bold">Longitude *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="edit-longitude"
+                formControlName="longitude"
+                step="0.0001"
+                [class.is-invalid]="stationForm.get('longitude')?.invalid && stationForm.get('longitude')?.touched"
+              >
+              <div class="form-text">Modifiable manuellement</div>
+            </div>
+          </div>
+
+          <!-- Statut et Type -->
+          <div class="row mb-4">
+
+            <!-- Statut -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Statut *</label>
+              <div class="btn-group w-100" role="group">
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="editStatusActive"
+                  value="active"
+                  formControlName="status"
+                >
+                <label class="btn btn-outline-success" for="editStatusActive">
+                  <i class="bi bi-check-circle me-2"></i>Active
+                </label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="editStatusInactive"
+                  value="inactive"
+                  formControlName="status"
+                >
+                <label class="btn btn-outline-secondary" for="editStatusInactive">
+                  <i class="bi bi-pause-circle me-2"></i>Inactive
+                </label>
+              </div>
+            </div>
+
+            <!-- Type -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Type *</label>
+              <div class="btn-group w-100" role="group">
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="editTypeFixed"
+                  value="fixed"
+                  formControlName="type"
+                >
+                <label class="btn btn-outline-primary" for="editTypeFixed">
+                  <i class="bi bi-pin-map me-2"></i>Fixe
+                </label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="editTypeMobile"
+                  value="mobile"
+                  formControlName="type"
+                >
+                <label class="btn btn-outline-info" for="editTypeMobile">
+                  <i class="bi bi-geo-alt me-2"></i>Mobile
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Aperçu des modifications -->
+          <div class="alert alert-warning" *ngIf="stationForm.valid">
+            <h6 class="alert-heading">
+              <i class="bi bi-eye me-2"></i>Aperçu des modifications
+            </h6>
+            <p class="mb-1"><strong>Nom:</strong> {{ stationForm.value.name }}</p>
+            <p class="mb-1"><strong>Région:</strong> {{ stationForm.value.region }}</p>
+            <p class="mb-1">
+              <strong>Localisation:</strong>
+              {{ stationForm.value.latitude }}, {{ stationForm.value.longitude }}
+            </p>
+            <p class="mb-1">
+              <strong>Statut:</strong>
+              {{ stationForm.value.status === 'active' ? 'Active' : 'Inactive' }}
+            </p>
+            <p class="mb-0">
+              <strong>Type:</strong>
+              {{ stationForm.value.type === 'fixed' ? 'Fixe' : 'Mobile' }}
+            </p>
+          </div>
+
+          <!-- Pied Modal avec Boutons -->
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeEditModal()"
+            >
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+            <button
+              type="submit"
+              class="btn btn-warning"
+              [disabled]="isSubmitting || stationForm.invalid"
+            >
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-save me-2" *ngIf="!isSubmitting"></i>
+              {{ isSubmitting ? 'Mise à jour...' : 'Mettre à jour' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Overlay pour Modal d'édition -->
+<div
+  *ngIf="showEditModal"
+  class="modal-backdrop fade show"
+  (click)="closeEditModal()"
+></div>
+
+<!-- ============================================================================ -->
+<!-- MODAL D'AUTHENTIFICATION -->
+<!-- ============================================================================ -->
+<div
+  class="modal fade"
+  [class.show]="showAuthModal"
+  [style.display]="showAuthModal ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="authModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <!-- En-tête Modal -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="authModalLabel">
+          <i class="bi bi-shield-lock me-2"></i>Authentification Requise
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closeAuthModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Corps Modal -->
+      <div class="modal-body">
+
+        <!-- Informations de la station -->
+        <div class="alert alert-info" *ngIf="selectedStationForAuth">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-info-circle fs-3 me-3"></i>
+            <div>
+              <strong>Accès à la station :</strong><br>
+              <span class="fs-5">{{ getStationData(selectedStationForAuth).name }}</span>
+              <br>
+              <small class="text-muted">{{ getStationRegion(selectedStationForAuth) }}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div
+          *ngIf="authErrorMessage"
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ authErrorMessage }}
+          <button
+            type="button"
+            class="btn-close"
+            (click)="authErrorMessage = ''"
+          ></button>
+        </div>
+
+        <!-- Formulaire d'authentification -->
+        <form [formGroup]="authForm" (ngSubmit)="onAuthSubmit()">
+
+          <!-- Champ Email -->
+          <div class="mb-3">
+            <label for="auth-email" class="form-label fw-bold">
+              <i class="bi bi-envelope me-2"></i>Email
+            </label>
+            <input
+              type="email"
+              class="form-control form-control-lg"
+              id="auth-email"
+              formControlName="email"
+              placeholder="agent@ecostations.sn"
+              [class.is-invalid]="authForm.get('email')?.invalid && authForm.get('email')?.touched"
+              autofocus
+            >
+            <div
+              *ngIf="authForm.get('email')?.invalid && authForm.get('email')?.touched"
+              class="invalid-feedback"
+            >
+              <div *ngIf="authForm.get('email')?.errors?.['required']">
+                L'email est requis
+              </div>
+              <div *ngIf="authForm.get('email')?.errors?.['email']">
+                Email invalide
+              </div>
+            </div>
+          </div>
+
+          <!-- Champ Mot de passe -->
+          <div class="mb-4">
+            <label for="auth-password" class="form-label fw-bold">
+              <i class="bi bi-key me-2"></i>Mot de passe
+            </label>
+            <input
+              type="password"
+              class="form-control form-control-lg"
+              id="auth-password"
+              formControlName="password"
+              placeholder="••••••••"
+              [class.is-invalid]="authForm.get('password')?.invalid && authForm.get('password')?.touched"
+            >
+            <div
+              *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched"
+              class="invalid-feedback"
+            >
+              <div *ngIf="authForm.get('password')?.errors?.['required']">
+                Le mot de passe est requis
+              </div>
+              <div *ngIf="authForm.get('password')?.errors?.['minlength']">
+                Minimum 6 caractères
+              </div>
+            </div>
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="d-grid gap-2">
+            <button
+              type="submit"
+              class="btn btn-primary btn-lg"
+              [disabled]="isAuthenticating || authForm.invalid"
+            >
+              <span *ngIf="isAuthenticating" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-box-arrow-in-right me-2" *ngIf="!isAuthenticating"></i>
+              {{ isAuthenticating ? 'Connexion...' : 'Se connecter' }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              (click)="closeAuthModal()"
+              [disabled]="isAuthenticating"
+            >
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Overlay pour Modal d'authentification -->
+<div
+  *ngIf="showAuthModal"
+  class="modal-backdrop fade show"
+  (click)="closeAuthModal()"
+></div>
+
+<!-- ============================================================================ -->
+<!-- MODAL D'AUTHENTIFICATION ADMIN -->
+<!-- ============================================================================ -->
+<div
+  class="modal fade"
+  [class.show]="showAdminAuthModal"
+  [style.display]="showAdminAuthModal ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="adminAuthModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <!-- En-tête Modal -->
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="adminAuthModalLabel">
+          <i class="bi bi-shield-check me-2"></i>Authentification Administrateur Requise
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeAdminAuthModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Corps Modal -->
+      <div class="modal-body">
+
+        <!-- Informations sur l'action -->
+        <div class="alert alert-warning">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle fs-3 me-3"></i>
+            <div>
+              <strong>Action administrative requise</strong><br>
+              <span>Cette action nécessite des privilèges d'administrateur</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div
+          *ngIf="adminAuthErrorMessage"
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ adminAuthErrorMessage }}
+          <button
+            type="button"
+            class="btn-close"
+            (click)="adminAuthErrorMessage = ''"
+          ></button>
+        </div>
+
+        <!-- Formulaire d'authentification admin -->
+        <form [formGroup]="adminAuthForm" (ngSubmit)="onAdminAuthSubmit()">
+
+          <!-- Champ Email -->
+          <div class="mb-3">
+            <label for="admin-auth-email" class="form-label fw-bold">
+              <i class="bi bi-envelope me-2"></i>Email Administrateur
+            </label>
+            <input
+              type="email"
+              class="form-control form-control-lg"
+              id="admin-auth-email"
+              formControlName="email"
+              placeholder="admin@ecostations.sn"
+              [class.is-invalid]="adminAuthForm.get('email')?.invalid && adminAuthForm.get('email')?.touched"
+              autofocus
+            >
+            <div
+              *ngIf="adminAuthForm.get('email')?.invalid && adminAuthForm.get('email')?.touched"
+              class="invalid-feedback"
+            >
+              <div *ngIf="adminAuthForm.get('email')?.errors?.['required']">
+                L'email est requis
+              </div>
+              <div *ngIf="adminAuthForm.get('email')?.errors?.['email']">
+                Email invalide
+              </div>
+            </div>
+          </div>
+
+          <!-- Champ Mot de passe -->
+          <div class="mb-4">
+            <label for="admin-auth-password" class="form-label fw-bold">
+              <i class="bi bi-key me-2"></i>Mot de passe Administrateur
+            </label>
+            <input
+              type="password"
+              class="form-control form-control-lg"
+              id="admin-auth-password"
+              formControlName="password"
+              placeholder="••••••••"
+              [class.is-invalid]="adminAuthForm.get('password')?.invalid && adminAuthForm.get('password')?.touched"
+            >
+            <div
+              *ngIf="adminAuthForm.get('password')?.invalid && adminAuthForm.get('password')?.touched"
+              class="invalid-feedback"
+            >
+              <div *ngIf="adminAuthForm.get('password')?.errors?.['required']">
+                Le mot de passe est requis
+              </div>
+              <div *ngIf="adminAuthForm.get('password')?.errors?.['minlength']">
+                Minimum 6 caractères
+              </div>
+            </div>
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="d-grid gap-2">
+            <button
+              type="submit"
+              class="btn btn-warning btn-lg"
+              [disabled]="isAdminAuthenticating || adminAuthForm.invalid"
+            >
+              <span *ngIf="isAdminAuthenticating" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-shield-check me-2" *ngIf="!isAdminAuthenticating"></i>
+              {{ isAdminAuthenticating ? 'Vérification...' : 'Authentifier Administrateur' }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              (click)="closeAdminAuthModal()"
+              [disabled]="isAdminAuthenticating"
+            >
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Overlay pour Modal d'authentification admin -->
+<div
+  *ngIf="showAdminAuthModal"
+  class="modal-backdrop fade show"
+  (click)="closeAdminAuthModal()"
+></div>
