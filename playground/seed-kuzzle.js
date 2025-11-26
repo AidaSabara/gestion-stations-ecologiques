@@ -1,273 +1,385 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable no-console */
 /* eslint-disable sort-keys */
-var kuzzle_sdk_1 = require("kuzzle-sdk");
-var uuid_1 = require("uuid");
-var kuzzle = new kuzzle_sdk_1.Kuzzle(new kuzzle_sdk_1.WebSocket("localhost"));
-var regions = [
-    "Dakar",
-    "Thiès",
-    "Saint-Louis",
-    "Ziguinchor",
-    "Kaolack",
-    "Louga",
-    "Tambacounda",
-    "Kolda",
-    "Matam",
-    "Fatick",
+import { Kuzzle, WebSocket } from "kuzzle-sdk";
+import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
+import csv from "csv-parser";
+
+interface Station {
+  _id: string;
+  body: {
+    name: string;
+    location: { lat: number; lon: number };
+    status: "active" | "inactive";
+    type: "fixed" | "mobile";
+    installedAt: string;
+  };
+}
+
+interface Reading {
+  _id: string;
+  body: {
+    stationId: string;
+    timestamp: string;
+    temperature: number;
+    humidity: number;
+    airQuality: number;
+    co2: number;
+  };
+}
+
+interface WaterQualityReading {
+  _id?: string;
+  body: {
+    id_station: string;
+    phase: string;
+    type_filtre: string;
+    id_filtre: string;
+    ph: number;
+    potentiel_redox_mv: number;
+    dbo5_mg_l: number;
+    dco_mg_l: number;
+    mes_mg_l: number;
+    nitrates_mg_l: number;
+    ammonium_mg_l: number;
+    azote_total_mg_l: number;
+    phosphates_mg_l: number;
+    coliformes_fecaux_cfu_100ml: number;
+    nom_feuille: string;
+    contient_valeurs_estimees: boolean;
+  };
+}
+
+interface Alert {
+  _id: string;
+  body: {
+    stationId: string;
+    type: "seuil dépassé" | "défaillance d'équipement" | "maintenance_requise";
+    level: "info" | "warning" | "critical";
+    message: string;
+    parameter?: string; 
+    value?: number;     
+    threshold?: number;
+    timestamp: string;
+    resolved?: boolean; 
+  };
+}
+
+interface User {
+  _id: string;
+  body: {
+    name: string;
+    email: string;
+    role: string;
+    createdAt: string;
+  };
+}
+
+interface Event {
+  _id: string;
+  body: {
+    type: string;
+    message: string;
+    timestamp: string;
+  };
+}
+
+const kuzzle = new Kuzzle(new WebSocket("localhost"));
+
+const regions = [
+  "Dakar",
+  "Thiès",
+  "Saint-Louis",
+  "Ziguinchor",
+  "Kaolack",
+  "Louga",
+  "Tambacounda",
+  "Kolda",
+  "Matam",
+  "Fatick",
 ];
-var regionCoords = {
-    Dakar: [14.6928, -17.4467],
-    Thiès: [14.7914, -16.9256],
-    "Saint-Louis": [16.0179, -16.4896],
-    Ziguinchor: [12.5833, -16.2667],
-    Kaolack: [14.146, -16.0726],
-    Louga: [15.6144, -16.2286],
-    Tambacounda: [13.7699, -13.6673],
-    Kolda: [12.8833, -14.95],
-    Matam: [15.6559, -13.2559],
-    Fatick: [14.3396, -16.4117],
+
+const regionCoords: Record<string, [number, number]> = {
+  "Dakar": [14.6928, -17.4467],
+  "Thiès": [14.7914, -16.9256],
+  "Saint-Louis": [16.0179, -16.4896],
+  "Ziguinchor": [12.5833, -16.2667],
+  "Kaolack": [14.146, -16.0726],
+  "Louga": [15.6144, -16.2286],
+  "Tambacounda": [13.7699, -13.6673],
+  "Kolda": [12.8833, -14.95],
+  "Matam": [15.6559, -13.2559],
+  "Fatick": [14.3396, -16.4117],
 };
-function createMappings() {
-    return __awaiter(this, void 0, void 0, function () {
-        var mappings, _i, _a, _b, collection, def;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    mappings = {
-                        stations: {
-                            mappings: {
-                                properties: {
-                                    name: { type: "text" },
-                                    location: { type: "geo_point" },
-                                    status: { type: "keyword" },
-                                    type: { type: "keyword" },
-                                    installedAt: { type: "date" },
-                                },
-                            },
-                        },
-                        readings: {
-                            mappings: {
-                                properties: {
-                                    stationId: { type: "keyword" },
-                                    timestamp: { type: "date" },
-                                    temperature: { type: "float" },
-                                    humidity: { type: "float" },
-                                    airQuality: { type: "float" },
-                                    co2: { type: "float" },
-                                },
-                            },
-                        },
-                        alerts: {
-                            mappings: {
-                                properties: {
-                                    stationId: { type: "keyword" },
-                                    type: { type: "keyword" },
-                                    message: { type: "text" },
-                                    level: { type: "keyword" },
-                                    timestamp: { type: "date" },
-                                },
-                            },
-                        },
-                        users: {
-                            mappings: {
-                                properties: {
-                                    name: { type: "text" },
-                                    email: { type: "keyword" },
-                                    role: { type: "keyword" },
-                                    createdAt: { type: "date" },
-                                },
-                            },
-                        },
-                        events: {
-                            mappings: {
-                                properties: {
-                                    type: { type: "keyword" },
-                                    message: { type: "text" },
-                                    timestamp: { type: "date" },
-                                },
-                            },
-                        },
-                    };
-                    return [4 /*yield*/, kuzzle.index.create("iot")];
-                case 1:
-                    _c.sent();
-                    _i = 0, _a = Object.entries(mappings);
-                    _c.label = 2;
-                case 2:
-                    if (!(_i < _a.length)) return [3 /*break*/, 5];
-                    _b = _a[_i], collection = _b[0], def = _b[1];
-                    return [4 /*yield*/, kuzzle.collection.create("iot", collection, def)];
-                case 3:
-                    _c.sent();
-                    console.log("\u2705 Collection '".concat(collection, "' cr\u00E9\u00E9e."));
-                    _c.label = 4;
-                case 4:
-                    _i++;
-                    return [3 /*break*/, 2];
-                case 5: return [2 /*return*/];
-            }
-        });
-    });
-}
-function createData() {
-    var now = new Date();
-    var stations = regions.map(function (region, i) {
-        var _a = regionCoords[region], lat = _a[0], lon = _a[1];
-        return {
-            _id: "station-".concat(region.toLowerCase(), "-").concat(i),
-            body: {
-                name: "Station ".concat(region, " ").concat(i),
-                location: { lat: lat, lon: lon },
-                status: Math.random() > 0.5 ? "active" : "inactive",
-                type: Math.random() > 0.5 ? "fixed" : "mobile",
-                installedAt: now.toISOString(),
-            },
-        };
-    });
-    var readings = stations.flatMap(function (station) {
-        return Array.from({ length: 5 }).map(function (_, i) {
-            var date = new Date(now.getTime() - i * 15 * 60000);
-            return {
-                _id: (0, uuid_1.v4)(),
-                body: {
-                    stationId: station._id,
-                    timestamp: date.toISOString(),
-                    temperature: Number((Math.random() * 20 + 20).toFixed(2)),
-                    humidity: Number((Math.random() * 60 + 30).toFixed(2)),
-                    airQuality: Number((Math.random() * 500).toFixed(2)),
-                    co2: Number((Math.random() * 700 + 300).toFixed(2)),
-                },
-            };
-        });
-    });
-    var alerts = stations.flatMap(function (station) {
-        return Array.from({ length: 2 }).map(function (_, i) {
-            var date = new Date(now.getTime() - i * 3600000);
-            return {
-                _id: (0, uuid_1.v4)(),
-                body: {
-                    stationId: station._id,
-                    type: "threshold_exceeded",
-                    level: Math.random() > 0.5 ? "warning" : "critical",
-                    message: "Valeur anormale détectée.",
-                    timestamp: date.toISOString(),
-                },
-            };
-        });
-    });
-    var users = Array.from({ length: 3 }).map(function (_, i) { return ({
-        _id: "user-".concat(i + 1),
-        body: {
-            name: "Agent ".concat(i + 1),
-            email: "agent".concat(i + 1, "@ecostations.sn"),
-            role: "agent",
-            createdAt: now.toISOString(),
+
+async function createMappings() {
+  const mappings: Record<string, any> = {
+    stations: {
+      mappings: {
+        properties: {
+          name: { type: "text" },
+          location: { type: "geo_point" },
+          status: { type: "keyword" },
+          type: { type: "keyword" },
+          installedAt: { type: "date" },
         },
-    }); });
-    var events = Array.from({ length: 5 }).map(function (_, i) {
-        var date = new Date(now.getTime() - i * 3600000);
-        return {
-            _id: (0, uuid_1.v4)(),
-            body: {
-                type: ["system_start", "maintenance", "data_backup"][i % 3],
-                message: "Événement système généré automatiquement.",
-                timestamp: date.toISOString(),
-            },
+      },
+    },
+    readings: {
+      mappings: {
+        properties: {
+          stationId: { type: "keyword" },
+          timestamp: { type: "date" },
+          temperature: { type: "float" },
+          humidity: { type: "float" },
+          airQuality: { type: "float" },
+          co2: { type: "float" },
+        },
+      },
+    },
+    alerts: {
+      mappings: {
+        properties: {
+          stationId: { type: "keyword" },
+          type: { type: "keyword" },
+          message: { type: "text" },
+          level: { type: "keyword" },
+          timestamp: { type: "date" },
+        },
+      },
+    },
+    users: {
+      mappings: {
+        properties: {
+          name: { type: "text" },
+          email: { type: "keyword" },
+          role: { type: "keyword" },
+          createdAt: { type: "date" },
+        },
+      },
+    },
+    events: {
+      mappings: {
+        properties: {
+          type: { type: "keyword" },
+          message: { type: "text" },
+          timestamp: { type: "date" },
+        },
+      },
+    },
+    water_quality: {
+      mappings: {
+        properties: {
+          id_station: { type: "keyword" },
+          phase: { type: "keyword" },
+          type_filtre: { type: "keyword" },
+          id_filtre: { type: "keyword" },
+          ph: { type: "float" },
+          potentiel_redox_mv: { type: "float" },
+          dbo5_mg_l: { type: "float" },
+          dco_mg_l: { type: "float" },
+          mes_mg_l: { type: "float" },
+          nitrates_mg_l: { type: "float" },
+          ammonium_mg_l: { type: "float" },
+          azote_total_mg_l: { type: "float" },
+          phosphates_mg_l: { type: "float" },
+          coliformes_fecaux_cfu_100ml: { type: "float" },
+          nom_feuille: { type: "keyword" },
+          contient_valeurs_estimees: { type: "boolean" },
+        },
+      },
+    },
+  };
+
+  try {
+    const indexExists = await kuzzle.index.exists("iot");
+    if (!indexExists) {
+      await kuzzle.index.create("iot");
+      console.log("✅ Index 'iot' créé.");
+    } else {
+      console.log("▶️ L'index 'iot' existe déjà.");
+    }
+
+    for (const [collection, def] of Object.entries(mappings)) {
+      const collectionExists = await kuzzle.collection.exists("iot", collection);
+      if (!collectionExists) {
+        await kuzzle.collection.create("iot", collection, def);
+        console.log(`✅ Collection '${collection}' créée.`);
+      } else {
+        console.log(`▶️ La collection '${collection}' existe déjà.`);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Erreur lors de la création des mappings:", error);
+    throw error;
+  }
+}
+
+async function readAndInsertCSV(filePath: string) {
+  const readings: WaterQualityReading[] = [];
+  return new Promise<WaterQualityReading[]>((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csv({ separator: ',' }))
+      .on('data', (data) => {
+        // 🔹 SUPPRIMER les champs indésirables
+        const { tel, telephone, tél, ...cleanData } = data;
+
+        // TRANSFORMER les données selon le schéma WaterQualityReading
+        const reading: WaterQualityReading = {
+          _id: uuidv4(),
+          body: {
+            // Métadonnées
+            id_station: cleanData.id_station,
+            phase: cleanData.phase,
+            type_filtre: cleanData.type_filtre,
+            id_filtre: cleanData.id_filtre,
+            nom_feuille: cleanData.nom_feuille,
+            contient_valeurs_estimees: cleanData.contient_valeurs_estimees === "True",
+            
+            // Paramètres physico-chimiques
+            ph: cleanData.ph ? parseFloat(cleanData.ph) : null,
+            potentiel_redox_mv: cleanData.potentiel_redox_mv ? parseFloat(cleanData.potentiel_redox_mv) : null,
+            dbo5_mg_l: cleanData.dbo5_mg_l ? parseFloat(cleanData.dbo5_mg_l) : null,
+            dco_mg_l: cleanData.dco_mg_l ? parseFloat(cleanData.dco_mg_l) : null,
+            mes_mg_l: cleanData.mes_mg_l ? parseFloat(cleanData.mes_mg_l) : null,
+            
+            // Paramètres azotés et phosphorés
+            nitrates_mg_l: cleanData.nitrates_mg_l ? parseFloat(cleanData.nitrates_mg_l) : null,
+            ammonium_mg_l: cleanData.ammonium_mg_l ? parseFloat(cleanData.ammonium_mg_l) : null,
+            azote_total_mg_l: cleanData.azote_total_mg_l ? parseFloat(cleanData.azote_total_mg_l) : null,
+            phosphates_mg_l: cleanData.phosphates_mg_l ? parseFloat(cleanData.phosphates_mg_l) : null,
+            
+            // Paramètre microbiologique
+            coliformes_fecaux_cfu_100ml: cleanData.coliformes_fecaux_cfu_100ml ? parseFloat(cleanData.coliformes_fecaux_cfu_100ml) : null,
+          },
         };
-    });
-    return { stations: stations, readings: readings, alerts: alerts, users: users, events: events };
+        
+        readings.push(reading);
+      })
+      .on('end', () => {
+        console.log(`✅ ${readings.length} documents préparés (sans champ 'tel')`);
+        resolve(readings);
+      })
+      .on('error', (error) => {
+        console.error('❌ Erreur lecture CSV:', error);
+        reject(error);
+      });
+  });
 }
-function seed() {
-    return __awaiter(this, void 0, void 0, function () {
-        var _a, stations, readings, alerts, users, events, bulkInsert, error_1;
-        var _this = this;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    _b.trys.push([0, 8, , 9]);
-                    return [4 /*yield*/, kuzzle.connect()];
-                case 1:
-                    _b.sent();
-                    console.log("🔌 Connecté à Kuzzle");
-                    return [4 /*yield*/, createMappings()];
-                case 2:
-                    _b.sent();
-                    _a = createData(), stations = _a.stations, readings = _a.readings, alerts = _a.alerts, users = _a.users, events = _a.events;
-                    bulkInsert = function (collection, docs) { return __awaiter(_this, void 0, void 0, function () {
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0: return [4 /*yield*/, kuzzle.document.mCreate("iot", collection, docs)];
-                                case 1:
-                                    _a.sent();
-                                    console.log("\uD83D\uDCE6 ".concat(docs.length, " documents ins\u00E9r\u00E9s dans '").concat(collection, "'"));
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); };
-                    return [4 /*yield*/, bulkInsert("stations", stations)];
-                case 3:
-                    _b.sent();
-                    return [4 /*yield*/, bulkInsert("readings", readings)];
-                case 4:
-                    _b.sent();
-                    return [4 /*yield*/, bulkInsert("alerts", alerts)];
-                case 5:
-                    _b.sent();
-                    return [4 /*yield*/, bulkInsert("users", users)];
-                case 6:
-                    _b.sent();
-                    return [4 /*yield*/, bulkInsert("events", events)];
-                case 7:
-                    _b.sent();
-                    console.log("✅ Données injectées avec succès !");
-                    kuzzle.disconnect();
-                    return [3 /*break*/, 9];
-                case 8:
-                    error_1 = _b.sent();
-                    console.error("❌ Erreur:", error_1);
-                    kuzzle.disconnect();
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
-            }
-        });
-    });
+
+function createData() {
+  const now = new Date();
+
+  const stations: Station[] = regions.map((region, i) => {
+    const coords = regionCoords[region];
+    if (!coords) {
+      console.error(`❌ Coordonnées manquantes pour la région: ${region}`);
+      throw new Error(`Coordonnées manquantes pour: ${region}`);
+    }
+    const [lat, lon] = coords;
+    return {
+      _id: `station-${region.toLowerCase()}-${i}`,
+      body: {
+        name: `Station ${region} ${i}`,
+        location: { lat, lon },
+        status: Math.random() > 0.5 ? "active" : "inactive",
+        type: Math.random() > 0.5 ? "fixed" : "mobile",
+        installedAt: now.toISOString(),
+      },
+    };
+  });
+
+  const readings: Reading[] = stations.flatMap((station) =>
+    Array.from({ length: 5 }).map((_, i) => {
+      const date = new Date(now.getTime() - i * 15 * 60000);
+      return {
+        _id: uuidv4(),
+        body: {
+          stationId: station._id,
+          timestamp: date.toISOString(),
+          temperature: Number((Math.random() * 20 + 20).toFixed(2)),
+          humidity: Number((Math.random() * 60 + 30).toFixed(2)),
+          airQuality: Number((Math.random() * 500).toFixed(2)),
+          co2: Number((Math.random() * 700 + 300).toFixed(2)),
+        },
+      };
+    }),
+  );
+
+  const alerts: Alert[] = stations.flatMap((station) =>
+    Array.from({ length: 2 }).map((_, i) => {
+      const date = new Date(now.getTime() - i * 3600000);
+      return {
+        _id: uuidv4(),
+        body: {
+          stationId: station._id,
+          type: "seuil dépassé",
+          level: Math.random() > 0.5 ? "warning" : "critical",
+          message: "Valeur anormale détectée.",
+          timestamp: date.toISOString(),
+        },
+      };
+    }),
+  );
+
+  const users: User[] = Array.from({ length: 3 }).map((_, i) => ({
+    _id: `user-${i + 1}`,
+    body: {
+      name: `Agent ${i + 1}`,
+      email: `agent${i + 1}@ecostations.sn`,
+      role: "agent",
+      createdAt: now.toISOString(),
+    },
+  }));
+
+  const events: Event[] = Array.from({ length: 5 }).map((_, i) => {
+    const date = new Date(now.getTime() - i * 3600000);
+    return {
+      _id: uuidv4(),
+      body: {
+        type: ["system_start", "maintenance", "data_backup"][i % 3],
+        message: "Événement système généré automatiquement.",
+        timestamp: date.toISOString(),
+      },
+    };
+  });
+
+  return { stations, readings, alerts, users, events };
 }
+
+async function seed() {
+  try {
+    await kuzzle.connect();
+    console.log("🔌 Connecté à Kuzzle");
+
+    await createMappings();
+
+    const { stations, readings, alerts, users, events } = createData();
+    
+    const csvFilePath = path.join(__dirname, "..", "cleaning_water", "UGB_Sanar_Station_Final.csv");
+    const waterQualityData = await readAndInsertCSV(csvFilePath);
+
+    const bulkInsert = async (collection: string, docs: any[]) => {
+      await kuzzle.document.mCreate("iot", collection, docs);
+      console.log(`📦 ${docs.length} documents insérés dans '${collection}'`);
+    };
+
+    await bulkInsert("stations", stations);
+    await bulkInsert("readings", readings);
+    await bulkInsert("alerts", alerts);
+    await bulkInsert("users", users);
+    await bulkInsert("events", events);
+    
+    // Insérez vos données de qualité de l'eau ici
+    await bulkInsert("water_quality", waterQualityData);
+
+    console.log("✅ Données injectées avec succès !");
+    kuzzle.disconnect();
+  } catch (error) {
+    console.error("❌ Erreur:", error);
+    kuzzle.disconnect();
+  }
+}
+
 seed();

@@ -63,6 +63,7 @@ export class AlertsComponent implements OnInit, OnDestroy {
   filterStatus: string = 'active';
   filterSeverity: string = 'all';
 
+
   // 👇 NOUVELLES PROPRIÉTÉS
   stationId: string | null = null;
   stationName: string = '';
@@ -71,6 +72,7 @@ export class AlertsComponent implements OnInit, OnDestroy {
   now: Date = new Date();
   private subscription: any;
   private stations: Map<string, string> = new Map();
+  private sentEmailAlertIds = new Set<string>();
 
   constructor(
     private kuzzleService: KuzzleService,
@@ -78,7 +80,59 @@ export class AlertsComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
+ private async sendEmailAlert(alert: Alert): Promise<void> {
+    try {
+      // Vérifier si l'email a déjà été envoyé pour cette alerte
+      if (!alert.id) {
+        console.warn('⚠️ Alerte sans ID, impossible de tracker l\'email');
+        return;
+      }
+
+      if (this.sentEmailAlertIds.has(alert.id)) {
+        console.log('ℹ️ Email déjà envoyé pour cette alerte:', alert.id);
+        return;
+      }
+
+      console.log('📧 Tentative envoi email pour:', alert.station);
+
+      const response = await fetch('http://localhost:3000/send-alert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          alert: {
+            type: alert.type,
+            severity: alert.severity,
+            message: alert.message,
+            timestamp: alert.timestamp,
+            parameter: alert.parameter,
+            value: alert.value,
+            threshold: alert.threshold
+          },
+          stationName: alert.station
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Email envoyé avec succès:', result.messageId || 'OK');
+
+        // ✅ Marquer cette alerte comme envoyée
+        this.sentEmailAlertIds.add(alert.id);
+        this.saveSentAlertIds();
+      } else {
+        console.error('❌ Échec envoi email:', result.error);
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur envoi email:', error);
+    }
+  }
+
   async ngOnInit() {
+     this.loadSentAlertIds();
     // 👇 RÉCUPÉRER LE STATION ID DEPUIS L'URL
     this.stationId = this.route.snapshot.paramMap.get('id');
     this.isStationSpecific = !!this.stationId;
@@ -98,11 +152,33 @@ export class AlertsComponent implements OnInit, OnDestroy {
     setInterval(() => { this.now = new Date(); }, 1000);
     setInterval(async () => { await this.loadAllData(); }, 30000);
   }
+  private loadSentAlertIds(): void {
+    try {
+      const stored = localStorage.getItem('sentEmailAlertIds');
+      if (stored) {
+        const ids = JSON.parse(stored);
+        this.sentEmailAlertIds = new Set(ids);
+        console.log('📨 Alertes déjà envoyées par email:', this.sentEmailAlertIds.size);
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement IDs emails envoyés:', error);
+    }
+  }
 
   // 👇 MÉTHODE POUR OBTENIR TOUS LES IDS ASSOCIÉS À UNE STATION
   private getStationIds(stationId: string): string[] {
     return [stationId];
   }
+   // ✅ NOUVELLE MÉTHODE : Sauvegarder les IDs des emails envoyés
+  private saveSentAlertIds(): void {
+    try {
+      const ids = Array.from(this.sentEmailAlertIds);
+      localStorage.setItem('sentEmailAlertIds', JSON.stringify(ids));
+    } catch (error) {
+      console.error('❌ Erreur sauvegarde IDs emails envoyés:', error);
+    }
+  }
+
 
   // 👇 VÉRIFIER SI UNE DONNÉE APPARTIENT À LA STATION FILTRÉE
   private belongsToStation(dataStationId: string): boolean {
@@ -164,7 +240,7 @@ export class AlertsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadKuzzleAlerts() {
+ private async loadKuzzleAlerts() {
     try {
       const results = await this.kuzzleService.getActiveAlerts();
 
@@ -172,7 +248,7 @@ export class AlertsComponent implements OnInit, OnDestroy {
         .filter((doc: any) => {
           const source = doc._source || doc.body || {};
           const alertStationId = source.stationId || source.id_station;
-          return this.belongsToStation(alertStationId); // 👈 FILTRE
+          return this.belongsToStation(alertStationId);
         })
         .map((doc: any) => {
           const source = doc._source || doc.body || {};
@@ -196,6 +272,19 @@ export class AlertsComponent implements OnInit, OnDestroy {
 
       this.alerts.push(...kuzzleAlerts);
       console.log('📥 Alertes Kuzzle:', kuzzleAlerts.length);
+
+      // ✅ Envoyer email pour les alertes critiques NON ENCORE ENVOYÉES
+      for (const alert of kuzzleAlerts) {
+        if (alert.severity === 'critical' && alert.status === 'active') {
+          if (!this.sentEmailAlertIds.has(alert.id!)) {
+            console.log('🚨 Alerte critique existante détectée, envoi email...');
+            await this.sendEmailAlert(alert);
+          } else {
+            console.log('ℹ️ Email déjà envoyé pour:', alert.id);
+          }
+        }
+      }
+
     } catch (error) {
       console.error('❌ Erreur chargement alertes Kuzzle:', error);
     }
@@ -377,12 +466,11 @@ export class AlertsComponent implements OnInit, OnDestroy {
   }
 
   subscribeToRealTimeAlerts() {
-    this.subscription = this.kuzzleService.subscribeToAlerts((notification) => {
+    this.subscription = this.kuzzleService.subscribeToAlerts(async (notification) => {
       if (notification && notification._source) {
         const source = notification._source;
         const alertStationId = source.stationId || source.id_station;
 
-        // 👇 FILTRE PAR STATION
         if (!this.belongsToStation(alertStationId)) return;
 
         const stationName = this.stations.get(alertStationId) || alertStationId || 'Station Inconnue';
@@ -395,14 +483,38 @@ export class AlertsComponent implements OnInit, OnDestroy {
           severity: this.mapSeverity(source.level || source.severity),
           message: source.message || 'Nouvelle alerte',
           timestamp: source.timestamp ? new Date(source.timestamp).getTime() : Date.now(),
-          status: 'active'
+          status: 'active',
+          parameter: source.parameter,
+          value: source.value,
+          threshold: source.threshold
         };
 
         this.alerts.unshift(newAlert);
         this.applyFilter();
+
+        // ✅ Envoyer email pour les nouvelles alertes critiques
+        if (newAlert.severity === 'critical') {
+          console.log('🚨 Nouvelle alerte critique, envoi email...');
+          await this.sendEmailAlert(newAlert);
+        }
       }
     });
   }
+  async cleanupSentAlertIds() {
+    const currentAlertIds = new Set(this.alerts.map(a => a.id).filter(Boolean));
+
+    // Garder seulement les IDs des alertes qui existent encore
+    const updatedSentIds = new Set(
+      Array.from(this.sentEmailAlertIds).filter(id => currentAlertIds.has(id))
+    );
+
+    if (updatedSentIds.size !== this.sentEmailAlertIds.size) {
+      this.sentEmailAlertIds = updatedSentIds;
+      this.saveSentAlertIds();
+      console.log('🧹 IDs emails nettoyés:', this.sentEmailAlertIds.size);
+    }
+  }
+
 
   // 👇 NAVIGATION RETOUR
   goBack() {

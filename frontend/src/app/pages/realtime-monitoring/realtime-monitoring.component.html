@@ -1,0 +1,135 @@
+<div class="realtime-monitoring">
+  <!-- Header -->
+  <div class="header">
+    <h1>
+      <span class="icon">📊</span>
+      Surveillance Temps Réel
+    </h1>
+
+    <!-- Indicateur de connexion -->
+    <div class="connection-status" [class.connected]="isConnected">
+      <span class="dot"></span>
+      <span class="text">{{ isConnected ? 'Connecté' : 'Déconnecté' }}</span>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <p>Chargement des données...</p>
+  </div>
+
+  <!-- Contenu principal -->
+  <div *ngIf="!isLoading" class="content">
+
+    <!-- Filtre par station -->
+    <div class="filter-section">
+      <label for="station-select">Station :</label>
+      <select
+        id="station-select"
+        [(ngModel)]="selectedStation"
+        (change)="onStationChange(selectedStation)"
+      >
+        <option value="all">Toutes les stations</option>
+        <option value="station-dakar-0">Station Dakar 0</option>
+        <option value="station-dakar-1">Station Dakar 1</option>
+      </select>
+    </div>
+
+    <!-- Dernière lecture -->
+    <div *ngIf="latestReading" class="latest-reading">
+      <h2>📍 Dernière Mise à Jour</h2>
+      <p class="timestamp">{{ formatDate(latestReading.timestamp) }}</p>
+
+      <div class="metrics-grid">
+        <div class="metric-card temperature">
+          <div class="icon">🌡️</div>
+          <div class="value">{{ latestReading.temperature }}°C</div>
+          <div class="label">Température</div>
+        </div>
+
+        <div class="metric-card humidity">
+          <div class="icon">💧</div>
+          <div class="value">{{ latestReading.humidity }}%</div>
+          <div class="label">Humidité</div>
+        </div>
+
+        <div class="metric-card air-quality"
+             [ngClass]="getAirQualityClass(latestReading.airQuality)">
+          <div class="icon">🌬️</div>
+          <div class="value">{{ latestReading.airQuality }}</div>
+          <div class="label">Qualité Air</div>
+          <div class="status">{{ getAirQualityText(latestReading.airQuality) }}</div>
+        </div>
+
+        <div class="metric-card co2">
+          <div class="icon">☁️</div>
+          <div class="value">{{ latestReading.co2 }}</div>
+          <div class="label">CO2 (ppm)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiques moyennes -->
+    <div *ngIf="stats" class="stats-section">
+      <h2>📈 Statistiques ({{ stats.count }} lectures)</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="label">Température moyenne</span>
+          <span class="value">{{ stats.avgTemperature }}°C</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Humidité moyenne</span>
+          <span class="value">{{ stats.avgHumidity }}%</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">AQI moyen</span>
+          <span class="value">{{ stats.avgAirQuality }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">CO2 moyen</span>
+          <span class="value">{{ stats.avgCo2 }} ppm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historique -->
+    <div class="history-section">
+      <h2>📜 Historique des Lectures</h2>
+
+      <div *ngIf="readings.length === 0" class="no-data">
+        <p>Aucune donnée disponible</p>
+      </div>
+
+      <div class="readings-table" *ngIf="readings.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Heure</th>
+              <th>Station</th>
+              <th>Temp (°C)</th>
+              <th>Humidité (%)</th>
+              <th>AQI</th>
+              <th>CO2 (ppm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let reading of readings" class="reading-row">
+              <td>{{ formatTime(reading.timestamp) }}</td>
+              <td>{{ reading.stationId }}</td>
+              <td>{{ reading.temperature }}</td>
+              <td>{{ reading.humidity }}</td>
+              <td>
+                <span class="aqi-badge" [ngClass]="getAirQualityClass(reading.airQuality)">
+                  {{ reading.airQuality }}
+                </span>
+              </td>
+              <td>{{ reading.co2 }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

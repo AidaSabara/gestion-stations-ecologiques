@@ -1,0 +1,56 @@
+<div class="cycle-vie-widget" [class.compact]="compact">
+  <div *ngIf="loading" class="loading">
+    <span class="spinner"></span> Chargement...
+  </div>
+
+  <div *ngIf="!loading && cycleVie" class="cycle-content">
+    <!-- État actuel -->
+    <div class="etat-badge" [style.background-color]="getEtatColor(cycleVie.etat_actuel)">
+      <span class="icon">{{ getEtatIcon(cycleVie.etat_actuel) }}</span>
+      <span class="label">{{ getEtatLabel(cycleVie.etat_actuel) }}</span>
+    </div>
+
+    <!-- Barre de progression -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          [style.width.%]="cycleVie.pourcentage_usure"
+          [style.background-color]="getEtatColor(cycleVie.etat_actuel)">
+        </div>
+      </div>
+      <span class="progress-label">{{ cycleVie.pourcentage_usure }}% d'usure</span>
+    </div>
+
+    <!-- Métriques clés (mode non-compact) -->
+    <div *ngIf="!compact" class="metriques">
+      <div class="metrique-item">
+        <span class="icon">⏱️</span>
+        <div>
+          <div class="value">{{ cycleVie.heures_utilisation }}h</div>
+          <div class="label">Heures d'utilisation</div>
+        </div>
+      </div>
+
+      <div class="metrique-item">
+        <span class="icon">💧</span>
+        <div>
+          <div class="value">{{ cycleVie.volume_traite_m3.toFixed(1) }} m³</div>
+          <div class="label">Volume traité</div>
+        </div>
+      </div>
+
+      <div class="metrique-item">
+        <span class="icon">📅</span>
+        <div>
+          <div class="value">{{ getJoursRestants() }} jours</div>
+          <div class="label">Avant remplacement</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !cycleVie" class="no-data">
+    ⚠️ Aucune donnée de cycle de vie disponible
+  </div>
+</div>

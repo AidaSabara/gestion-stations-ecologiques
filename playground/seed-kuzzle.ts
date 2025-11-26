@@ -16,6 +16,22 @@ interface Station {
     installedAt: string;
   };
 }
+interface MaintenanceIntervention {
+  _id: string;
+  body: {
+    id_filtre: string;
+    date_intervention: string;
+    type_intervention: string;
+    description: string;
+    operateur: string;
+    duree_minutes: number;
+    cout_estimatif: number;
+    impact_attendu: string;
+    notes: string;
+    statut: string;
+    pieces_changees: string[];
+  };
+}
 
 interface Reading {
   _id: string;
@@ -78,11 +94,26 @@ interface User {
   body: {
     name: string;
     email: string;
+    password: string;
     role: string;
+    station_id: string;
+    station_name: string;
+    permissions: {
+      canAccessAlerts: boolean;
+      canAccessGraphs: boolean;
+      canAccessFilters: boolean;
+      canAccessData: boolean;
+      canManageUsers: boolean;
+    };
+    phone: string;
+    active: boolean;
+    department: string;
+    position: string;
+    avatar?: string;
     createdAt: string;
+    lastLogin: string | null;
   };
 }
-
 interface Event {
   _id: string;
   body: {
@@ -91,6 +122,73 @@ interface Event {
     timestamp: string;
   };
 }
+interface CycleVie {
+  _id: string;
+  body: {
+    id_filtre: string;
+    id_station: string;
+    etat_actuel: string;
+    date_changement_etat: string;
+    pourcentage_usure: number;
+    heures_utilisation: number;
+    volume_traite_m3: number;
+    historique_etats: Array<{
+      etat: string;
+      date_debut: string;
+      date_fin?: string;
+      duree_jours: number;
+      volume_traite: number;
+      heures_utilisation: number;
+    }>;
+    metriques: {
+      taux_usure_moyen: number;
+      volume_moyen_par_jour: number;
+      heures_moyennes_par_jour: number;
+      efficacite_moyenne: number;
+    };
+    jalons: {
+      mise_en_service: string;
+      prochaine_maintenance: string;
+      fin_vie_estimee: string;
+      remplacement_prevu: string;
+    };
+  };
+}
+interface Filtre {
+  _id: string;
+  body: {
+    idFiltre: string;
+    idStation: string;
+    nom: string;
+    type: string;
+    caracteristiques: {
+      dureeVieMaxHeures: number;
+      volumeMaxM3: number;
+      dateInstallation: string;
+      fabricant: string;
+      modele: string;
+    };
+    suivi: {
+      heuresActuelles: number;
+      volumeActuelM3: number;
+      dateDerniereMaintenance: string;
+      nombreMaintenances: number;
+    };
+    etat: {
+      pourcentageUsure: number;
+      joursRestants: number;
+      condition: string;
+    };
+    historiqueMaintenances: Array<{
+      date: string;
+      typeIntervention: string;
+      technicien: string;
+      notes: string;
+    }>;
+    actif: boolean;
+  };
+}
+
 
 const kuzzle = new Kuzzle(new WebSocket("localhost"));
 
@@ -145,6 +243,136 @@ async function createMappings() {
         },
       },
     },
+    filtres: {
+      mappings: {
+        properties: {
+          idFiltre: {
+            type: "keyword"
+          },
+          idStation: {
+            type: "keyword"
+          },
+          nom: {
+            type: "text"
+          },
+          type: {
+            type: "keyword"
+          },
+          caracteristiques: {
+            properties: {
+              dureeVieMaxHeures: {
+                type: "integer"
+              },
+              volumeMaxM3: {
+                type: "float"
+              },
+              dateInstallation: {
+                type: "date",
+                format: "yyyy-MM-dd"
+              },
+              fabricant: {
+                type: "keyword"
+              },
+              modele: {
+                type: "keyword"
+              }
+            }
+          },
+          suivi: {
+            properties: {
+              heuresActuelles: {
+                type: "integer"
+              },
+              volumeActuelM3: {
+                type: "float"
+              },
+              dateDerniereMaintenance: {
+                type: "date",
+                format: "yyyy-MM-dd"
+              },
+              nombreMaintenances: {
+                type: "integer"
+              }
+            }
+          },
+          etat: {
+            properties: {
+              pourcentageUsure: {
+                type: "float"
+              },
+              joursRestants: {
+                type: "integer"
+              },
+              condition: {
+                type: "keyword"
+              }
+            }
+          },
+          historiqueMaintenances: {
+            type: "nested",
+            properties: {
+              date: {
+                type: "date",
+                format: "yyyy-MM-dd"
+              },
+              typeIntervention: {
+                type: "keyword"
+              },
+              technicien: {
+                type: "keyword"
+              },
+              notes: {
+                type: "text"
+              }
+            }
+          },
+          actif: {
+            type: "boolean"
+          }
+        }
+      }
+    },
+     "cycle-vie": {  // Note: le nom de collection avec tiret
+      mappings: {
+        properties: {
+          id_filtre: { "type": "keyword" },
+          id_station: { "type": "keyword" },
+          etat_actuel: { "type": "keyword" },
+          date_changement_etat: { "type": "date" },
+          pourcentage_usure: { "type": "float" },
+          heures_utilisation: { "type": "integer" },
+          volume_traite_m3: { "type": "float" },
+          historique_etats: {
+            "type": "nested",
+            "properties": {
+              etat: { "type": "keyword" },
+              date_debut: { "type": "date" },
+              date_fin: { "type": "date" },
+              duree_jours: { "type": "integer" },
+              volume_traite: { "type": "float" },
+              heures_utilisation: { "type": "integer" }
+            }
+          },
+          metriques: {
+            "properties": {
+              taux_usure_moyen: { "type": "float" },
+              volume_moyen_par_jour: { "type": "float" },
+              heures_moyennes_par_jour: { "type": "float" },
+              efficacite_moyenne: { "type": "float" }
+            }
+          },
+          jalons: {
+            "properties": {
+              mise_en_service: { "type": "date" },
+              prochaine_maintenance: { "type": "date" },
+              fin_vie_estimee: { "type": "date" },
+              remplacement_prevu: { "type": "date" }
+            }
+          }
+        }
+      }
+    },
+
     alerts: {
       mappings: {
         properties: {
@@ -156,15 +384,123 @@ async function createMappings() {
         },
       },
     },
-    users: {
+     maintenance_interventions: {
       mappings: {
         properties: {
-          name: { type: "text" },
-          email: { type: "keyword" },
-          role: { type: "keyword" },
-          createdAt: { type: "date" },
-        },
-      },
+          id_filtre: {
+            type: "keyword"
+          },
+          date_intervention: {
+            type: "date",
+            format: "strict_date_optional_time||epoch_millis"
+          },
+          type_intervention: {
+            type: "keyword"
+          },
+          description: {
+            type: "text"
+          },
+          operateur: {
+            type: "keyword"
+          },
+          duree_minutes: {
+            type: "integer"
+          },
+          cout_estimatif: {
+            type: "float"
+          },
+          impact_attendu: {
+            type: "text"
+          },
+          notes: {
+            type: "text"
+          },
+          statut: {
+            type: "keyword"
+          },
+          pieces_changees: {
+            type: "keyword"
+          }
+        }
+      }
+    },
+
+     users: {
+      mappings: {
+        properties: {
+          name: {
+            type: "text",
+            fields: {
+              keyword: {
+                type: "keyword"
+              }
+            }
+          },
+          email: {
+            type: "keyword"
+          },
+          password: {
+            type: "keyword"
+          },
+          role: {
+            type: "keyword"
+          },
+          station_id: {
+            type: "keyword"
+          },
+          station_name: {
+            type: "text",
+            fields: {
+              keyword: {
+                type: "keyword"
+              }
+            }
+          },
+          permissions: {
+            type: "object",
+            properties: {
+              canAccessAlerts: {
+                type: "boolean"
+              },
+              canAccessGraphs: {
+                type: "boolean"
+              },
+              canAccessFilters: {
+                type: "boolean"
+              },
+              canAccessData: {
+                type: "boolean"
+              },
+              canManageUsers: {
+                type: "boolean"
+              }
+            }
+          },
+          phone: {
+            type: "keyword"
+          },
+          active: {
+            type: "boolean"
+          },
+          createdAt: {
+            type: "date",
+            format: "strict_date_optional_time||epoch_millis||dd/MM/yyyy, HH:mm:ss"
+          },
+          lastLogin: {
+            type: "date",
+            format: "strict_date_optional_time||epoch_millis||dd/MM/yyyy, HH:mm:ss"
+          },
+          department: {
+            type: "keyword"
+          },
+          position: {
+            type: "text"
+          },
+          avatar: {
+            type: "keyword"
+          }
+        }
+      }
     },
     events: {
       mappings: {
@@ -355,6 +691,358 @@ function createData() {
       };
     }),
   );
+  const filtres: Filtre[] = [
+    {
+      _id: "filtre-flt-roseau-001",
+      body: {
+        idFiltre: "FLT-ROSEAU-001",
+        idStation: "station-saint-louis-1764092258261",
+        nom: "Filtre à roseau principal - Zone A",
+        type: "roseau",
+        caracteristiques: {
+          dureeVieMaxHeures: 87600,
+          volumeMaxM3: 50000,
+          dateInstallation: "2020-03-15",
+          fabricant: "EcoFilter Systems",
+          modele: "Reed-Bed-300"
+        },
+        suivi: {
+          heuresActuelles: 35040,
+          volumeActuelM3: 21500.5,
+          dateDerniereMaintenance: "2025-10-15",
+          nombreMaintenances: 8
+        },
+        etat: {
+          pourcentageUsure: 40,
+          joursRestants: 912,
+          condition: "bon"
+        },
+        historiqueMaintenances: [
+          {
+            date: "2025-10-15",
+            typeIntervention: "nettoyage",
+            technicien: "Penda Diop",
+            notes: "Nettoyage des roseaux, élimination des débris accumulés"
+          },
+          {
+            date: "2025-07-20",
+            typeIntervention: "inspection",
+            technicien: "Khalifa LO",
+            notes: "Inspection visuelle, remplacement de 5% des plants de roseaux"
+          }
+        ],
+        actif: true
+      }
+    },
+    {
+      _id: "filtre-flt-vetiver-002",
+      body: {
+        idFiltre: "FLT-VETIVER-002",
+        idStation: "station-saint-louis-1764092258261",
+        nom: "Filtre vétiver secondaire",
+        type: "vetiver",
+        caracteristiques: {
+          dureeVieMaxHeures: 70080,
+          volumeMaxM3: 35000,
+          dateInstallation: "2021-06-10",
+          fabricant: "GreenWater Tech",
+          modele: "Vetiver-Pro-250"
+        },
+        suivi: {
+          heuresActuelles: 28800,
+          volumeActuelM3: 15750.3,
+          dateDerniereMaintenance: "2025-11-01",
+          nombreMaintenances: 6
+        },
+        etat: {
+          pourcentageUsure: 41.1,
+          joursRestants: 708,
+          condition: "bon"
+        },
+        historiqueMaintenances: [
+          {
+            date: "2025-11-01",
+            typeIntervention: "entretien",
+            technicien: "Djily Gueye",
+            notes: "Taille des racines, ajout de nutriments"
+          },
+          {
+            date: "2025-08-15",
+            typeIntervention: "nettoyage",
+            technicien: "Mbagnick Sarr",
+            notes: "Nettoyage complet du système racinaire"
+          }
+        ],
+        actif: true
+      }
+    },
+    {
+      _id: "filtre-flt-sable-003",
+      body: {
+        idFiltre: "FLT-SABLE-003",
+        idStation: "station-dakar-1764101019818",
+        nom: "Filtre à sable rapide",
+        type: "sable",
+        caracteristiques: {
+          dureeVieMaxHeures: 43800,
+          volumeMaxM3: 80000,
+          dateInstallation: "2019-09-25",
+          fabricant: "AquaPur Industries",
+          modele: "SandFilter-500"
+        },
+        suivi: {
+          heuresActuelles: 38500,
+          volumeActuelM3: 72300.8,
+          dateDerniereMaintenance: "2025-10-28",
+          nombreMaintenances: 15
+        },
+        etat: {
+          pourcentageUsure: 87.9,
+          joursRestants: 91,
+          condition: "critique"
+        },
+        historiqueMaintenances: [
+          {
+            date: "2025-10-28",
+            typeIntervention: "remplacement_partiel",
+            technicien: "Pape Mor Diop",
+            notes: "Remplacement de 30% du sable filtrant, colmatage important détecté"
+          },
+          {
+            date: "2025-09-10",
+            typeIntervention: "retrolavage",
+            technicien: "Khalifa LO",
+            notes: "Rétrolavage complet, pression normalisée"
+          }
+        ],
+        actif: true
+      }
+    },
+    {
+      _id: "filtre-flt-coco-004",
+      body: {
+        idFiltre: "FLT-COCO-004",
+        idStation: "station-dakar-0",
+        nom: "Filtre fibre de coco biologique",
+        type: "coco",
+        caracteristiques: {
+          dureeVieMaxHeures: 26280,
+          volumeMaxM3: 25000,
+          dateInstallation: "2023-02-18",
+          fabricant: "BioFilter Co",
+          modele: "CocoFiber-200"
+        },
+        suivi: {
+          heuresActuelles: 8760,
+          volumeActuelM3: 8500.2,
+          dateDerniereMaintenance: "2025-11-10",
+          nombreMaintenances: 3
+        },
+        etat: {
+          pourcentageUsure: 33.3,
+          joursRestants: 730,
+          condition: "excellent"
+        },
+        historiqueMaintenances: [
+          {
+            date: "2025-11-10",
+            typeIntervention: "inspection",
+            technicien: "ALi Ba",
+            notes: "Contrôle qualité, fibres en bon état, capacité de filtration optimale"
+          },
+          {
+            date: "2025-05-22",
+            typeIntervention: "nettoyage",
+            technicien: "Bachir Diallo",
+            notes: "Nettoyage léger, pas de problème détecté"
+          }
+        ],
+        actif: true
+      }
+    },
+    {
+      _id: "filtre-flt-gravier-005",
+      body: {
+        idFiltre: "FLT-GRAVIER-005",
+        idStation: "station-dakar-1764101019818",
+        nom: "Filtre gravier multicouche",
+        type: "gravier",
+        caracteristiques: {
+          dureeVieMaxHeures: 131400,
+          volumeMaxM3: 120000,
+          dateInstallation: "2018-11-05",
+          fabricant: "HydroStone Systems",
+          modele: "GravelMax-700"
+        },
+        suivi: {
+          heuresActuelles: 52560,
+          volumeActuelM3: 48200.5,
+          dateDerniereMaintenance: "2025-09-30",
+          nombreMaintenances: 12
+        },
+        etat: {
+          pourcentageUsure: 40,
+          joursRestants: 1314,
+          condition: "moyen"
+        },
+        historiqueMaintenances: [
+          {
+            date: "2025-09-30",
+            typeIntervention: "nettoyage_profond",
+            technicien: "Mbagnick Sarr",
+            notes: "Nettoyage haute pression, réarrangement des couches de gravier"
+          },
+          {
+            date: "2025-06-12",
+            typeIntervention: "remplacement_partiel",
+            technicien: "Isabelle Vincent",
+            notes: "Remplacement de la couche fine (granulométrie < 5mm)"
+          },
+          {
+            date: "2025-03-08",
+            typeIntervention: "inspection",
+            technicien: "Djily Gueye",
+            notes: "Inspection complète, début de colmatage en couche supérieure"
+          }
+        ],
+        actif: true
+      }
+    },
+    {
+      _id: "filtre-flt-sable-099",
+      body: {
+        idFiltre: "FLT-SABLE-099",
+        idStation: "station-saint-louis-1764092258261",
+        nom: "Ancien filtre à sable (hors service)",
+        type: "sable",
+        caracteristiques: {
+          dureeVieMaxHeures: 43800,
+          volumeMaxM3: 75000,
+          dateInstallation: "2015-04-12",
+          fabricant: "AquaPur Industries",
+          modele: "SandFilter-450"
+        },
+        suivi: {
+          heuresActuelles: 43800,
+          volumeActuelM3: 75000,
+          dateDerniereMaintenance: "2024-12-20",
+          nombreMaintenances: 22
+        },
+        etat: {
+          pourcentageUsure: 100,
+          joursRestants: 0,
+          condition: "remplace"
+        },
+        historiqueMaintenances: [
+          {
+            date: "2024-12-20",
+            typeIntervention: "mise_hors_service",
+            technicien: "Khalifa Lo",
+            notes: "Fin de vie atteinte, filtre remplacé par FLT-SABLE-003"
+          }
+        ],
+        actif: false
+      }
+    }
+  ];
+  const maintenanceInterventions: MaintenanceIntervention[] = [
+    {
+      _id: "intervention-fh-20240312",
+      body: {
+        id_filtre: "FH",
+        date_intervention: "2024-03-12T07:30:00.000Z",
+        type_intervention: "Action corrective",
+        description: "Colmatage sévère du filtre horizontal - débouchage d'urgence",
+        operateur: "Moussa Faye",
+        duree_minutes: 180,
+        cout_estimatif: 25000,
+        impact_attendu: "Restauration du débit nominal",
+        notes: "Colmatage causé par accumulation de matières grasses. Recommandation: prétraitement renforcé.",
+        statut: "Terminé",
+        pieces_changees: ["Pompe de débouchage haute pression"]
+      }
+    },
+    {
+      _id: "intervention-general-20240301",
+      body: {
+        id_filtre: "General",
+        date_intervention: "2024-03-01T16:00:00.000Z",
+        type_intervention: "Débit ajusté",
+        description: "Réduction du débit de 15 m³/j à 12 m³/j pour augmenter temps de contact",
+        operateur: "Cheikh Sy",
+        duree_minutes: 30,
+        cout_estimatif: 0,
+        impact_attendu: "Amélioration DBO5 et MES de 10-15%",
+        notes: "Débit trop élevé réduisait l'efficacité du traitement biologique",
+        statut: "Terminé",
+        pieces_changees: []
+      }
+    },
+    {
+      _id: "intervention-fv2-20240210",
+      body: {
+        id_filtre: "FV2",
+        date_intervention: "2024-02-10T09:00:00.000Z",
+        type_intervention: "Ajout de plantes",
+        description: "Plantation de roseaux (Phragmites australis) pour améliorer la nitrification",
+        operateur: "Aminata Ndiaye",
+        duree_minutes: 90,
+        cout_estimatif: 12000,
+        impact_attendu: "Réduction de 30% des nitrates par absorption racinaire",
+        notes: "50 plants espacés de 30cm. Zone humide préparée avec substrat enrichi.",
+        statut: "Terminé",
+        pieces_changees: ["Phragmites australis (50 plants)"]
+      }
+    },
+    {
+      _id: "intervention-general-20240305",
+      body: {
+        id_filtre: "General",
+        date_intervention: "2024-03-05T11:00:00.000Z",
+        type_intervention: "Problème capteur",
+        description: "Remplacement du capteur de pH défectueux donnant des valeurs erratiques",
+        operateur: "Ousmane Ba",
+        duree_minutes: 45,
+        cout_estimatif: 35000,
+        impact_attendu: "Mesures pH fiables pour pilotage du traitement",
+        notes: "Capteur montrait pH 12 alors que réel = 7.2. Probable oxydation des électrodes.",
+        statut: "Terminé",
+        pieces_changees: ["Sonde pH HI98128", "Câble d'extension"]
+      }
+    },
+    {
+      _id: "intervention-fh-20240220",
+      body: {
+        id_filtre: "FH",
+        date_intervention: "2024-02-20T14:30:00.000Z",
+        type_intervention: "Nettoyage",
+        description: "Nettoyage manuel des canaux horizontaux et retrait des boues accumulées",
+        operateur: "Ibrahima Sarr",
+        duree_minutes: 120,
+        cout_estimatif: 15000,
+        impact_attendu: "Amélioration du débit et réduction des coliformes",
+        notes: "Accumulation de 5cm de boues dans le fond du filtre",
+        statut: "Terminé",
+        pieces_changees: []
+      }
+    },
+    {
+      _id: "intervention-fv1-20240115",
+      body: {
+        id_filtre: "FV1",
+        date_intervention: "2024-01-15T08:00:00.000Z",
+        type_intervention: "Changement de substrat",
+        description: "Remplacement du substrat de filtration vertical saturé",
+        operateur: "Mamadou Diallo",
+        duree_minutes: 240,
+        cout_estimatif: 85000,
+        impact_attendu: "Restauration complète de la capacité de filtration",
+        notes: "Substrat colmaté après 6 mois d'utilisation intensive. Présence de biofilm épais.",
+        statut: "Terminé",
+        pieces_changees: ["Sable 0.3-0.8mm", "Gravier 5-10mm", "Membrane géotextile"]
+      }
+    }
+  ];
 
   const alerts: Alert[] = stations.flatMap((station) =>
     Array.from({ length: 2 }).map((_, i) => {
@@ -372,15 +1060,366 @@ function createData() {
     }),
   );
 
-  const users: User[] = Array.from({ length: 3 }).map((_, i) => ({
-    _id: `user-${i + 1}`,
-    body: {
-      name: `Agent ${i + 1}`,
-      email: `agent${i + 1}@ecostations.sn`,
-      role: "agent",
-      createdAt: now.toISOString(),
+const users: User[] = [
+    {
+      _id: "user-coudy-daillo",
+      body: {
+        name: "Coudy Daillo",
+        email: "samb.aida-sabara@ugb.edu.sn",
+        password: "super123",
+        role: "supervisor",
+        station_id: "ALL",
+        station_name: "Toutes les stations",
+        permissions: {
+          canAccessAlerts: true,
+          canAccessGraphs: true,
+          canAccessFilters: true,
+          canAccessData: true,
+          canManageUsers: true
+        },
+        phone: "+221 77 999 00 00",
+        active: true,
+        department: "IT",
+        position: "Administrateur Principal",
+        createdAt: "01/01/2025, 00:00:00",
+        lastLogin: null
+      }
     },
-  }));
+    {
+      _id: "user-aida-sabara",
+      body: {
+        name: "Aida Sabara",
+        email: "aidasabara1111@gmail.com",
+        password: "admin123",
+        role: "admin",
+        station_id: "ALL",
+        station_name: "Toutes les stations",
+        permissions: {
+          canAccessAlerts: true,
+          canAccessGraphs: true,
+          canAccessFilters: true,
+          canAccessData: true,
+          canManageUsers: true
+        },
+        phone: "+221 634 22 57",
+        active: true,
+        department: "IT",
+        position: "Administrateur Principal",
+        createdAt: "01/01/2025, 00:00:00",
+        lastLogin: "25/11/2025, 18:31:08"
+      }
+    },
+    {
+      _id: "user-aida-samb",
+      body: {
+        name: "Aida Samb",
+        email: "mamadou.diallo@ecostations.sn",
+        password: "demo123",
+        role: "agent",
+        station_id: "Sanar_Station",
+        station_name: "Station Sanar",
+        permissions: {
+          canAccessAlerts: true,
+          canAccessGraphs: true,
+          canAccessFilters: true,
+          canAccessData: true,
+          canManageUsers: false
+        },
+        phone: "+221 77 634 22 57",
+        active: true,
+        department: "Exploitation",
+        position: "Agent de Traitement des Eaux",
+        createdAt: "10/01/2025, 01:09:32",
+        lastLogin: null
+      }
+    }
+  ];
+
+const cyclesVie: CycleVie[] = [
+    {
+      _id: "cycle-vie-flt-roseau-001",
+      body: {
+        id_filtre: "FLT-ROSEAU-001",
+        id_station: "station-saint-louis-1764092258261",
+        etat_actuel: "bon",
+        date_changement_etat: "2025-10-15",
+        pourcentage_usure: 40,
+        heures_utilisation: 35040,
+        volume_traite_m3: 21500.5,
+        historique_etats: [
+          {
+            etat: "excellent",
+            date_debut: "2020-03-15",
+            date_fin: "2023-03-15",
+            duree_jours: 1095,
+            volume_traite: 12000,
+            heures_utilisation: 13140
+          },
+          {
+            etat: "bon",
+            date_debut: "2023-03-15",
+            date_fin: "2025-10-15",
+            duree_jours: 945,
+            volume_traite: 9500.5,
+            heures_utilisation: 21900
+          }
+        ],
+        metriques: {
+          taux_usure_moyen: 1.2,
+          volume_moyen_par_jour: 12.5,
+          heures_moyennes_par_jour: 8.2,
+          efficacite_moyenne: 92.5
+        },
+        jalons: {
+          mise_en_service: "2020-03-15",
+          prochaine_maintenance: "2026-01-15",
+          fin_vie_estimee: "2030-03-15",
+          remplacement_prevu: "2030-03-15"
+        }
+      }
+    },
+    {
+      _id: "cycle-vie-flt-vetiver-002",
+      body: {
+        id_filtre: "FLT-VETIVER-002",
+        id_station: "station-saint-louis-1764092258261",
+        etat_actuel: "bon",
+        date_changement_etat: "2025-11-01",
+        pourcentage_usure: 41.1,
+        heures_utilisation: 28800,
+        volume_traite_m3: 15750.3,
+        historique_etats: [
+          {
+            etat: "excellent",
+            date_debut: "2021-06-10",
+            date_fin: "2024-06-10",
+            duree_jours: 1096,
+            volume_traite: 8500,
+            heures_utilisation: 13152
+          },
+          {
+            etat: "bon",
+            date_debut: "2024-06-10",
+            date_fin: "2025-11-01",
+            duree_jours: 510,
+            volume_traite: 7250.3,
+            heures_utilisation: 15648
+          }
+        ],
+        metriques: {
+          taux_usure_moyen: 1.3,
+          volume_moyen_par_jour: 10.8,
+          heures_moyennes_par_jour: 7.9,
+          efficacite_moyenne: 88.7
+        },
+        jalons: {
+          mise_en_service: "2021-06-10",
+          prochaine_maintenance: "2026-02-01",
+          fin_vie_estimee: "2029-06-10",
+          remplacement_prevu: "2029-06-10"
+        }
+      }
+    },
+    {
+      _id: "cycle-vie-flt-sable-003",
+      body: {
+        id_filtre: "FLT-SABLE-003",
+        id_station: "station-dakar-1764101019818",
+        etat_actuel: "critique",
+        date_changement_etat: "2025-10-28",
+        pourcentage_usure: 87.9,
+        heures_utilisation: 38500,
+        volume_traite_m3: 72300.8,
+        historique_etats: [
+          {
+            etat: "excellent",
+            date_debut: "2019-09-25",
+            date_fin: "2022-09-25",
+            duree_jours: 1095,
+            volume_traite: 28000,
+            heures_utilisation: 13140
+          },
+          {
+            etat: "moyen",
+            date_debut: "2022-09-25",
+            date_fin: "2024-09-25",
+            duree_jours: 730,
+            volume_traite: 25000,
+            heures_utilisation: 17520
+          },
+          {
+            etat: "critique",
+            date_debut: "2024-09-25",
+            date_fin: "2025-10-28",
+            duree_jours: 398,
+            volume_traite: 19300.8,
+            heures_utilisation: 7840
+          }
+        ],
+        metriques: {
+          taux_usure_moyen: 3.8,
+          volume_moyen_par_jour: 35.2,
+          heures_moyennes_par_jour: 10.5,
+          efficacite_moyenne: 76.3
+        },
+        jalons: {
+          mise_en_service: "2019-09-25",
+          prochaine_maintenance: "2025-11-15",
+          fin_vie_estimee: "2025-12-31",
+          remplacement_prevu: "2026-01-15"
+        }
+      }
+    },
+    {
+      _id: "cycle-vie-flt-coco-004",
+      body: {
+        id_filtre: "FLT-COCO-004",
+        id_station: "station-dakar-0",
+        etat_actuel: "excellent",
+        date_changement_etat: "2025-11-10",
+        pourcentage_usure: 33.3,
+        heures_utilisation: 8760,
+        volume_traite_m3: 8500.2,
+        historique_etats: [
+          {
+            etat: "excellent",
+            date_debut: "2023-02-18",
+            date_fin: "2025-11-10",
+            duree_jours: 996,
+            volume_traite: 8500.2,
+            heures_utilisation: 8760
+          }
+        ],
+        metriques: {
+          taux_usure_moyen: 0.9,
+          volume_moyen_par_jour: 8.5,
+          heures_moyennes_par_jour: 8.8,
+          efficacite_moyenne: 95.2
+        },
+        jalons: {
+          mise_en_service: "2023-02-18",
+          prochaine_maintenance: "2026-05-18",
+          fin_vie_estimee: "2028-02-18",
+          remplacement_prevu: "2028-02-18"
+        }
+      }
+    },
+    {
+      _id: "cycle-vie-flt-gravier-005",
+      body: {
+        id_filtre: "FLT-GRAVIER-005",
+        id_station: "station-dakar-1764101019818",
+        etat_actuel: "moyen",
+        date_changement_etat: "2025-09-30",
+        pourcentage_usure: 40,
+        heures_utilisation: 52560,
+        volume_traite_m3: 48200.5,
+        historique_etats: [
+          {
+            etat: "excellent",
+            date_debut: "2018-11-05",
+            date_fin: "2021-11-05",
+            duree_jours: 1095,
+            volume_traite: 18000,
+            heures_utilisation: 13140
+          },
+          {
+            etat: "bon",
+            date_debut: "2021-11-05",
+            date_fin: "2023-11-05",
+            duree_jours: 730,
+            volume_traite: 15000,
+            heures_utilisation: 17520
+          },
+          {
+            etat: "moyen",
+            date_debut: "2023-11-05",
+            date_fin: "2025-09-30",
+            duree_jours: 695,
+            volume_traite: 15200.5,
+            heures_utilisation: 21900
+          }
+        ],
+        metriques: {
+          taux_usure_moyen: 1.1,
+          volume_moyen_par_jour: 18.3,
+          heures_moyennes_par_jour: 9.8,
+          efficacite_moyenne: 85.7
+        },
+        jalons: {
+          mise_en_service: "2018-11-05",
+          prochaine_maintenance: "2026-03-30",
+          fin_vie_estimee: "2032-11-05",
+          remplacement_prevu: "2032-11-05"
+        }
+      }
+    },
+    {
+      _id: "cycle-vie-flt-sable-099",
+      body: {
+        id_filtre: "FLT-SABLE-099",
+        id_station: "station-saint-louis-1764092258261",
+        etat_actuel: "hors_service",
+        date_changement_etat: "2024-12-20",
+        pourcentage_usure: 100,
+        heures_utilisation: 43800,
+        volume_traite_m3: 75000,
+        historique_etats: [
+          {
+            etat: "excellent",
+            date_debut: "2015-04-12",
+            date_fin: "2018-04-12",
+            duree_jours: 1095,
+            volume_traite: 25000,
+            heures_utilisation: 13140
+          },
+          {
+            etat: "bon",
+            date_debut: "2018-04-12",
+            date_fin: "2021-04-12",
+            duree_jours: 1095,
+            volume_traite: 25000,
+            heures_utilisation: 13140
+          },
+          {
+            etat: "moyen",
+            date_debut: "2021-04-12",
+            date_fin: "2023-04-12",
+            duree_jours: 730,
+            volume_traite: 15000,
+            heures_utilisation: 8760
+          },
+          {
+            etat: "critique",
+            date_debut: "2023-04-12",
+            date_fin: "2024-12-20",
+            duree_jours: 618,
+            volume_traite: 10000,
+            heures_utilisation: 8760
+          },
+          {
+            etat: "hors_service",
+            date_debut: "2024-12-20",
+            duree_jours: 341,
+            volume_traite: 0,
+            heures_utilisation: 0
+          }
+        ],
+        metriques: {
+          taux_usure_moyen: 2.4,
+          volume_moyen_par_jour: 22.8,
+          heures_moyennes_par_jour: 10.0,
+          efficacite_moyenne: 82.1
+        },
+        jalons: {
+          mise_en_service: "2015-04-12",
+          prochaine_maintenance: "N/A",
+          fin_vie_estimee: "2024-12-20",
+          remplacement_prevu: "2024-12-20"
+        }
+      }
+    }
+  ];
 
   const events: Event[] = Array.from({ length: 5 }).map((_, i) => {
     const date = new Date(now.getTime() - i * 3600000);
@@ -394,7 +1433,7 @@ function createData() {
     };
   });
 
-  return { stations, readings, alerts, users, events };
+  return { stations, readings, alerts, users, events, filtres, cyclesVie, maintenanceInterventions };
 }
 
 async function bulkInsert(collection: string, docs: any[]) {
@@ -419,7 +1458,7 @@ async function seed() {
 
     await createMappings();
 
-    const { stations, readings, alerts, users, events } = createData();
+    const { stations, readings, alerts, users, events, filtres, cyclesVie, maintenanceInterventions } = createData();
     
     // Utiliser le nouveau fichier avec les dates
     const csvFilePath = path.join(__dirname, "..", "cleaning_water", "UGB_Sanar_Station_Dataset_Clean.csv");
@@ -438,12 +1477,19 @@ async function seed() {
     await bulkInsert("alerts", alerts);
     await bulkInsert("users", users);
     await bulkInsert("events", events);
+    await bulkInsert("filtres", filtres);
+    await bulkInsert("cycle-vie", cyclesVie);
+    await bulkInsert("maintenance_interventions", maintenanceInterventions);
     
     // Insérer les données de qualité de l'eau avec dates réelles
     await bulkInsert("water_quality", waterQualityData);
 
     console.log("🎉 Toutes les données injectées avec succès !");
     console.log(`🌊 ${waterQualityData.length} mesures de qualité d'eau importées`);
+    console.log(`👥 ${users.length} utilisateurs seedés`);
+    console.log(`🔧 ${filtres.length} filtres seedés (${filtres.filter(f => f.body.actif).length} actifs, ${filtres.filter(f => !f.body.actif).length} inactifs)`);
+    console.log(`📊 ${cyclesVie.length} cycles de vie seedés`);
+    console.log(`🔧 ${maintenanceInterventions.length} interventions de maintenance seedées`);
     
     kuzzle.disconnect();
     console.log("🔌 Déconnecté de Kuzzle");

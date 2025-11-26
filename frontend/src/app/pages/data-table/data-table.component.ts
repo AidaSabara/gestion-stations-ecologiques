@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 interface WaterQualityData {
   _id?: string;
@@ -54,7 +55,8 @@ interface Station {
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule
+    MatCardModule,
+    MatExpansionModule
   ],
   templateUrl: './data-table.component.html',
   styleUrls: ['./data-table.component.css']
@@ -66,7 +68,16 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   isLoading = true;
   now: Date = new Date();
 
-  // 👇 NOUVELLES PROPRIÉTÉS POUR STATION SPÉCIFIQUE
+  // 👇 NOUVELLES PROPRIÉTÉS POUR LA GESTION DES VUES
+  viewMode: 'cards' | 'table' = 'cards';
+  expandedCards: Set<string> = new Set();
+
+  // Pagination pour la vue cartes
+  currentPage: number = 0;
+  pageSize: number = 10;
+  Math = Math;
+
+  // Propriétés existantes
   stationId: string | null = null;
   stationName: string = '';
   isStationSpecific: boolean = false;
@@ -79,13 +90,15 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  // Colonnes pour la vue tableau groupée
   displayedColumns: string[] = [
     'id_filtre',
     'phase',
     'ph',
+    'potentiel_redox_mv',
+    'mes_mg_l',
     'dbo5_mg_l',
     'dco_mg_l',
-    'mes_mg_l',
     'nitrates_mg_l',
     'ammonium_mg_l',
     'azote_total_mg_l',
@@ -100,7 +113,6 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   ) {}
 
   async ngOnInit() {
-    // 👇 RÉCUPÉRER LE STATION ID DEPUIS L'URL
     this.stationId = this.route.snapshot.paramMap.get('id');
     this.isStationSpecific = !!this.stationId;
 
@@ -108,20 +120,100 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
     await this.loadStations();
 
-    // 👇 Récupérer le nom de la station si on est en mode spécifique
     if (this.stationId) {
       this.stationName = this.stations.get(this.stationId) || 'Station';
     }
 
     await this.loadWaterQualityData();
 
-    // Actualiser l'heure chaque seconde
     setInterval(() => {
       this.now = new Date();
     }, 1000);
   }
 
-  // 👇 MÉTHODE POUR CHARGER LES STATIONS
+  // 👇 MÉTHODES POUR LA GESTION DES VUES
+  setViewMode(mode: 'cards' | 'table') {
+    this.viewMode = mode;
+  }
+
+  toggleExpand(cardId: string) {
+    if (this.expandedCards.has(cardId)) {
+      this.expandedCards.delete(cardId);
+    } else {
+      this.expandedCards.add(cardId);
+    }
+  }
+
+  isExpanded(cardId: string): boolean {
+    return this.expandedCards.has(cardId);
+  }
+
+  // Pagination pour la vue cartes
+  getPagedData(): WaterQualityData[] {
+    const startIndex = this.currentPage * this.pageSize;
+    return this.waterData.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  nextPage() {
+    if ((this.currentPage + 1) * this.pageSize < this.waterData.length) {
+      this.currentPage++;
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+    }
+  }
+
+  getTotalPages(): number {
+    return Math.ceil(this.waterData.length / this.pageSize);
+  }
+
+  // 👇 NOUVELLES MÉTHODES POUR LE STATUT GLOBAL
+  getGlobalStatus(data: WaterQualityData): 'success' | 'warning' | 'danger' {
+    const criticalParams = [
+      { field: 'ph', value: data.body.ph },
+      { field: 'dbo5_mg_l', value: data.body.dbo5_mg_l },
+      { field: 'nitrates_mg_l', value: data.body.nitrates_mg_l },
+      { field: 'coliformes_fecaux_cfu_100ml', value: data.body.coliformes_fecaux_cfu_100ml }
+    ];
+
+    let dangerCount = 0;
+    let warningCount = 0;
+
+    criticalParams.forEach(param => {
+      const status = this.getValueClass(param.field, param.value);
+      if (status === 'high-value') dangerCount++;
+      if (status === 'medium-value') warningCount++;
+    });
+
+    if (dangerCount > 0) return 'danger';
+    if (warningCount > 0) return 'warning';
+    return 'success';
+  }
+
+  getStatusBadgeClass(field: string, value: number): string {
+    const status = this.getValueClass(field, value);
+    switch (status) {
+      case 'normal-value': return 'bg-success';
+      case 'medium-value': return 'bg-warning';
+      case 'high-value': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  }
+
+  getStatusText(field: string, value: number): string {
+    const status = this.getValueClass(field, value);
+    switch (status) {
+      case 'normal-value': return 'Normal';
+      case 'medium-value': return 'Attention';
+      case 'high-value': return 'Critique';
+      default: return 'N/A';
+    }
+  }
+
+  // MÉTHODES EXISTANTES (conservées avec quelques ajustements)
   private async loadStations() {
     try {
       const stationsData = await this.kuzzleService.getStations();
@@ -135,14 +227,12 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // 👇 VÉRIFIER SI UNE DONNÉE APPARTIENT À LA STATION FILTRÉE
   private belongsToStation(dataStationId: string): boolean {
-    if (!this.stationId) return true; // Pas de filtre = tout afficher
+    if (!this.stationId) return true;
     return dataStationId === this.stationId;
   }
 
   ngAfterViewInit(): void {
-    // Configuration du tableau Material
     if (this.paginator) {
       this.dataSource.paginator = this.paginator;
     }
@@ -182,7 +272,6 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
       const results = await this.kuzzleService.getWaterQualityData();
 
-      // 👇 FILTRER LES DONNÉES SI STATION SPÉCIFIQUE
       const filteredResults = results.filter((hit: any) => {
         const source = hit._source || hit.body || {};
         const dataStationId = source.id_station;
@@ -191,7 +280,6 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
       console.log(`📊 Données après filtrage station: ${filteredResults.length}/${results.length}`);
 
-      // Formater les données
       this.allWaterData = filteredResults.map((hit: any) => {
         const source = hit._source || hit.body || {};
         return {
@@ -229,7 +317,6 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // 👇 MÉTHODE POUR RETOURNER À LA STATION
   goBack() {
     if (this.stationId) {
       this.router.navigate(['/station', this.stationId]);
@@ -272,6 +359,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
     this.waterData = filteredData;
     this.dataSource.data = this.waterData;
+    this.currentPage = 0; // Reset pagination when filtering
     console.log('🔍 Données filtrées:', this.waterData.length, 'éléments');
   }
 
@@ -385,7 +473,6 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     await this.loadWaterQualityData();
   }
 
-  // Statistiques
   getWaterQualityStats() {
     if (!this.allWaterData || this.allWaterData.length === 0) return null;
 
@@ -414,5 +501,4 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     if (validValues.length === 0) return 0;
     return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
   }
-
 }

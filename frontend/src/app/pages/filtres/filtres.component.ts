@@ -1,7 +1,8 @@
 import { Component, OnInit, AfterViewInit, OnDestroy,HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { KuzzleService,MaintenanceIntervention  } from '../../kuzzle.service';
+import { KuzzleService,MaintenanceIntervention, CycleVieFiltre  } from '../../kuzzle.service';
+import { CycleVieWidgetComponent } from '../cycle-vie-widget/cycle-vie-widget.component';
 import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { FormsModule } from '@angular/forms';
@@ -103,11 +104,12 @@ interface ChartDataset {
 @Component({
   selector: 'app-filtres',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, CycleVieWidgetComponent],
   templateUrl: './filtres.component.html',
   styleUrls: ['./filtres.component.css']
 })
 export class FiltresComponent implements OnInit, AfterViewInit, OnDestroy {
+
   stationId: string | null = null;
   stationName: string = '';
   isStationSpecific: boolean = false;
@@ -116,6 +118,7 @@ export class FiltresComponent implements OnInit, AfterViewInit, OnDestroy {
   filterPerformances: FilterPerformance[] = [];
    maintenanceInterventions: MaintenanceIntervention[] = [];
   selectedFilterInterventions: MaintenanceIntervention[] = [];
+  cyclesVie: Map<string, CycleVieFiltre> = new Map();
   filterChain: FilterChainAnalysis = {
     general: null,
     vertical: null,
@@ -140,6 +143,7 @@ export class FiltresComponent implements OnInit, AfterViewInit, OnDestroy {
   loading: boolean = true;
   error: string | null = null;
   chartsReady: boolean = false;
+  selectedFilterId: string = 'all';
   activeView: 'list' | 'map' = 'list';
 
   /**
@@ -259,8 +263,6 @@ async loadData() {
     // 👇 FILTRER LES DONNÉES WATER QUALITY PAR STATION
     this.waterQualityData = allWaterData.filter((data: WaterQualityData) => {
       if (!this.stationId) return true; // Mode toutes stations
-
-      // Utiliser directement data.body puisque _source n'existe pas
       const dataStationId = data.body.id_station;
       return dataStationId === this.stationId; // Mode station spécifique
     });
@@ -292,8 +294,39 @@ async loadData() {
       this.maintenanceInterventions = allInterventions;
       console.log(`✅ ${this.maintenanceInterventions.length} interventions chargées (toutes stations)`);
     }
+      // ✅ CHARGER LES CYCLES DE VIE (après les interventions)
+    console.log('🔄 Génération des cycles de vie depuis water_quality...');
+    this.cyclesVie.clear();
 
-    // Corriger les types de filtres (votre code existant)
+    // Grouper les données water_quality par filtre
+    const filtresMap = new Map<string, WaterQualityData[]>();
+    this.waterQualityData.forEach(data => {
+      const filtreId = data.body.id_filtre;
+      if (!filtresMap.has(filtreId)) {
+        filtresMap.set(filtreId, []);
+      }
+      filtresMap.get(filtreId)!.push(data);
+    });
+
+    // Générer le cycle de vie pour chaque filtre (General, FV1, FV2, FH)
+    for (const [filtreId, donnees] of filtresMap.entries()) {
+      const stationId = this.stationId || donnees[0]?.body.id_station || '';
+
+      // Appeler getCycleVieFiltre avec les données water_quality
+      const cycle = await this.kuzzleService.getCycleVieFiltre(
+        filtreId,
+        stationId,
+        donnees
+      );
+
+      if (cycle) {
+        this.cyclesVie.set(filtreId, cycle);
+        console.log(`✅ Cycle de vie généré pour ${filtreId}: ${cycle.pourcentage_usure}% d'usure, ${cycle.heures_utilisation}h`);
+      }
+    }
+
+    console.log(`✅ ${this.cyclesVie.size} cycles de vie disponibles`);
+    // Corriger les types de filtres
     this.waterQualityData = this.waterQualityData.map(data => {
       const filterId = data.body.id_filtre;
       let correctType = data.body.type_filtre;
@@ -334,6 +367,7 @@ async loadData() {
     this.loading = false;
   }
 }
+
 
   goBack() {
     if (this.stationId) {
@@ -548,7 +582,9 @@ async loadData() {
 
     return mesuresManquantes / totalMesures;
   }
-
+getCycleVie(filtreId: string): CycleVieFiltre | null {
+  return this.cyclesVie.get(filtreId) || null;
+}
   private determineFilterType(filterId: string): string {
     const typeMap: { [key: string]: string } = {
       'General': 'Filtre général',
@@ -1112,31 +1148,58 @@ async loadData() {
     }
   }
 }
-  get filteredPerformances(): FilterPerformance[] {
-    return this.filterPerformances.filter(filter => {
-      const matchSearch = this.searchTerm === '' ||
-        filter.id_filtre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        filter.type_filtre.toLowerCase().includes(this.searchTerm.toLowerCase());
 
-      const matchStation = this.selectedStation === 'all' ||
-        filter.station === this.selectedStation;
+get filteredPerformances(): FilterPerformance[] {
+  return this.filterPerformances.filter(filter => {
+    const matchSearch = this.searchTerm === '' ||
+      filter.id_filtre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+      filter.type_filtre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+      filter.station.toLowerCase().includes(this.searchTerm.toLowerCase());
 
-      const matchType = this.selectedType === 'all' ||
-        filter.type_filtre === this.selectedType;
+    const matchStation = this.selectedStation === 'all' ||
+      filter.station === this.selectedStation;
 
-      return matchSearch && matchStation && matchType;
-    });
+    const matchType = this.selectedType === 'all' ||
+      filter.type_filtre === this.selectedType;
+
+    // 👇 FILTRE PAR ID DE FILTRE (utilise selectedFilterId au lieu de selectedFilter)
+    const matchFilterId = this.selectedFilterId === 'all' ||
+      filter.id_filtre === this.selectedFilterId;
+
+    return matchSearch && matchStation && matchType && matchFilterId;
+  });
+}
+get uniqueFilters(): string[] {
+  return [...new Set(
+    this.filterPerformances.map(f => f.id_filtre)
+  )].sort();
+}
+get uniqueFilterIds(): string[] {
+  if (!this.filterPerformances || this.filterPerformances.length === 0) {
+    return [];
   }
 
-  get uniqueTypes(): string[] {
-    const typesFromData = [...new Set(this.filterPerformances.map(f => f.type_filtre))];
-    const defaultTypes = ['Filtre général', 'Filtre vertical', 'Filtre horizontal'];
-    const allTypes = [...new Set([...typesFromData, ...defaultTypes])];
+  const uniqueIds = [...new Set(this.filterPerformances.map(f => f.id_filtre))];
+  console.log('🔍 Filtres disponibles:', uniqueIds);
+  return uniqueIds.sort();
+}
 
-    return allTypes
-      .filter(type => type && type !== 'Non applicable' && type !== 'Type inconnu')
-      .sort();
-  }
+
+get uniqueTypes(): string[] {
+  // Mapper les id_filtre vers des types lisibles
+  const typeMap: { [key: string]: string } = {
+    'General': 'Filtre général',
+    'FV1': 'Filtre vertical 1',
+    'FV2': 'Filtre vertical 2',
+    'FH': 'Filtre horizontal'
+  };
+
+  return [...new Set(
+    this.filterPerformances.map(f => typeMap[f.id_filtre] || f.type_filtre)
+  )].filter(type => type && type !== 'Non applicable' && type !== 'Type inconnu')
+    .sort();
+}
+
 
   get uniqueStations(): string[] {
     return [...new Set(this.filterPerformances.map(f => f.station))];
@@ -1272,6 +1335,14 @@ async loadData() {
     this.markers = [];
     document.body.style.overflow = '';
   }
-
+getFilterLabel(filterId: string): string {
+  const labels: { [key: string]: string } = {
+    'General': '🌊 Filtre général',
+    'FV1': '⬇️ Filtre vertical 1',
+    'FV2': '⬇️ Filtre vertical 2',
+    'FH': '↔️ Filtre horizontal'
+  };
+  return labels[filterId] || filterId;
+}
 
 }

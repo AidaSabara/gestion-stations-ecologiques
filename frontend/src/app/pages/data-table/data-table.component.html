@@ -32,7 +32,7 @@
     </a>
   </div>
 
-  <!-- Carte d'information station spécifique (seulement si données) -->
+  <!-- Carte d'information station spécifique -->
   <div class="row mb-4" *ngIf="isStationSpecific && waterData.length > 0">
     <div class="col-12">
       <div class="card border-primary bg-light">
@@ -42,7 +42,7 @@
               <small class="text-primary">
                 <i class="bi bi-info-circle me-1"></i>
                 Affichage des données spécifiques pour la station <strong>{{ stationName }}</strong>
-                • Dernier échantillon: {{ waterData[0]?.body?.id_filtre }} ({{ waterData[0]?.body?.phase }})
+                • Dernier échantillon: {{ waterData[0].body.id_filtre }} ({{ waterData[0].body.phase }})
               </small>
             </div>
           </div>
@@ -110,8 +110,341 @@
     </div>
   </div>
 
-  <!-- Tableau Principal -->
-  <mat-card class="water-quality-card" *ngIf="!isLoading && waterData.length > 0">
+  <!-- Barre d'outils et sélecteur de vue -->
+  <div class="card mb-4" *ngIf="!isLoading && waterData.length > 0">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Rechercher</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Filtrer les données...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+        <div class="col-md-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Phase</mat-label>
+            <select matNativeControl #phaseSelect (change)="filterByPhase(phaseSelect.value)">
+              <option value="all">Toutes les phases</option>
+              <option *ngFor="let phase of getUniquePhases()" [value]="phase">{{ phase }}</option>
+            </select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Filtre</mat-label>
+            <select matNativeControl #filterSelect (change)="filterByFilter(filterSelect.value)">
+              <option value="all">Tous les filtres</option>
+              <option *ngFor="let filter of getUniqueFilters()" [value]="filter">{{ filter }}</option>
+            </select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-5">
+          <div class="d-flex gap-2 justify-content-end">
+            <!-- Sélecteur de vue -->
+            <div class="btn-group" role="group">
+              <button type="button"
+                      class="btn"
+                      [class.btn-primary]="viewMode === 'cards'"
+                      [class.btn-outline-primary]="viewMode !== 'cards'"
+                      (click)="setViewMode('cards')">
+                <i class="bi bi-grid-3x3-gap me-1"></i>
+                Cartes
+              </button>
+              <button type="button"
+                      class="btn"
+                      [class.btn-primary]="viewMode === 'table'"
+                      [class.btn-outline-primary]="viewMode !== 'table'"
+                      (click)="setViewMode('table')">
+                <i class="bi bi-table me-1"></i>
+                Tableau
+              </button>
+            </div>
+
+            <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
+              <mat-icon>refresh</mat-icon>
+              Actualiser
+            </button>
+            <button mat-raised-button (click)="exportData()">
+              <mat-icon>download</mat-icon>
+              Export
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VUE CARTES -->
+  <div *ngIf="viewMode === 'cards' && !isLoading && waterData.length > 0">
+    <div class="row">
+      <div class="col-12" *ngFor="let data of getPagedData()">
+
+        <!-- CARTE PRINCIPALE -->
+        <mat-card class="mb-3 water-quality-card">
+
+          <!-- EN-TÊTE DE LA CARTE -->
+          <div class="card-header p-3"
+               [class.bg-warning-subtle]="data.body.phase === 'Entrée'"
+               [class.bg-success-subtle]="data.body.phase === 'Sortie'">
+            <div class="row align-items-center">
+              <div class="col-md-9">
+                <div class="d-flex align-items-center gap-3">
+                  <!-- Icône de statut global -->
+                  <div [ngSwitch]="getGlobalStatus(data)">
+                    <i *ngSwitchCase="'success'" class="bi bi-check-circle-fill text-success fs-2"></i>
+                    <i *ngSwitchCase="'warning'" class="bi bi-exclamation-triangle-fill text-warning fs-2"></i>
+                    <i *ngSwitchCase="'danger'" class="bi bi-x-circle-fill text-danger fs-2"></i>
+                  </div>
+
+                  <div>
+                    <h5 class="mb-1 fw-bold">
+                      <i class="bi bi-funnel me-2"></i>
+                      Filtre {{ data.body.id_filtre }}
+                    </h5>
+                    <span [class]="getPhaseClass(data.body.phase)">
+                      {{ data.body.phase }}
+                    </span>
+                    <span class="badge bg-secondary ms-2">{{ data.body.type_filtre }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-3 text-end">
+                <button mat-icon-button (click)="toggleExpand(data._id || '')" class="expand-btn">
+                  <mat-icon>{{ isExpanded(data._id || '') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <mat-card-content class="p-0">
+
+            <!-- INDICATEURS CLÉS (toujours visibles) -->
+            <div class="row g-0 border-bottom key-indicators">
+              <div class="col-3 text-center p-3 border-end">
+                <div class="text-muted small mb-1"><i class="bi bi-water me-1"></i>pH</div>
+                <div class="fs-3 fw-bold" [class]="getValueColor('ph', data.body.ph)">
+                  {{ formatValue(data.body.ph) }}
+                </div>
+                <div class="small text-muted">Norme: 6.5-8.5</div>
+              </div>
+
+              <div class="col-3 text-center p-3 border-end">
+                <div class="text-muted small mb-1"><i class="bi bi-droplet-half me-1"></i>DBO5</div>
+                <div class="fs-3 fw-bold" [class]="getValueColor('dbo5_mg_l', data.body.dbo5_mg_l)">
+                  {{ formatValue(data.body.dbo5_mg_l) }}
+                </div>
+                <div class="small text-muted">mg/L (≤25)</div>
+              </div>
+
+              <div class="col-3 text-center p-3 border-end">
+                <div class="text-muted small mb-1"><i class="bi bi-speedometer me-1"></i>Nitrates</div>
+                <div class="fs-3 fw-bold" [class]="getValueColor('nitrates_mg_l', data.body.nitrates_mg_l)">
+                  {{ formatValue(data.body.nitrates_mg_l) }}
+                </div>
+                <div class="small text-muted">mg/L (≤25)</div>
+              </div>
+
+              <div class="col-3 text-center p-3">
+                <div class="text-muted small mb-1"><i class="bi bi-virus me-1"></i>Coliformes</div>
+                <div class="fs-3 fw-bold" [class]="getValueColor('coliformes_fecaux_cfu_100ml', data.body.coliformes_fecaux_cfu_100ml)">
+                  {{ formatValue(data.body.coliformes_fecaux_cfu_100ml) }}
+                </div>
+                <div class="small text-muted">CFU/100ml (≤100)</div>
+              </div>
+            </div>
+
+            <!-- DÉTAILS EXPANDABLES -->
+            <div *ngIf="isExpanded(data._id || '')" class="p-4 bg-light details-section">
+
+              <!-- Paramètres Physiques -->
+              <div class="mb-4">
+                <h6 class="fw-bold text-primary mb-3">
+                  <span class="badge bg-primary me-2">
+                    <i class="bi bi-thermometer-half"></i>
+                  </span>
+                  Paramètres Physiques
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">pH</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('ph', data.body.ph)">
+                          {{ formatValue(data.body.ph) }}
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('ph', data.body.ph)">
+                          {{ getStatusText('ph', data.body.ph) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">Potentiel Redox</small>
+                      <strong class="fs-5">{{ formatValue(data.body.potentiel_redox_mv) }} <span class="text-muted small">mV</span></strong>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">MES</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('mes_mg_l', data.body.mes_mg_l)">
+                          {{ formatValue(data.body.mes_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('mes_mg_l', data.body.mes_mg_l)">
+                          {{ getStatusText('mes_mg_l', data.body.mes_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paramètres Chimiques -->
+              <div class="mb-4">
+                <h6 class="fw-bold text-info mb-3">
+                  <span class="badge bg-info me-2">
+                    <i class="bi bi-droplet"></i>
+                  </span>
+                  Paramètres Chimiques
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">DBO5</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('dbo5_mg_l', data.body.dbo5_mg_l)">
+                          {{ formatValue(data.body.dbo5_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('dbo5_mg_l', data.body.dbo5_mg_l)">
+                          {{ getStatusText('dbo5_mg_l', data.body.dbo5_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">DCO</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('dco_mg_l', data.body.dco_mg_l)">
+                          {{ formatValue(data.body.dco_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('dco_mg_l', data.body.dco_mg_l)">
+                          {{ getStatusText('dco_mg_l', data.body.dco_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">Nitrates (NO₃⁻)</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('nitrates_mg_l', data.body.nitrates_mg_l)">
+                          {{ formatValue(data.body.nitrates_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('nitrates_mg_l', data.body.nitrates_mg_l)">
+                          {{ getStatusText('nitrates_mg_l', data.body.nitrates_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">Ammonium (NH₄⁺)</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('ammonium_mg_l', data.body.ammonium_mg_l)">
+                          {{ formatValue(data.body.ammonium_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('ammonium_mg_l', data.body.ammonium_mg_l)">
+                          {{ getStatusText('ammonium_mg_l', data.body.ammonium_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">Azote total</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('azote_total_mg_l', data.body.azote_total_mg_l)">
+                          {{ formatValue(data.body.azote_total_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('azote_total_mg_l', data.body.azote_total_mg_l)">
+                          {{ getStatusText('azote_total_mg_l', data.body.azote_total_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">Phosphates (PO₄³⁻)</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('phosphates_mg_l', data.body.phosphates_mg_l)">
+                          {{ formatValue(data.body.phosphates_mg_l) }} <span class="text-muted small">mg/L</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('phosphates_mg_l', data.body.phosphates_mg_l)">
+                          {{ getStatusText('phosphates_mg_l', data.body.phosphates_mg_l) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paramètres Biologiques -->
+              <div>
+                <h6 class="fw-bold text-danger mb-3">
+                  <span class="badge bg-danger me-2">
+                    <i class="bi bi-virus"></i>
+                  </span>
+                  Paramètres Biologiques
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <div class="p-3 bg-white rounded border">
+                      <small class="text-muted d-block mb-1">Coliformes fécaux</small>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5" [class]="getValueColor('coliformes_fecaux_cfu_100ml', data.body.coliformes_fecaux_cfu_100ml)">
+                          {{ formatValue(data.body.coliformes_fecaux_cfu_100ml) }} <span class="text-muted small">CFU/100ml</span>
+                        </strong>
+                        <span class="badge" [class]="getStatusBadgeClass('coliformes_fecaux_cfu_100ml', data.body.coliformes_fecaux_cfu_100ml)">
+                          {{ getStatusText('coliformes_fecaux_cfu_100ml', data.body.coliformes_fecaux_cfu_100ml) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+    </div>
+
+    <!-- Pagination personnalisée pour la vue cartes -->
+    <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="waterData.length > pageSize">
+      <div class="text-muted">
+        Affichage {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, waterData.length) }} sur {{ waterData.length }}
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline-primary" [disabled]="currentPage === 0" (click)="previousPage()">
+          <i class="bi bi-chevron-left"></i> Précédent
+        </button>
+        <button class="btn btn-outline-primary" disabled>
+          Page {{ currentPage + 1 }} / {{ getTotalPages() }}
+        </button>
+        <button class="btn btn-outline-primary" [disabled]="(currentPage + 1) * pageSize >= waterData.length" (click)="nextPage()">
+          Suivant <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VUE TABLEAU -->
+  <mat-card class="water-quality-card" *ngIf="viewMode === 'table' && !isLoading && waterData.length > 0">
     <mat-card-header class="bg-primary text-white p-3">
       <mat-card-title class="text-white">
         <i class="bi bi-water me-2"></i>
@@ -125,54 +458,10 @@
     </mat-card-header>
 
     <mat-card-content class="p-0">
-      <!-- Barre d'outils -->
-      <div class="p-3 border-bottom bg-light">
-        <div class="row align-items-center">
-          <div class="col-md-4">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Rechercher</mat-label>
-              <input matInput (keyup)="applyFilter($event)" placeholder="Filtrer les données...">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-          </div>
-          <div class="col-md-3">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Phase</mat-label>
-              <select matNativeControl #phaseSelect (change)="filterByPhase(phaseSelect.value)">
-                <option value="all">Toutes les phases</option>
-                <option *ngFor="let phase of getUniquePhases()" [value]="phase">{{ phase }}</option>
-              </select>
-            </mat-form-field>
-          </div>
-          <div class="col-md-3">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Filtre</mat-label>
-              <select matNativeControl #filterSelect (change)="filterByFilter(filterSelect.value)">
-                <option value="all">Tous les filtres</option>
-                <option *ngFor="let filter of getUniqueFilters()" [value]="filter">{{ filter }}</option>
-              </select>
-            </mat-form-field>
-          </div>
-          <div class="col-md-2">
-            <div class="d-flex gap-2">
-              <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
-                <mat-icon>refresh</mat-icon>
-                Actualiser
-              </button>
-              <button mat-raised-button (click)="exportData()">
-                <mat-icon>download</mat-icon>
-                Export
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Tableau des données -->
       <div class="table-responsive">
-        <table mat-table [dataSource]="dataSource" matSort class="w-100">
+        <table mat-table [dataSource]="dataSource" matSort class="w-100 mat-mdc-table">
 
-          <!-- Colonnes restent identiques -->
           <ng-container matColumnDef="id_filtre">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Filtre</th>
             <td mat-cell *matCellDef="let element">
@@ -197,6 +486,21 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="potentiel_redox_mv">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Potentiel Redox (mV)</th>
+            <td mat-cell *matCellDef="let element">
+              {{ formatValue(element.body.potentiel_redox_mv) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="mes_mg_l">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>MES (mg/L)</th>
+            <td mat-cell *matCellDef="let element"
+                [class]="getValueColor('mes_mg_l', element.body.mes_mg_l)">
+              {{ formatValue(element.body.mes_mg_l) }}
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="dbo5_mg_l">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>DBO5 (mg/L)</th>
             <td mat-cell *matCellDef="let element"
@@ -210,14 +514,6 @@
             <td mat-cell *matCellDef="let element"
                 [class]="getValueColor('dco_mg_l', element.body.dco_mg_l)">
               {{ formatValue(element.body.dco_mg_l) }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="mes_mg_l">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>MES (mg/L)</th>
-            <td mat-cell *matCellDef="let element"
-                [class]="getValueColor('mes_mg_l', element.body.mes_mg_l)">
-              {{ formatValue(element.body.mes_mg_l) }}
             </td>
           </ng-container>
 
@@ -261,9 +557,9 @@
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="mat-mdc-header-row"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-              class="table-row-hover"></tr>
+              class="table-row-hover mat-mdc-row"></tr>
         </table>
       </div>
 

@@ -1,0 +1,7 @@
+{
+  "plugins": {
+    "water-alerts": {
+      "activated": true
+    }
+  }
+}

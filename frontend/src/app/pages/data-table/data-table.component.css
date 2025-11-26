@@ -435,3 +435,54 @@ hr {
   border: 0;
   border-top: 1px solid #dee2e6;
 }
+/* Styles spécifiques pour la vue cartes */
+.key-indicators {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.key-indicators .col-3 {
+  transition: background-color 0.3s ease;
+}
+
+.key-indicators .col-3:hover {
+  background-color: rgba(255,255,255,0.7);
+}
+
+.details-section {
+  border-top: 1px solid #dee2e6;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.expand-btn {
+  transition: transform 0.3s ease;
+}
+
+.expand-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Couleurs pour les phases */
+.bg-warning-subtle {
+  background-color: #fff3cd !important;
+}
+
+.bg-success-subtle {
+  background-color: #d1e7dd !important;
+}
+
+/* Responsive pour la vue cartes */
+@media (max-width: 768px) {
+  .key-indicators .col-3 {
+    border-right: none !important;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .key-indicators .col-3:last-child {
+    border-bottom: none;
+  }
+}

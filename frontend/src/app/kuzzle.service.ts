@@ -33,6 +33,47 @@ export type TypeIntervention =
   | 'Réparation'
   | 'Inspection';
 
+
+
+export interface EtatCycleVie {
+  etat: 'neuf' | 'bon' | 'moyen' | 'degrade' | 'critique' | 'hors_service';
+  date:string;
+  raison:string;
+  date_debut: string;
+  date_fin: string | null;
+  duree_jours: number;
+  volume_traite: number;
+  heures_utilisation: number;
+}
+
+export interface MetriquesCycleVie {
+  taux_usure_moyen: number;
+  volume_moyen_par_jour: number;
+  heures_moyennes_par_jour: number;
+  efficacite_moyenne: number;
+}
+
+export interface JalonsCycleVie {
+  mise_en_service: string;
+  prochaine_maintenance: string;
+  fin_vie_estimee: string;
+  remplacement_prevu: string | null;
+}
+
+export interface CycleVieFiltre {
+  _id: string;
+  id_filtre: string;
+  id_station: string;
+  etat_actuel: 'neuf' | 'bon' | 'moyen' | 'degrade' | 'critique' | 'hors_service';
+  date_changement_etat: string;
+  pourcentage_usure: number;
+  heures_utilisation: number;
+  volume_traite_m3: number;
+  historique_etats: EtatCycleVie[];
+  metriques: MetriquesCycleVie;
+  jalons: JalonsCycleVie;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -441,6 +482,62 @@ async getWaterQualityDataSimple(): Promise<any[]> {
     return [];
   }
 }
+async createAlert(alert: any): Promise<any> {
+  try {
+    await this.ensureConnection();
+
+    // Vérifier si une alerte active similaire existe déjà
+    const existingAlerts = await this.kuzzle.document.search(
+      'iot',
+      'alerts',
+      {
+        query: {
+          bool: {
+            must: [
+              { term: { stationId: alert.stationId } },
+              { term: { type: alert.type } },
+              { term: { parameter: alert.parameter } },
+              { term: { status: 'active' } }
+            ]
+          }
+        }
+      },
+      { size: 1 }
+    );
+
+    if (existingAlerts.hits.length > 0) {
+      console.log('⚠️ Alerte active similaire existe déjà, pas de création');
+      return existingAlerts.hits[0];
+    }
+
+    // Créer l'alerte
+    const document = {
+      stationId: alert.stationId,
+      type: alert.type,
+      severity: alert.severity,
+      message: alert.message,
+      timestamp: alert.timestamp,
+      status: alert.status,
+      parameter: alert.parameter,
+      value: alert.value,
+      threshold: alert.threshold
+    };
+
+    const response = await this.kuzzle.document.create(
+      'iot',
+      'alerts',
+      document,
+      undefined,
+      { refresh: 'wait_for' }
+    );
+
+    console.log('✅ Alerte créée:', response._id);
+    return response;
+  } catch (error: unknown) {
+    console.error('❌ Erreur createAlert:', this.getErrorMessage(error));
+    throw error;
+  }
+}
   async getPaginatedWaterData(page: number, size: number): Promise<any> {
     try {
       await this.ensureConnection();
@@ -499,6 +596,7 @@ async getWaterQualityDataSimple(): Promise<any[]> {
       );
     });
   }
+
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
@@ -997,4 +1095,234 @@ async deleteFiltre(filtreId: string): Promise<void> {
   }
 }
 
+/**
+ * Récupérer les cycles de vie des filtres
+ */
+async getCyclesVieFiltre(): Promise<CycleVieFiltre[]> {
+  try {
+    const result = await this.kuzzle.document.search(
+      'iot',
+      'cycle-vie',
+      { query: { match_all: {} } },
+      { size: 1000 }
+    );
+
+    return result.hits.map((hit: any) => ({
+      _id: hit._id,
+      ...(hit._source || {})
+    }));
+  } catch (error) {
+    console.error('❌ Erreur récupération cycles de vie:', error);
+    return [];
+  }
+}
+
+/**
+ * Récupérer le cycle de vie d'un filtre spécifique
+ */
+/**
+ * Récupérer le cycle de vie d'un filtre water_quality
+ */
+async getCycleVieFiltre(
+  filtreId: string,
+  stationId?: string,
+  donneesWaterQuality?: any[]
+): Promise<CycleVieFiltre | null> {
+  try {
+    // 1. Chercher dans cycle-vie existant
+    const result = await this.kuzzle.document.search(
+      'iot',
+      'cycle-vie',
+      {
+        query: {
+          match: { id_filtre: filtreId }
+        }
+      }
+    );
+
+    if (result.hits.length > 0) {
+      const hit = result.hits[0];
+      const source = hit._source || {}; // Supprimé hit.body
+
+      return {
+        _id: hit._id,
+        id_filtre: source['id_filtre'] || filtreId,
+        id_station: source['id_station'] || stationId || '',
+        etat_actuel: source['etat_actuel'] || 'bon',
+        date_changement_etat: source['date_changement_etat'] || new Date().toISOString(),
+        pourcentage_usure: source['pourcentage_usure'] || 0,
+        heures_utilisation: source['heures_utilisation'] || 0,
+        volume_traite_m3: source['volume_traite_m3'] || 0,
+        historique_etats: source['historique_etats'] || [],
+        metriques: source['metriques'] || {
+          taux_usure_moyen: 0,
+          volume_moyen_par_jour: 0,
+          heures_moyennes_par_jour: 0,
+          efficacite_moyenne: 0
+        },
+        jalons: source['jalons'] || {
+          mise_en_service: new Date().toISOString(),
+          prochaine_maintenance: new Date().toISOString(),
+          fin_vie_estimee: new Date().toISOString(),
+          remplacement_prevu: null
+        }
+      } as CycleVieFiltre;
+    }
+
+    // 2. Si pas trouvé ET qu'on a les données water_quality, générer
+    if (donneesWaterQuality && donneesWaterQuality.length > 0 && stationId) {
+      console.log(`⚠️ Génération automatique du cycle de vie pour ${filtreId}`);
+      return this.genererCycleVieDepuisWaterQuality(filtreId, stationId, donneesWaterQuality);
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`❌ Erreur récupération cycle de vie ${filtreId}:`, error);
+    return null;
+  }
+}
+/**
+ * Mettre à jour le cycle de vie d'un filtre
+ */
+async updateCycleVieFiltre(
+  filtreId: string,
+  updates: Partial<CycleVieFiltre>
+): Promise<boolean> {
+  try {
+    const existing = await this.getCycleVieFiltre(filtreId);
+
+    if (existing) {
+      await this.kuzzle.document.update(
+        'iot',
+        'cycle-vie',
+        existing._id,
+        updates
+      );
+    } else {
+      await this.kuzzle.document.create(
+        'iot',
+        'cycle-vie',
+        { id_filtre: filtreId, ...updates }
+      );
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur mise à jour cycle de vie:', error);
+    return false;
+  }
+}
+
+/**
+ * Calculer automatiquement l'état du cycle de vie
+ */
+calculerEtatCycleVie(pourcentageUsure: number): 'neuf' | 'bon' | 'moyen' | 'degrade' | 'critique' | 'hors_service' {
+  if (pourcentageUsure < 10) return 'neuf';
+  if (pourcentageUsure < 40) return 'bon';
+  if (pourcentageUsure < 70) return 'moyen';
+  if (pourcentageUsure < 90) return 'degrade';
+  if (pourcentageUsure < 100) return 'critique';
+  return 'hors_service';
+}
+  /**
+ * Générer un cycle de vie depuis les données water_quality
+ */
+/**
+ * Générer un cycle de vie depuis les données water_quality (VERSION AMÉLIORÉE)
+ */
+genererCycleVieDepuisWaterQuality(
+  filtreId: string,
+  stationId: string,
+  donneesFiltre: any[]
+): CycleVieFiltre {
+
+  console.log(`🔍 Génération cycle vie pour ${filtreId} avec ${donneesFiltre.length} mesures`);
+
+  // PARAMÈTRES SPÉCIFIQUES PAR TYPE DE FILTRE
+  const parametresFiltres: { [key: string]: { heuresParMesure: number; debitM3ParHeure: number; dureeVieMaxHeures: number } } = {
+    'General': { heuresParMesure: 8,  debitM3ParHeure: 20, dureeVieMaxHeures: 20000 },
+    'FV1':     { heuresParMesure: 6,  debitM3ParHeure: 12, dureeVieMaxHeures: 15000 },
+    'FV2':     { heuresParMesure: 6,  debitM3ParHeure: 12, dureeVieMaxHeures: 15000 },
+    'FH':      { heuresParMesure: 4,  debitM3ParHeure: 8,  dureeVieMaxHeures: 12000 }
+  };
+
+  const params = parametresFiltres[filtreId] || { heuresParMesure: 6, debitM3ParHeure: 10, dureeVieMaxHeures: 15000 };
+
+  // CALCULS BASÉS SUR LE VOLUME DE DONNÉES
+  const nombreMesures = donneesFiltre.length;
+  let heuresUtilisation = nombreMesures * params.heuresParMesure;
+
+  // AUGMENTER si beaucoup de données
+  if (nombreMesures > 20) {
+    heuresUtilisation *= 1.5;
+  }
+
+  // GARANTIR UN MINIMUM RÉALISTE
+  heuresUtilisation = Math.max(48, heuresUtilisation);
+
+  const volumeEstimeM3 = heuresUtilisation * params.debitM3ParHeure;
+  const pourcentageUsure = Math.min(100, (heuresUtilisation / params.dureeVieMaxHeures) * 100);
+
+  const etatActuel = this.calculerEtatCycleVie(pourcentageUsure);
+
+  // CALCUL DES DATES
+  const maintenant = new Date();
+  const heuresRestantes = Math.max(0, params.dureeVieMaxHeures - heuresUtilisation);
+  const joursRestants = Math.floor(heuresRestantes / 24);
+
+  const finVieEstimee = new Date(maintenant);
+  finVieEstimee.setDate(finVieEstimee.getDate() + joursRestants);
+
+  const prochaineMaintenance = new Date(maintenant);
+  prochaineMaintenance.setDate(prochaineMaintenance.getDate() + 90);
+
+  const miseEnService = new Date(maintenant);
+  miseEnService.setDate(miseEnService.getDate() - Math.floor(heuresUtilisation / 24));
+
+  const cycleVie: CycleVieFiltre = {
+    _id: `cycle-${filtreId}-${Date.now()}`,
+    id_filtre: filtreId,
+    id_station: stationId,
+    etat_actuel: etatActuel,
+    date_changement_etat: maintenant.toISOString(),
+    pourcentage_usure: Math.round(pourcentageUsure * 10) / 10,
+    heures_utilisation: Math.round(heuresUtilisation),
+    volume_traite_m3: Math.round(volumeEstimeM3),
+    historique_etats: [
+      {
+        etat: etatActuel,
+        date: maintenant.toISOString(),
+        raison: `Génération automatique depuis ${nombreMesures} mesures water_quality`,
+        // Propriétés requises par l'interface EtatCycleVie
+        date_debut: maintenant.toISOString(),
+        date_fin: null,
+        duree_jours: 0,
+        volume_traite: volumeEstimeM3,
+        heures_utilisation: heuresUtilisation
+      }
+    ],
+    metriques: {
+      taux_usure_moyen: pourcentageUsure / 100,
+      volume_moyen_par_jour: Math.round(volumeEstimeM3 / 90),
+      heures_moyennes_par_jour: Math.round(heuresUtilisation / 90),
+      efficacite_moyenne: 75
+    },
+    jalons: {
+      mise_en_service: miseEnService.toISOString(),
+      prochaine_maintenance: prochaineMaintenance.toISOString(),
+      fin_vie_estimee: finVieEstimee.toISOString(),
+      remplacement_prevu: pourcentageUsure > 80 ? finVieEstimee.toISOString() : null
+    }
+  };
+
+  console.log(`✅ Cycle de vie généré pour ${filtreId}:`, {
+    mesures: nombreMesures,
+    heures: heuresUtilisation,
+    volume: volumeEstimeM3,
+    usure: pourcentageUsure + '%',
+    etat: etatActuel
+  });
+
+  return cycleVie;
+}
 }

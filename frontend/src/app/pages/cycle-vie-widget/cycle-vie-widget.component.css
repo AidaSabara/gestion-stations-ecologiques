@@ -1,0 +1,97 @@
+.cycle-vie-widget {
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.cycle-vie-widget.compact {
+  padding: 0.75rem;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.etat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.progress-container {
+  margin: 1rem 0;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.metriques {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.metrique-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metrique-item .icon {
+  font-size: 1.5rem;
+}
+
+.metrique-item .value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metrique-item .label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.no-data {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+}

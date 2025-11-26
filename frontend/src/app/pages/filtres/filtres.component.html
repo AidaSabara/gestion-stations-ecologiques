@@ -149,12 +149,13 @@
         </option>
       </select>
 
-      <select [(ngModel)]="selectedType" class="filter-select">
-        <option value="all">Tous les types</option>
-        <option *ngFor="let type of uniqueTypes" [value]="type">
-          {{ type }}
-        </option>
-      </select>
+
+          <select [(ngModel)]="selectedFilterId" class="filter-select">
+            <option value="all">Tous les filtres</option>
+            <option *ngFor="let filterId of uniqueFilterIds" [value]="filterId">
+              {{ getFilterLabel(filterId) }}
+            </option>
+          </select>
 
       <div class="results-count">
         {{ filteredPerformances.length }} filtre(s)
@@ -230,6 +231,15 @@
 
         <!-- Contenu du modal avec l'ordre demandé -->
         <div class="modal-body">
+            <!--LE WIDGET -->
+            <div class="modal-section">
+              <h3>🔄 Cycle de Vie du Filtre</h3>
+                <app-cycle-vie-widget
+                  [filtreId]="selectedFilter.id_filtre"
+                  [cycleVieData]="getCycleVie(selectedFilter.id_filtre)"
+                  [compact]="false">
+                </app-cycle-vie-widget>
+            </div>
 
           <!-- 1. Score KPI -->
           <div class="modal-section">

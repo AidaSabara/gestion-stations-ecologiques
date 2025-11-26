@@ -14,6 +14,8 @@ import { authGuard } from './auth.guard';
 import { dataAccessGuard } from './data-access.guard';
 import { AuthComponent } from './pages/auth/auth.component';
 import { StationDetailComponent } from './pages/station-detail/station-detail.component';
+import { RealtimeMonitoringComponent } from './pages/realtime-monitoring/realtime-monitoring.component';
+
 
 
 export const routes: Routes = [
@@ -42,7 +44,8 @@ export const routes: Routes = [
             { path: 'predictions', component: PredictionsComponent },
             { path: 'dashboard', component: DashboardComponent },
             { path: 'stations', component: StationsComponent, canActivate: [authGuard] },
-            { path: 'filtres', component: FiltresComponent }
+            { path: 'filtres', component: FiltresComponent },
+            { path: 'realtime', component: RealtimeMonitoringComponent }
         ],
     },
 ];
