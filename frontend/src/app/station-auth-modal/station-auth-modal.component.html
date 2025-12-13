@@ -1,4 +1,5 @@
-<div class="modal fade" [id]="modalId" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+<!-- Ajouter #modalElement à la div principale -->
+<div #modalElement class="modal fade" id="stationAuthModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <!-- En-tête -->
@@ -7,7 +8,10 @@
           <i class="bi bi-shield-lock me-2"></i>
           Authentification requise
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+                (click)="closeModal()"
+                aria-label="Close"></button>
       </div>
 
       <!-- Corps -->
@@ -21,7 +25,7 @@
           </p>
         </div>
 
-        <form (ngSubmit)="onSubmit()">
+        <form (ngSubmit)="onSubmit()" #authForm="ngForm">
           <!-- Email -->
           <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -37,7 +41,8 @@
                 name="email"
                 placeholder="votre@email.com"
                 required
-                [class.is-invalid]="errorMessage && !email">
+                [class.is-invalid]="errorMessage && !email"
+                [disabled]="isLoading">
             </div>
           </div>
 
@@ -56,27 +61,26 @@
                 name="password"
                 placeholder="Votre mot de passe"
                 required
-                [class.is-invalid]="errorMessage && !password">
+                [class.is-invalid]="errorMessage && !password"
+                [disabled]="isLoading">
             </div>
           </div>
 
           <!-- Message d'erreur -->
-          <div class="alert alert-danger d-flex align-items-center" *ngIf="errorMessage">
+          <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <div class="small">{{ errorMessage }}</div>
-          </div>
-
-          <!-- Loading -->
-          <div class="alert alert-info d-flex align-items-center" *ngIf="isLoading">
-            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-            <div class="small">Vérification en cours...</div>
+            {{ errorMessage }}
+            <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
           </div>
         </form>
       </div>
 
       <!-- Pied -->
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal"
+                (click)="closeModal()"
+                [disabled]="isLoading">
           <i class="bi bi-x-circle me-1"></i>
           Annuler
         </button>
@@ -85,9 +89,14 @@
           class="btn btn-primary"
           (click)="onSubmit()"
           [disabled]="isLoading || !email || !password">
-          <i class="bi bi-unlock me-1" *ngIf="!isLoading"></i>
-          <div class="spinner-border spinner-border-sm me-1" *ngIf="isLoading" role="status"></div>
-          Se connecter
+          <span *ngIf="!isLoading">
+            <i class="bi bi-unlock me-1"></i>
+            Se connecter
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            Connexion...
+          </span>
         </button>
       </div>
     </div>

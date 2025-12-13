@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable sort-keys */
+import { PasswordUtil } from '../backend/src/utils/password.util';
 import { Kuzzle, WebSocket } from "kuzzle-sdk";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
@@ -587,8 +588,30 @@ async function readAndInsertCSV(filePath: string) {
       .pipe(csv({ separator: ',' }))
       .on('data', (data) => {
         try {
-          const rawDate = data.Date || data.date;
-          const rawMois = data.Mois || data.mois;
+          // ✅ CORRECTION : Gérer les dates vides et extraire le mois
+          const rawDate = (data.Date || data.date || '').trim();
+          
+          let formattedDate: string | null = null;
+          let mois: string | null = null;
+          
+          // Si la date existe et n'est pas vide
+          if (rawDate && rawDate !== '' && rawDate !== 'null' && rawDate !== 'undefined') {
+            formattedDate = rawDate; // Déjà au format YYYY-MM-DD
+            
+            // ✅ Extraire le mois depuis la date
+            try {
+              const dateObj = new Date(rawDate);
+              if (!isNaN(dateObj.getTime())) {
+                const monthNames = [
+                  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+                ];
+                mois = monthNames[dateObj.getMonth()];
+              }
+            } catch (e) {
+              console.warn(`⚠️ Impossible d'extraire le mois de: ${rawDate}`);
+            }
+          }
           
           const reading: WaterQualityReading = {
             _id: uuidv4(),
@@ -598,8 +621,8 @@ async function readAndInsertCSV(filePath: string) {
               type_filtre: data.Type_Filtre || data.type_filtre || '',
               id_filtre: data.ID_Filtre || data.id_filtre || '',
               
-              date: rawDate || null,
-              mois: rawMois || null,
+              date: formattedDate,  // ✅ null si vide, YYYY-MM-DD sinon
+              mois: mois,           // ✅ "Avril" si date valide, null sinon
               
               temperature_c: parseFloatOrNull(data.Temperature_C || data.temperature_c),
               ph: parseFloatOrNull(data.pH || data.ph),
@@ -627,21 +650,37 @@ async function readAndInsertCSV(filePath: string) {
           
           readings.push(reading);
         } catch (error) {
-          console.error('❌ Erreur lors du parsing d\'une ligne:', error, data);
+          console.error('❌ Erreur parsing ligne CSV:', error, data);
         }
       })
       .on('end', () => {
-        // Statistiques sur les dates
+        // ✅ Statistiques détaillées
         const withDates = readings.filter(r => r.body.date !== null).length;
         const withoutDates = readings.filter(r => r.body.date === null).length;
+        const withMois = readings.filter(r => r.body.mois !== null).length;
         
-        console.log(`✅ ${readings.length} documents de qualité d'eau préparés`);
-        console.log(`📅 ${withDates} avec dates, ${withoutDates} sans dates`);
+        console.log(`✅ ${readings.length} documents préparés`);
+        console.log(`📅 Dates: ${withDates} valides, ${withoutDates} vides`);
+        console.log(`📆 Mois: ${withMois} extraits`);
         
         if (withDates > 0) {
-          const dates = readings.filter(r => r.body.date).map(r => r.body.date);
-          const uniqueDates = [...new Set(dates)].sort();
-          console.log(`📊 Période couverte: ${uniqueDates[0]} à ${uniqueDates[uniqueDates.length - 1]}`);
+          const dates = readings
+            .filter(r => r.body.date)
+            .map(r => r.body.date!)
+            .filter((v, i, a) => a.indexOf(v) === i)
+            .sort();
+          console.log(`📊 Période: ${dates[0]} → ${dates[dates.length - 1]}`);
+          console.log(`📊 ${dates.length} dates uniques`);
+        }
+        
+        if (withoutDates > 0) {
+          console.warn(`⚠️ ${withoutDates} lignes sans date`);
+          // Afficher quelques exemples
+          const examples = readings
+            .filter(r => r.body.date === null)
+            .slice(0, 3)
+            .map(r => `${r.body.id_filtre} - ${r.body.phase} - ${r.body.nom_feuille}`);
+          console.warn('   Exemples:', examples);
         }
         
         resolve(readings);
@@ -653,7 +692,7 @@ async function readAndInsertCSV(filePath: string) {
   });
 }
 
-function createData() {
+async function createData() {
   const now = new Date();
 
   const stations: Station[] = regions.map((region, i) => {
@@ -1066,7 +1105,7 @@ const users: User[] = [
       body: {
         name: "Coudy Daillo",
         email: "samb.aida-sabara@ugb.edu.sn",
-        password: "super123",
+        password: await PasswordUtil.hash("super123"),
         role: "supervisor",
         station_id: "ALL",
         station_name: "Toutes les stations",
@@ -1090,7 +1129,7 @@ const users: User[] = [
       body: {
         name: "Aida Sabara",
         email: "aidasabara1111@gmail.com",
-        password: "admin123",
+        password: await PasswordUtil.hash("admin123"),
         role: "admin",
         station_id: "ALL",
         station_name: "Toutes les stations",
@@ -1114,7 +1153,7 @@ const users: User[] = [
       body: {
         name: "Aida Samb",
         email: "mamadou.diallo@ecostations.sn",
-        password: "demo123",
+        password: await PasswordUtil.hash("demo123"),
         role: "agent",
         station_id: "Sanar_Station",
         station_name: "Station Sanar",
@@ -1458,7 +1497,7 @@ async function seed() {
 
     await createMappings();
 
-    const { stations, readings, alerts, users, events, filtres, cyclesVie, maintenanceInterventions } = createData();
+    const { stations, readings, alerts, users, events, filtres, cyclesVie, maintenanceInterventions } = await createData();
     
     // Utiliser le nouveau fichier avec les dates
     const csvFilePath = path.join(__dirname, "..", "cleaning_water", "UGB_Sanar_Station_Dataset_Clean.csv");

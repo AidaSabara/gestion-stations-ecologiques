@@ -81,10 +81,17 @@ export interface CycleVieFiltre {
 export class KuzzleService {
   private kuzzle: Kuzzle;
   private connectionPromise: Promise<void> | null = null;
+  private isConnecting = false;
+  private maxReconnectAttempts = 5;
+  private reconnectAttempts = 0;
+  private reconnectDelay = 2000;
+  private reconnectTimer: any = null;
+  private shouldReconnect = true;
+  private subscriptions: any[] = [];
 
   constructor() {
     this.kuzzle = new Kuzzle(
-      new WebSocket('localhost', { port: 7512 })
+      new WebSocket('localhost', { port: 7512, })
     );
 
     this.kuzzle.on('connected', () => {
@@ -102,7 +109,7 @@ export class KuzzleService {
     this.ensureConnection();
   }
 
-  private async ensureConnection(): Promise<void> {
+  async ensureConnection(): Promise<void> {
     if (this.kuzzle.connected) {
       return Promise.resolve();
     }
@@ -124,6 +131,33 @@ export class KuzzleService {
 
     return this.connectionPromise;
   }
+
+  async connectToKuzzle(): Promise<boolean> {
+  try {
+    await this.kuzzle.connect();
+    console.log('✅ Kuzzle connecté avec succès');
+    this.reconnectAttempts = 0;
+    return true;
+  } catch (error) {
+    console.error('❌ Échec connexion Kuzzle:', error);
+    return false;
+  }
+}
+
+private async handleConnectionError(error: any) {
+  console.error('❌ Erreur réseau Kuzzle:', error);
+
+  if (this.reconnectAttempts < this.maxReconnectAttempts) {
+    this.reconnectAttempts++;
+    console.log(`🔄 Tentative de reconnexion ${this.reconnectAttempts}/${this.maxReconnectAttempts} dans ${this.reconnectDelay}ms`);
+
+    await new Promise(resolve => setTimeout(resolve, this.reconnectDelay));
+    await this.connectToKuzzle();
+  } else {
+    console.error('🚨 Nombre maximum de tentatives de reconnexion atteint');
+  }
+}
+
 
   async getStations(): Promise<any[]> {
     try {
@@ -464,23 +498,107 @@ async getWaterQualityDataSimple(): Promise<any[]> {
     }
   }
 
- async getActiveAlerts(): Promise<any[]> {
+async getActiveAlerts(): Promise<any[]> {
   try {
     await this.ensureConnection();
 
-    const response = await this.kuzzle.document.search('iot', 'alerts', {
-      query: {
-        match: { 'status': 'active' }
+    // 🔥 CORRECTION : Rechercher TOUTES les alertes, pas seulement "active"
+    const response = await this.kuzzle.document.search(
+      'iot',
+      'alerts',
+      {
+        query: {
+          match_all: {} // 👈 Récupérer TOUTES les alertes d'abord
+        },
+        sort: { 'timestamp': 'desc' }
       },
-      sort: { 'timestamp': 'desc' },
-      size: 100
-    });
+      {
+        size: 1000, // 👈 Augmenter la limite
+        from: 0
+      }
+    );
 
-    return response.hits;
+    console.log(`📨 TOTAL alertes dans Kuzzle: ${response.total}`);
+    console.log(`📨 Alertes récupérées: ${response.hits.length}`);
+
+    if (response.hits.length > 0) {
+      console.log('📄 Exemple alerte brute:', response.hits[0]);
+    }
+
+    // ✅ NORMALISER LES DONNÉES avec meilleure gestion
+    return response.hits.map((hit: any) => {
+      // 🔍 Chercher les données dans _source OU directement dans hit
+      const source = hit._source || hit;
+
+      console.log(`🔍 Alerte ${hit._id}:`, {
+        stationId: source.stationId,
+        type: source.type,
+        status: source.status,
+        severity: source.severity || source.level
+      });
+
+      return {
+        _id: hit._id,
+        _source: {
+          stationId: source.stationId || 'unknown',
+          type: source.type || 'unknown',
+          severity: source.severity || source.level || 'info',
+          level: source.severity || source.level || 'info',
+          message: source.message || 'Pas de message',
+          timestamp: this.normalizeTimestamp(source.timestamp),
+          status: source.status || 'active',
+          parameter: source.parameter,
+          value: source.value,
+          threshold: source.threshold
+        }
+      };
+    });
   } catch (error: unknown) {
     console.error('❌ Erreur getActiveAlerts:', this.getErrorMessage(error));
     return [];
   }
+}
+normalizeTimestamp(timestamp: any): number {
+  // Si c'est déjà un nombre, retourner tel quel
+  if (typeof timestamp === 'number') {
+    return timestamp;
+  }
+
+  // Si c'est une chaîne
+  if (typeof timestamp === 'string') {
+    // Format "14/11/2023, 22:13:20" ou "08/12/2025, 18:03:42"
+    if (timestamp.includes('/') && timestamp.includes(',')) {
+      try {
+        const [datePart, timePart] = timestamp.split(', ');
+        const [day, month, year] = datePart.split('/');
+        const [hours, minutes, seconds] = timePart.split(':');
+
+        const date = new Date(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day),
+          parseInt(hours),
+          parseInt(minutes),
+          parseInt(seconds)
+        );
+
+        return date.getTime();
+      } catch (error) {
+        console.warn('⚠️ Erreur parsing date:', timestamp);
+        return Date.now();
+      }
+    }
+
+    // Format ISO ou autre format reconnu par Date
+    const date = new Date(timestamp);
+    if (!isNaN(date.getTime())) {
+      return date.getTime();
+    }
+  }
+
+  // Par défaut, retourner la date actuelle
+  console.warn('⚠️ Timestamp invalide, utilisation de Date.now():', timestamp);
+  return Date.now();
 }
 async createAlert(alert: any): Promise<any> {
   try {
@@ -510,14 +628,15 @@ async createAlert(alert: any): Promise<any> {
       return existingAlerts.hits[0];
     }
 
-    // Créer l'alerte
+    // ✅ CORRECTION : Créer l'alerte avec les bons noms de champs
     const document = {
       stationId: alert.stationId,
       type: alert.type,
-      severity: alert.severity,
+      severity: alert.severity,           // 🔴 Utiliser "severity" au lieu de "level"
+      level: alert.severity,              // 🔴 Garder "level" pour compatibilité
       message: alert.message,
-      timestamp: alert.timestamp,
-      status: alert.status,
+      timestamp: Date.now(),              // 🔴 Toujours un nombre
+      status: alert.status || 'active',
       parameter: alert.parameter,
       value: alert.value,
       threshold: alert.threshold
@@ -538,6 +657,8 @@ async createAlert(alert: any): Promise<any> {
     throw error;
   }
 }
+
+
   async getPaginatedWaterData(page: number, size: number): Promise<any> {
     try {
       await this.ensureConnection();
@@ -619,14 +740,29 @@ async createAlert(alert: any): Promise<any> {
   }
 
   async updateAlert(alertId: string, updates: any): Promise<void> {
-    try {
-      await this.ensureConnection();
-      await this.kuzzle.document.update('iot', 'alerts', alertId, updates);
-    } catch (error) {
-      console.error('❌ Erreur mise à jour alerte:', error);
-      throw error;
+  try {
+    await this.ensureConnection();
+
+    // ✅ S'assurer que le timestamp est un nombre
+    if (updates.timestamp && typeof updates.timestamp !== 'number') {
+      updates.timestamp = this.normalizeTimestamp(updates.timestamp);
     }
+
+    // ✅ S'assurer que resolvedAt est un nombre
+    if (updates.resolvedAt && typeof updates.resolvedAt !== 'number') {
+      updates.resolvedAt = Date.now();
+    }
+
+    await this.kuzzle.document.update('iot', 'alerts', alertId, updates, {
+      refresh: 'wait_for'
+    });
+
+    console.log('✅ Alerte mise à jour:', alertId);
+  } catch (error) {
+    console.error('❌ Erreur mise à jour alerte:', error);
+    throw error;
   }
+}
 
   /**
    * Crée une nouvelle station dans Kuzzle
@@ -673,6 +809,10 @@ async createAlert(alert: any): Promise<any> {
       throw error;
     }
   }
+  // kuzzle.service.ts - AJOUTEZ CETTE LIGNE
+get kuzzleInstance(): any {
+  return this.kuzzle;
+}
 
   /**
    * Met à jour une station existante
@@ -1325,4 +1465,6 @@ genererCycleVieDepuisWaterQuality(
 
   return cycleVie;
 }
+//PARTIE USERS
+
 }

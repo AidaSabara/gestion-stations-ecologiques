@@ -75,6 +75,7 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private map: L.Map | undefined;
   private markers: Map<string, L.Marker> = new Map();
+  private criticalAlertsByStation: Map<string, number> = new Map();
   private alertsSubscription: any;
 
   constructor(
@@ -82,13 +83,12 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router  // 👈 AJOUT Router
   ) {}
 
-  // ... tout le reste du code reste identique ...
-  // (ngOnInit, ngAfterViewInit, ngOnDestroy, loadAllData, etc.)
 
   async ngOnInit() {
     console.log('🗺️ Initialisation de la carte avec alertes...');
     await this.loadAllData();
     this.setupRealTimeMonitoring();
+    
   }
 
   ngAfterViewInit(): void {}

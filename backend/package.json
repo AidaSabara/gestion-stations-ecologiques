@@ -1,0 +1,46 @@
+{
+  "name": "eco-stations-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour la gestion des stations écologiques",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon --exec ./node_modules/.bin/ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "migrate:passwords": "npx ts-node src/scripts/migrate-passwords.ts"
+  },
+  "keywords": [
+    "eco",
+    "stations",
+    "kuzzle",
+    "jwt",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.10.1",
+    "@types/nodemailer": "^7.0.4",
+    "@types/pdfkit": "^0.17.4",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "kuzzle-sdk": "^7.15.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.11",
+    "pdfkit": "^0.17.2"
+  }
+}

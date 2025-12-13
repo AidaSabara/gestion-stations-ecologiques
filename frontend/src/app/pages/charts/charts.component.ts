@@ -524,89 +524,109 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('✅ Graphique multi-paramètres créé');
 }
   // 4. 🆕 Analyse du flux de traitement
-  private analyzeTreatmentFlow(): TreatmentFlowData[] {
-    const dataByDate: { [date: string]: any } = {};
+private analyzeTreatmentFlow(): TreatmentFlowData[] {
+  const dataByDate: { [date: string]: any } = {};
 
-    console.log('🔍 Analyse du flux de traitement...');
-    console.log('📊 Données disponibles:', this.waterData.length);
+  console.log('🔍 Analyse du flux de traitement...');
+  console.log('📊 Données disponibles:', this.waterData.length);
 
-    this.waterData.forEach(item => {
-      const date = item.body.date;
-      if (!date) return;
+  this.waterData.forEach(item => {
+    const date = item.body.date;
+    if (!date) return;
 
-      if (!dataByDate[date]) {
-        dataByDate[date] = {
-          entree: null,
-          sortieFV: [],
-          sortieFH: [],
-          date: date
-        };
-      }
-
-      const record = item.body;
-
-      // Classification des données
-      if (record.phase === "Entree" && record.type_filtre === "Non_Applicable") {
-        dataByDate[date].entree = record;
-      } else if (record.phase === "Sortie" && record.type_filtre === "Filtre_Vertical") {
-        dataByDate[date].sortieFV.push(record);
-      } else if (record.phase === "Sortie" && record.type_filtre === "Filtre_Horizontal") {
-        dataByDate[date].sortieFH.push(record);
-      }
-    });
-
-    const analysisResults: TreatmentFlowData[] = [];
-
-    for (const [date, dayData] of Object.entries(dataByDate)) {
-      console.log(`📅 Analyse date ${date}:`, {
-        entree: !!dayData.entree,
-        sortieFV: dayData.sortieFV.length,
-        sortieFH: dayData.sortieFH.length
-      });
-
-      if (dayData.entree && dayData.sortieFV.length > 0 && dayData.sortieFH.length > 0) {
-        const sortieFVMoyenne = this.calculateAverage(dayData.sortieFV);
-        const sortieFHMoyenne = this.calculateAverage(dayData.sortieFH);
-
-        console.log('📈 Moyennes calculées:', {
-          entreeDBO: dayData.entree.dbo5_mg_l,
-          sortieFVDBO: sortieFVMoyenne.dbo5_mg_l,
-          sortieFHDBO: sortieFHMoyenne.dbo5_mg_l
-        });
-
-        const efficaciteFV = this.calculateEfficiency(dayData.entree, sortieFVMoyenne);
-        const efficaciteFH = this.calculateEfficiency(sortieFVMoyenne, sortieFHMoyenne);
-        const efficaciteTotale = this.calculateEfficiency(dayData.entree, sortieFHMoyenne);
-
-        analysisResults.push({
-          date,
-          entree: dayData.entree,
-          sortieFiltresVerticaux: sortieFVMoyenne,
-          sortieFiltresHorizontaux: sortieFHMoyenne,
-          efficacite: {
-            filtresVerticaux: efficaciteFV,
-            filtresHorizontaux: efficaciteFH,
-            totale: efficaciteTotale
-          }
-        });
-      }
+    if (!dataByDate[date]) {
+      dataByDate[date] = {
+        entree: null,
+        sortieFV: [],
+        sortieFH: [],
+        date: date
+      };
     }
 
-    // 🔥 CORRECTION : Trier par date réelle
-    const sortedResults = analysisResults.sort((a, b) => {
-      const dateA = this.parseDateString(a.date);
-      const dateB = this.parseDateString(b.date);
-      if (!dateA || !dateB) return 0;
-      return dateA.getTime() - dateB.getTime();
+    const record = item.body;
+
+    // Classification des données
+    if (record.phase === "Entree" && record.type_filtre === "Non_Applicable") {
+      dataByDate[date].entree = record;
+    } else if (record.phase === "Sortie" && record.type_filtre === "Filtre_Vertical") {
+      dataByDate[date].sortieFV.push(record);
+    } else if (record.phase === "Sortie" && record.type_filtre === "Filtre_Horizontal") {
+      dataByDate[date].sortieFH.push(record);
+    }
+  });
+
+  const analysisResults: TreatmentFlowData[] = [];
+
+  for (const [date, dayData] of Object.entries(dataByDate)) {
+    console.log(`📅 Analyse date ${date}:`, {
+      entree: !!dayData.entree,
+      sortieFV: dayData.sortieFV.length,
+      sortieFH: dayData.sortieFH.length
     });
 
-    console.log('✅ Résultats analyse flux:', sortedResults.length);
-    sortedResults.forEach(result => {
-      console.log(`📊 ${result.date}: Entrée=${result.entree.dbo5_mg_l}, FV=${result.sortieFiltresVerticaux.dbo5_mg_l}, FH=${result.sortieFiltresHorizontaux.dbo5_mg_l}`);
-    });
+    // 🔥 CORRECTION : Accepter les données même si incomplètes
+    // Au lieu de : if (dayData.entree && dayData.sortieFV.length > 0 && dayData.sortieFH.length > 0)
+    if (dayData.entree || dayData.sortieFV.length > 0 || dayData.sortieFH.length > 0) {
 
-    return sortedResults;
+      // Calculer les moyennes (ou null si pas de données)
+      const sortieFVMoyenne = dayData.sortieFV.length > 0
+        ? this.calculateAverage(dayData.sortieFV)
+        : null;
+
+      const sortieFHMoyenne = dayData.sortieFH.length > 0
+        ? this.calculateAverage(dayData.sortieFH)
+        : null;
+
+      // Calculer les efficacités seulement si les données existent
+      let efficaciteFV = 0;
+      let efficaciteFH = 0;
+      let efficaciteTotale = 0;
+
+      if (dayData.entree && sortieFVMoyenne) {
+        efficaciteFV = this.calculateEfficiency(dayData.entree, sortieFVMoyenne);
+      }
+
+      if (sortieFVMoyenne && sortieFHMoyenne) {
+        efficaciteFH = this.calculateEfficiency(sortieFVMoyenne, sortieFHMoyenne);
+      }
+
+      if (dayData.entree && sortieFHMoyenne) {
+        efficaciteTotale = this.calculateEfficiency(dayData.entree, sortieFHMoyenne);
+      }
+
+      analysisResults.push({
+        date,
+        entree: dayData.entree,
+        sortieFiltresVerticaux: sortieFVMoyenne,
+        sortieFiltresHorizontaux: sortieFHMoyenne,
+        efficacite: {
+          filtresVerticaux: efficaciteFV,
+          filtresHorizontaux: efficaciteFH,
+          totale: efficaciteTotale
+        }
+      });
+    }
   }
+
+  // Trier par date
+  const sortedResults = analysisResults.sort((a, b) => {
+    const dateA = this.parseDateString(a.date);
+    const dateB = this.parseDateString(b.date);
+    if (!dateA || !dateB) return 0;
+    return dateA.getTime() - dateB.getTime();
+  });
+
+  console.log('✅ Résultats analyse flux:', sortedResults.length, 'dates');
+  sortedResults.forEach(result => {
+    console.log(`📊 ${result.date}:`, {
+      entree: result.entree?.dbo5_mg_l || 'N/A',
+      sortieFV: result.sortieFiltresVerticaux?.dbo5_mg_l || 'N/A',
+      sortieFH: result.sortieFiltresHorizontaux?.dbo5_mg_l || 'N/A'
+    });
+  });
+
+  return sortedResults;
+}
 
   private calculateAverage(records: any[]): any {
     const average: any = {};
@@ -642,156 +662,174 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // 5. 🆕 Graphique Flux de Traitement DBO5
   private createTreatmentFlowChart() {
-    const canvas = document.getElementById('treatmentFlowChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn('❌ Canvas treatmentFlowChart non trouvé');
-      return;
+  const canvas = document.getElementById('treatmentFlowChart') as HTMLCanvasElement;
+  if (!canvas) {
+    console.warn('❌ Canvas treatmentFlowChart non trouvé');
+    return;
+  }
+
+  if (this.treatmentFlowChartInstance) {
+    this.treatmentFlowChartInstance.destroy();
+  }
+
+  const treatmentData = this.analyzeTreatmentFlow();
+
+  if (treatmentData.length === 0) {
+    console.warn('❌ Aucune donnée de traitement complète disponible');
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#6c757d';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Aucune donnée complète disponible', canvas.width / 2, canvas.height / 2);
     }
+    return;
+  }
 
-    if (this.treatmentFlowChartInstance) {
-      this.treatmentFlowChartInstance.destroy();
-    }
+  console.log('📊 Création graphique avec', treatmentData.length, 'dates complètes');
 
-    const treatmentData = this.analyzeTreatmentFlow();
+  const labels = treatmentData.map(d => {
+    const parsedDate = this.parseDateString(d.date);
+    return parsedDate ?
+      parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : d.date;
+  });
 
-    if (treatmentData.length === 0) {
-      console.warn('❌ Aucune donnée de traitement complète disponible');
+  // 🔥 CORRECTION CRITIQUE : Gérer les valeurs null correctement
+  const entreeDBO = treatmentData.map(d => {
+    const value = d.entree?.dbo5_mg_l;
+    return (value !== null && value !== undefined) ? value : undefined;
+  });
 
-      // Afficher un message d'erreur dans le canvas
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#6c757d';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Aucune donnée de traitement complète disponible', canvas.width / 2, canvas.height / 2);
-      }
-      return;
-    }
+  const sortieFVDBO = treatmentData.map(d => {
+    const value = d.sortieFiltresVerticaux?.dbo5_mg_l;
+    return (value !== null && value !== undefined) ? value : undefined;
+  });
 
-    console.log('📊 Données pour graphique flux:', treatmentData);
+  const sortieFHDBO = treatmentData.map(d => {
+    const value = d.sortieFiltresHorizontaux?.dbo5_mg_l;
+    return (value !== null && value !== undefined) ? value : undefined;
+  });
 
-    const labels = treatmentData.map(d => {
-      const parsedDate = this.parseDateString(d.date);
-      return parsedDate ?
-        parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : d.date;
-    });
+  console.log('📈 Données graphique:', {
+    labels: labels,
+    entree: entreeDBO,
+    sortieFV: sortieFVDBO,
+    sortieFH: sortieFHDBO
+  });
 
-    // 🔥 CORRECTION : Vérifiez que les données existent
-    const entreeDBO = treatmentData.map(d => d.entree?.dbo5_mg_l || null);
-    const sortieFVDBO = treatmentData.map(d => d.sortieFiltresVerticaux?.dbo5_mg_l || null);
-    const sortieFHDBO = treatmentData.map(d => d.sortieFiltresHorizontaux?.dbo5_mg_l || null);
-
-    console.log('📈 Données DBO5:', {
+  this.treatmentFlowChartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
       labels: labels,
-      entree: entreeDBO,
-      sortieFV: sortieFVDBO,
-      sortieFH: sortieFHDBO
-    });
-
-    this.treatmentFlowChartInstance = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: '📥 Entrée (Eaux brutes)',
-            data: entreeDBO,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false
-          },
-          {
-            label: '⬇️ Sortie Filtres Verticaux',
-            data: sortieFVDBO,
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false
-          },
-          {
-            label: '✅ Sortie Filtres Horizontaux',
-            data: sortieFHDBO,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false
-          }
-        ]
+      datasets: [
+        {
+          label: '📥 Entrée (Eaux brutes)',
+          data: entreeDBO,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: false,
+          spanGaps: false // 🔥 Pas de connexion entre les gaps
+        },
+        {
+          label: '⬇️ Sortie Filtres Verticaux',
+          data: sortieFVDBO,
+          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(54, 162, 235, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: false,
+          spanGaps: false
+        },
+        {
+          label: '✅ Sortie Filtres Horizontaux',
+          data: sortieFHDBO,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: false,
+          spanGaps: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: 'index'
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'DBO5 (mg/L)'
-            },
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Date'
-            },
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
-            },
-            ticks: {
-              maxRotation: 45,
-              minRotation: 45
-            }
-          }
-        },
-        plugins: {
+      scales: {
+        y: {
+          beginAtZero: true,
           title: {
             display: true,
-            text: `🔄 Flux de Traitement - DBO5 (${treatmentData.length} dates complètes)`,
-            font: { size: 16, weight: 'bold' }
+            text: 'DBO5 (mg/L)',
+            font: { size: 14 }
           },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const label = context.dataset.label || '';
-                const value = context.parsed.y;
-                return `${label}: ${value?.toFixed(1)} mg/L`;
-              }
-            }
-          },
-          legend: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)'
+          }
+        },
+        x: {
+          title: {
             display: true,
-            position: 'top',
-            labels: {
-              usePointStyle: true,
-              padding: 20
+            text: 'Date de prélèvement',
+            font: { size: 14 }
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)'
+          },
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45
+          }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: `🔄 Flux de Traitement - DBO5 (${treatmentData.length} dates)`,
+          font: { size: 16, weight: 'bold' }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const value = context.parsed.y;
+              return value !== undefined && value !== null
+                ? `${label}: ${value.toFixed(1)} mg/L`
+                : `${label}: Pas de données`;
             }
+          }
+        },
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: { size: 12 }
           }
         }
       }
-    });
+    }
+  });
 
-    console.log('✅ Graphique flux traitement créé');
-  }
+  console.log('✅ Graphique flux traitement créé');
+}
 
   // 6. 🆕 Graphique DBO5 Détail avec Efficacité
   private createDBO5FlowChart() {
@@ -925,143 +963,192 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // 7. 🆕 Graphique DCO Flux
-  private createDCOFlowChart() {
-    const canvas = document.getElementById('dcoFlowChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn('❌ Canvas dcoFlowChart non trouvé');
-      return;
-    }
-
-    if (this.dcoFlowChartInstance) {
-      this.dcoFlowChartInstance.destroy();
-    }
-
-    const treatmentData = this.analyzeTreatmentFlow();
-    if (treatmentData.length === 0) {
-      console.warn('❌ Aucune donnée pour le graphique DCO');
-      return;
-    }
-
-    const labels = treatmentData.map(d => {
-      const parsedDate = this.parseDateString(d.date);
-      return parsedDate ?
-        parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : d.date;
-    });
-
-    const entreeDCO = treatmentData.map(d => d.entree?.dco_mg_l || null);
-    const sortieFVDCO = treatmentData.map(d => d.sortieFiltresVerticaux?.dco_mg_l || null);
-    const sortieFHDCO = treatmentData.map(d => d.sortieFiltresHorizontaux?.dco_mg_l || null);
-
-    this.dcoFlowChartInstance = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: '📥 Entrée DCO',
-            data: entreeDCO,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false
-          },
-          {
-            label: '⬇️ Sortie Filtres Verticaux',
-            data: sortieFVDCO,
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false
-          },
-          {
-            label: '✅ Sortie Filtres Horizontaux',
-            data: sortieFHDCO,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: 'DCO (mg/L)' },
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
-            }
-          },
-          x: {
-            title: { display: true, text: 'Date' },
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
-            },
-            ticks: {
-              maxRotation: 45,
-              minRotation: 45
-            }
-          }
-        },
-        plugins: {
-          title: {
-            display: true,
-            text: `🔄 Flux de Traitement - DCO (${treatmentData.length} dates)`,
-            font: { size: 16, weight: 'bold' }
-          }
-        }
-      }
-    });
-
-    console.log('✅ Graphique DCO flux créé');
+private createDCOFlowChart() {
+  const canvas = document.getElementById('dcoFlowChart') as HTMLCanvasElement;
+  if (!canvas) {
+    console.warn('❌ Canvas dcoFlowChart non trouvé');
+    return;
   }
 
-  // 🆕 Méthodes utilitaires
-  getTreatmentStats() {
-    const treatmentData = this.analyzeTreatmentFlow();
-    if (treatmentData.length === 0) {
-      return {
-        totalDates: 0,
-        derniereDate: 'N/A',
-        efficaciteTotale: '0',
-        reductionDBO: '0',
-        reductionDCO: '0',
-        entreeDBO: '0',
-        sortieDBO: '0'
-      };
+  if (this.dcoFlowChartInstance) {
+    this.dcoFlowChartInstance.destroy();
+  }
+
+  const treatmentData = this.analyzeTreatmentFlow();
+
+  if (treatmentData.length === 0) {
+    console.warn('❌ Aucune donnée pour le graphique DCO');
+    return;
+  }
+
+  const labels = treatmentData.map(d => {
+    const parsedDate = this.parseDateString(d.date);
+    return parsedDate ?
+      parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : d.date;
+  });
+
+  // 🔥 CORRECTION : Gérer null correctement
+  const entreeDCO = treatmentData.map(d => {
+    const value = d.entree?.dco_mg_l;
+    return (value !== null && value !== undefined) ? value : undefined;
+  });
+
+  const sortieFVDCO = treatmentData.map(d => {
+    const value = d.sortieFiltresVerticaux?.dco_mg_l;
+    return (value !== null && value !== undefined) ? value : undefined;
+  });
+
+  const sortieFHDCO = treatmentData.map(d => {
+    const value = d.sortieFiltresHorizontaux?.dco_mg_l;
+    return (value !== null && value !== undefined) ? value : undefined;
+  });
+
+  this.dcoFlowChartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '📥 Entrée DCO',
+          data: entreeDCO,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: false,
+          spanGaps: false
+        },
+        {
+          label: '⬇️ Sortie Filtres Verticaux',
+          data: sortieFVDCO,
+          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(54, 162, 235, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: false,
+          spanGaps: false
+        },
+        {
+          label: '✅ Sortie Filtres Horizontaux',
+          data: sortieFHDCO,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: false,
+          spanGaps: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'DCO (mg/L)', font: { size: 14 } },
+          grid: { color: 'rgba(0, 0, 0, 0.1)' }
+        },
+        x: {
+          title: { display: true, text: 'Date de prélèvement', font: { size: 14 } },
+          grid: { color: 'rgba(0, 0, 0, 0.1)' },
+          ticks: { maxRotation: 45, minRotation: 45 }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: `🔄 Flux de Traitement - DCO (${treatmentData.length} dates)`,
+          font: { size: 16, weight: 'bold' }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const value = context.parsed.y;
+              return value !== undefined && value !== null
+                ? `${label}: ${value.toFixed(1)} mg/L`
+                : `${label}: Pas de données`;
+            }
+          }
+        },
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { usePointStyle: true, padding: 20, font: { size: 12 } }
+        }
+      }
     }
+  });
 
-    const lastData = treatmentData[treatmentData.length - 1];
-    const reductionDBO = ((lastData.entree.dbo5_mg_l - lastData.sortieFiltresHorizontaux.dbo5_mg_l) / lastData.entree.dbo5_mg_l * 100);
-    const reductionDCO = ((lastData.entree.dco_mg_l - lastData.sortieFiltresHorizontaux.dco_mg_l) / lastData.entree.dco_mg_l * 100);
+  console.log('✅ Graphique DCO flux créé');
+}
+  // 🆕 Méthodes utilitaires
+getTreatmentStats() {
+  const treatmentData = this.analyzeTreatmentFlow();
 
+  if (treatmentData.length === 0) {
+    return {
+      totalDates: 0,
+      derniereDate: 'N/A',
+      efficaciteTotale: '0',
+      reductionDBO: '0',
+      reductionDCO: '0',
+      entreeDBO: '0',
+      sortieDBO: '0'
+    };
+  }
+
+  const lastData = treatmentData[treatmentData.length - 1];
+
+  // 🔥 CORRECTION : Vérifier que les données existent avant d'y accéder
+  if (!lastData.entree || !lastData.sortieFiltresHorizontaux) {
+    console.warn('⚠️ Données incomplètes pour les stats');
     return {
       totalDates: treatmentData.length,
       derniereDate: lastData.date,
       efficaciteTotale: lastData.efficacite.totale.toFixed(1),
-      reductionDBO: reductionDBO.toFixed(1),
-      reductionDCO: reductionDCO.toFixed(1),
-      entreeDBO: lastData.entree.dbo5_mg_l.toFixed(1),
-      sortieDBO: lastData.sortieFiltresHorizontaux.dbo5_mg_l.toFixed(1)
+      reductionDBO: '0',
+      reductionDCO: '0',
+      entreeDBO: lastData.entree?.dbo5_mg_l?.toFixed(1) || '0',
+      sortieDBO: lastData.sortieFiltresHorizontaux?.dbo5_mg_l?.toFixed(1) || '0'
     };
   }
 
+  const entreeDBO = lastData.entree.dbo5_mg_l || 0;
+  const sortieDBO = lastData.sortieFiltresHorizontaux.dbo5_mg_l || 0;
+  const entreeDCO = lastData.entree.dco_mg_l || 0;
+  const sortieDCO = lastData.sortieFiltresHorizontaux.dco_mg_l || 0;
+
+  const reductionDBO = entreeDBO > 0
+    ? ((entreeDBO - sortieDBO) / entreeDBO * 100)
+    : 0;
+
+  const reductionDCO = entreeDCO > 0
+    ? ((entreeDCO - sortieDCO) / entreeDCO * 100)
+    : 0;
+
+  return {
+    totalDates: treatmentData.length,
+    derniereDate: lastData.date,
+    efficaciteTotale: lastData.efficacite.totale.toFixed(1),
+    reductionDBO: reductionDBO.toFixed(1),
+    reductionDCO: reductionDCO.toFixed(1),
+    entreeDBO: entreeDBO.toFixed(1),
+    sortieDBO: sortieDBO.toFixed(1)
+  };
+}
   getActiveChartsCount(): number {
     let count = 0;
     if (this.tempChartInstance) count++;

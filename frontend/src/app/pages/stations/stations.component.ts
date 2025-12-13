@@ -2,7 +2,8 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { KuzzleService } from '../../kuzzle.service';
-import { AuthService, User } from '../../auth.service';
+import { AuthService } from '../../auth.service';
+import { User } from '../../models/user.model';
 import { Router } from '@angular/router';
 
 interface Station {
@@ -188,28 +189,32 @@ export class StationsComponent implements OnInit {
   /**
    * ✅ SOUMISSION AUTHENTIFICATION ADMIN
    */
-  async onAdminAuthSubmit(): Promise<void> {
-    console.log('🔐 Soumission auth admin...');
+onAdminAuthSubmit(): void {
+  console.log('🔐 Soumission auth admin...');
 
-    if (this.adminAuthForm.invalid) {
-      console.error('❌ Formulaire admin invalide');
-      return;
-    }
+  if (this.adminAuthForm.invalid) {
+    console.error('❌ Formulaire admin invalide');
+    return;
+  }
 
-    this.isAdminAuthenticating = true;
-    this.adminAuthErrorMessage = '';
+  this.isAdminAuthenticating = true;
+  this.adminAuthErrorMessage = '';
 
-    try {
-      const { email, password } = this.adminAuthForm.value;
+  const { email, password } = this.adminAuthForm.value;
+  console.log('📧 Email admin:', email);
 
-      console.log('📧 Email admin:', email);
+  // ✅ UTILISER .subscribe() au lieu de await
+  this.authService.login(email, password).subscribe({
+    next: (result) => {
+      console.log('📊 Résultat auth admin:', result);
 
-      const result = await this.authService.login(email, password);
+      // ✅ Vérifier avec result.data?.user ou result.user
+      const user = result.data?.user || result.user;
 
-      if (result.success && result.user) {
-        console.log('✅ Authentification admin réussie:', result.user);
-        this.currentUser = result.user;
-        this.isAdmin = result.user.role === 'admin';
+      if (result.success && user) {
+        console.log('✅ Authentification admin réussie:', user);
+        this.currentUser = user;
+        this.isAdmin = user.role === 'admin';
 
         if (this.isAdmin) {
           this.closeAdminAuthModal();
@@ -221,13 +226,15 @@ export class StationsComponent implements OnInit {
         this.adminAuthErrorMessage = result.message || 'Erreur d\'authentification';
       }
 
-    } catch (error) {
+      this.isAdminAuthenticating = false;
+    },
+    error: (error) => {
       console.error('❌ Erreur auth admin:', error);
-      this.adminAuthErrorMessage = 'Erreur de connexion. Veuillez réessayer.';
-    } finally {
+      this.adminAuthErrorMessage = error.message || 'Erreur de connexion. Veuillez réessayer.';
       this.isAdminAuthenticating = false;
     }
-  }
+  });
+}
 
   /**
    * ✅ EXÉCUTION ACTION ADMIN APRÈS AUTH
@@ -491,40 +498,43 @@ export class StationsComponent implements OnInit {
   /**
    * ✅ SOUMETTRE L'AUTHENTIFICATION
    */
-  async onAuthSubmit(): Promise<void> {
-    console.log('🔐 =================================');
-    console.log('🔐 SOUMISSION FORMULAIRE AUTH');
-    console.log('🔐 =================================');
+  onAuthSubmit(): void {  // ❌ SUPPRIMER async
+  console.log('🔐 =================================');
+  console.log('🔐 SOUMISSION FORMULAIRE AUTH');
+  console.log('🔐 =================================');
 
-    if (this.authForm.invalid || !this.selectedStationForAuth) {
-      console.error('❌ Formulaire invalide ou pas de station sélectionnée');
-      console.log('Formulaire valide:', this.authForm.valid);
-      console.log('Station sélectionnée:', this.selectedStationForAuth);
-      return;
-    }
+  if (this.authForm.invalid || !this.selectedStationForAuth) {
+    console.error('❌ Formulaire invalide ou pas de station sélectionnée');
+    console.log('Formulaire valide:', this.authForm.valid);
+    console.log('Station sélectionnée:', this.selectedStationForAuth);
+    return;
+  }
 
-    this.isAuthenticating = true;
-    this.authErrorMessage = '';
+  this.isAuthenticating = true;
+  this.authErrorMessage = '';
 
-    try {
-      const { email, password } = this.authForm.value;
-      const stationId = this.selectedStationForAuth._id;
+  const { email, password } = this.authForm.value;
+  const stationId = this.selectedStationForAuth._id;
 
-      console.log('📧 Email:', email);
-      console.log('🏢 Station ID:', stationId);
+  console.log('📧 Email:', email);
+  console.log('🏢 Station ID:', stationId);
 
-      const result = await this.authService.authenticateForStation(stationId, email, password);
-
+  // ✅ UTILISER .subscribe() au lieu de await
+  this.authService.authenticateForStation(stationId, email, password).subscribe({
+    next: (result) => {
       console.log('📊 Résultat authentification:', result);
 
-      if (result.success) {
+      // ✅ Vérifier avec result.data?.user ou result.user
+      const user = result.data?.user || result.user;
+
+      if (result.success && user) {
         console.log('✅ =============================');
         console.log('✅ AUTHENTIFICATION RÉUSSIE');
-        console.log('✅ Utilisateur:', result.user);
+        console.log('✅ Utilisateur:', user);
         console.log('✅ =============================');
 
         this.closeAuthModal();
-        this.successMessage = result.message;
+        this.successMessage = result.message || 'Authentification réussie';
 
         console.log('⏳ Redirection dans 1 seconde...');
 
@@ -535,16 +545,18 @@ export class StationsComponent implements OnInit {
 
       } else {
         console.error('❌ Authentification échouée:', result.message);
-        this.authErrorMessage = result.message;
+        this.authErrorMessage = result.message || 'Authentification échouée';
       }
 
-    } catch (error) {
+      this.isAuthenticating = false;
+    },
+    error: (error) => {
       console.error('❌ ERREUR CRITIQUE:', error);
-      this.authErrorMessage = 'Erreur de connexion. Veuillez réessayer.';
-    } finally {
+      this.authErrorMessage = error.message || 'Erreur de connexion. Veuillez réessayer.';
       this.isAuthenticating = false;
     }
-  }
+  });
+}
 
   /**
    * ✅ NAVIGUER VERS LE DASHBOARD DE LA STATION

@@ -1,4 +1,4 @@
-<!-- Aside -->
+<!-- Aside - Sidebar de navigation -->
 <aside
   class="bsb-sidebar-1 offcanvas offcanvas-start"
   tabindex="-1"
@@ -6,47 +6,52 @@
   aria-labelledby="bsbSidebarLabel1"
 >
   <div class="offcanvas-header">
-    <a class="sidebar-brand" [routerLink]="['']">
+    <a class="sidebar-brand" [routerLink]="['/']">
       <img
         src="./assets/img/branding/console-logo.svg"
         id="bsbSidebarLabel1"
         class="bsb-tpl-logo"
-        alt="BootstrapBrain Logo"
+        alt="Logo Gestion Stations Écologiques"
       />
     </a>
     <button
       type="button"
       class="btn-close"
       data-bs-dismiss="offcanvas"
-      aria-label="Close"
+      aria-label="Fermer le menu"
     ></button>
   </div>
+
   <div class="offcanvas-body pt-0">
     <hr class="sidebar-divider mb-3" />
+
     <ul class="navbar-nav">
+      <!-- Dashboard -->
       <li class="nav-item">
         <a
           class="nav-link p-3 bg-light rounded active"
-          [routerLink]="['']"
-          routerLinkActive="router-link-active"
+          [routerLink]="['/']"
+          routerLinkActive="active"
           role="button"
         >
           <div class="nav-link-icon text-primary">
             <i class="bi bi-grid"></i>
           </div>
-          <span class="nav-link-text fw-bold">Dashboards</span>
+          <span class="nav-link-text fw-bold">Tableau de bord</span>
         </a>
       </li>
+
+      <!-- Section Outils -->
       <li class="nav-item mt-3">
-        <h6 class="py-1 text-secondary text-uppercase fs-7">Tools</h6>
+        <h6 class="py-1 text-secondary text-uppercase fs-7">Outils</h6>
       </li>
 
-      <!-- Stations avec protection par AuthGuard -->
+      <!-- Stations -->
       <li class="nav-item">
         <a
           class="nav-link p-3"
           [routerLink]="['/stations']"
-          routerLinkActive="router-link-active"
+          routerLinkActive="active"
           role="button"
         >
           <div class="nav-link-icon text-primary">
@@ -56,11 +61,12 @@
         </a>
       </li>
 
+      <!-- Filtres -->
       <li class="nav-item">
         <a
           class="nav-link p-3"
-          [routerLink]="['filtres']"
-          routerLinkActive="router-link-active"
+          [routerLink]="['/filtres']"
+          routerLinkActive="active"
           role="button"
         >
           <div class="nav-link-icon text-primary">
@@ -70,14 +76,99 @@
         </a>
       </li>
 
+      <!-- Prédictions ML -->
       <li class="nav-item">
-        <a class="nav-link p-3" routerLink="/predictions" routerLinkActive="active">
+        <a
+          class="nav-link p-3"
+          routerLink="/predictions"
+          routerLinkActive="active"
+          role="button"
+        >
           <div class="nav-link-icon text-primary">
             <i class="bi bi-graph-up"></i>
           </div>
           <span class="nav-link-text fw-bold">Prédictions ML</span>
         </a>
       </li>
+
+      <!-- Historique des Alertes -->
+      <li class="nav-item">
+        <a
+          class="nav-link p-3"
+          routerLink="/alert-history"
+          routerLinkActive="active"
+          role="button"
+        >
+          <div class="nav-link-icon text-primary">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <span class="nav-link-text fw-bold">Historique des Alertes</span>
+        </a>
+      </li>
+
+      <!-- Section Administration (Conditionnelle) -->
+      <li class="nav-item mt-4" *ngIf="hasPermission('canManageUsers')">
+        <h6 class="py-1 text-danger text-uppercase fs-7">
+          <i class="bi bi-shield-lock-fill me-1"></i>
+          Administration
+        </h6>
+      </li>
+
+      <!-- Gestion Utilisateurs (Admin) -->
+      <li class="nav-item" *ngIf="hasPermission('canManageUsers')">
+        <a
+          class="nav-link p-3 border-start border-danger border-3"
+          routerLink="/admin"
+          routerLinkActive="active"
+          role="button"
+        >
+          <div class="nav-link-icon text-danger">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <span class="nav-link-text fw-bold text-danger">
+            Gestion Utilisateurs
+            <span class="badge bg-danger ms-2">ADMIN</span>
+          </span>
+        </a>
+      </li>
     </ul>
+
+    <!-- Informations utilisateur (bas de sidebar) -->
+    <div class="mt-auto pt-3 border-top" *ngIf="currentUser">
+      <div class="px-3 py-2">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <!-- Avatar utilisateur -->
+          <div
+            class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 40px; height: 40px;"
+          >
+            <i class="bi bi-person-fill"></i>
+          </div>
+
+          <!-- Infos utilisateur -->
+          <div class="flex-grow-1">
+            <small class="text-muted d-block" style="font-size: 0.75rem;">
+              Connecté en tant que
+            </small>
+            <strong class="d-block text-truncate" style="max-width: 150px;">
+              {{ currentUser.name }}
+            </strong>
+          </div>
+        </div>
+
+        <!-- Rôle et bouton déconnexion -->
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge bg-secondary">{{ currentUser.role }}</span>
+          <button
+            class="btn btn-sm btn-outline-danger ms-auto"
+            (click)="logout()"
+            title="Déconnexion"
+            aria-label="Se déconnecter"
+          >
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </aside>

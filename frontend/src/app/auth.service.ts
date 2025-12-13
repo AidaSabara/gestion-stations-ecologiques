@@ -1,43 +1,36 @@
+// auth.service.ts - Version corrigée
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { KuzzleService } from './kuzzle.service';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { environment } from '../environments/environment';
+import { User } from './models/user.model';
 
-export interface User {
-  _id: string;
-  name: string;
-  email: string;
-  password?: string;
-  role: 'agent' | 'admin' | 'supervisor';
-  station_id: string;
-  station_name?: string;
-  permissions: {
-    canAccessAlerts: boolean;
-    canAccessGraphs: boolean;
-    canAccessFilters: boolean;
-    canAccessData: boolean;
-    canManageUsers: boolean;
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user: User;
+    tokens?: {
+      accessToken: string;
+      refreshToken: string;
+    };
   };
-  phone?: string;
-  active: boolean;
-  createdAt?: string;
-  lastLogin?: string;
-  _kuzzle_info?: {
-    author: string;
-    createdAt: string;
-    updatedAt: string | null;
-    updater: string | null;
-  };
+  user?: User;
+  token?: string;
+  accessToken?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private apiUrl = environment.apiUrl;
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser$: Observable<User | null>;
 
-  constructor(private kuzzleService: KuzzleService) {
-    // Récupérer l'utilisateur depuis localStorage au démarrage
+  constructor(private http: HttpClient) {
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
@@ -46,274 +39,306 @@ export class AuthService {
   }
 
   /**
-   * ✅ CORRECTION : Ajouter cette méthode manquante
-   * Obtenir l'utilisateur actuel (méthode synchrone)
+   * 🔐 Connexion
    */
-// auth.service.ts
-getCurrentUser(): User | null {
-  // Vérifier d'abord le localStorage
-  const userData = localStorage.getItem('currentUser');
-  if (userData) {
-    try {
-      return JSON.parse(userData);
-    } catch (error) {
-      console.error('❌ Erreur parsing user data:', error);
-      localStorage.removeItem('currentUser');
-      return null;
-    }
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, {
+      email,
+      password
+    }).pipe(
+      tap(response => {
+        console.log('🔍 Réponse brute du serveur:', response);
+      }),
+      // auth.service.ts (méthode login)
+
+// ... (code inchangé jusqu'au début du map)
+      map(response => {
+ console.log('🔄 Normalisation de la réponse...');
+
+        // Format 1 : Avec data.tokens (Inchangé)
+        if (response.success && response.data?.user) {
+          const user = this.normalizeUser(response.data.user);
+          const token = response.data.tokens?.accessToken;
+
+          console.log('✅ Format data.tokens détecté');
+          this.storeUserAndToken(user, token);
+
+          return {
+            success: true,
+            message: response.message,
+            data: {
+              user,
+              tokens: response.data.tokens
+            }
+          };
+        }
+
+        // Format 2 : Direct avec user et token/accessToken
+        // MODIFICATION CLÉ : Utiliser response.token OU response.accessToken
+        if (response.user && (response.token || response.accessToken)) { // 👈 CORRECTION
+          const user = this.normalizeUser(response.user);
+          // Stocker le token présent (token ou accessToken)
+          const tokenToStore = response.token || response.accessToken; // 👈 CORRECTION
+
+          console.log('✅ Format direct détecté (avec token ou accessToken)');
+          this.storeUserAndToken(user, tokenToStore);
+
+          return {
+            success: true,
+ message: 'Connexion réussie',
+user
+ };
+ }
+
+ // Aucun format reconnu (Ce bloc sera maintenant évité)
+       console.error('❌ Format de réponse non reconnu:', response);
+return response;
+}),
+
+      catchError(this.handleError)
+    );
   }
 
-  // Vérifier la sessionStorage
-  const sessionUserData = sessionStorage.getItem('currentUser');
-  if (sessionUserData) {
-    try {
-      return JSON.parse(sessionUserData);
-    } catch (error) {
-      console.error('❌ Erreur parsing session user data:', error);
-      sessionStorage.removeItem('currentUser');
-      return null;
-    }
-  }
-
-  return null;
-}
-
-isAuthenticated(): boolean {
-  const user = this.getCurrentUser();
-  return !!user;
-}
   /**
-   * Obtenir l'utilisateur actuellement connecté
+   * 🔐 Authentification pour station
    */
+// Dans auth.service.ts, corriger authenticateForStation()
+authenticateForStation(stationId: string, email: string, password: string): Observable<LoginResponse> {
+  return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login-station`, {
+    email,
+    password,
+    stationId
+  }).pipe(
+    tap(response => {
+      console.log('🔍 Réponse login-station brute:', response);
+    }),
+    map(response => {
+      // CORRECTION : Gérer tous les formats de réponse
+      let normalizedResponse: LoginResponse;
+
+      // Format direct avec accessToken
+      if (response.success && (response as any).accessToken && (response as any).user) {
+        const token = (response as any).accessToken;
+        const user = this.normalizeUser((response as any).user);
+
+        console.log('✅ Authentification station réussie (format direct)');
+        this.storeUserAndToken(user, token);
+
+        normalizedResponse = {
+          success: true,
+          message: response.message || 'Authentification réussie',
+          user: user,
+          token: token
+        };
+      }
+      // Format avec data
+      else if (response.success && response.data?.user) {
+        const user = this.normalizeUser(response.data.user);
+        const token = response.data.tokens?.accessToken;
+
+        console.log('✅ Authentification station réussie (format data)');
+        this.storeUserAndToken(user, token);
+
+        normalizedResponse = {
+          success: true,
+          message: response.message,
+          data: {
+            user,
+            tokens: response.data.tokens
+          }
+        };
+      }
+      // Format simple user/token
+      else if (response.user && response.token) {
+        const user = this.normalizeUser(response.user);
+
+        console.log('✅ Authentification station réussie (format simple)');
+        this.storeUserAndToken(user, response.token);
+
+        normalizedResponse = {
+          success: true,
+          message: 'Authentification réussie',
+          user
+        };
+      }
+      // Échec
+      else {
+        console.log('❌ Échec authentification station');
+        normalizedResponse = {
+          success: false,
+          message: response.message || 'Erreur d\'authentification'
+        };
+      }
+
+      return normalizedResponse;
+    }),
+    catchError(this.handleError)
+  );
+}
+ /**
+   * 🔧 Normaliser l'utilisateur pour compatibilité
+   */
+  private normalizeUser(user: any): User {
+  const normalized: User = {
+    _id: user._id || user.id || '',
+    name: user.name || '',
+    email: user.email || '',
+    role: user.role || 'operator',
+    station_id: user.station_id || user.stationId || '',
+    station_name: user.station_name || user.stationName || '',
+    permissions: user.permissions || {
+      canAccessAlerts: false,
+      canAccessGraphs: false,
+      canAccessFilters: false,
+      canAccessData: false,
+      canManageUsers: false
+    },
+    phone: user.phone || '',
+    active: user.active !== false,
+    department: user.department || '',      // ✅ AJOUTÉ
+    position: user.position || '',          // ✅ AJOUTÉ
+    createdAt: user.createdAt || new Date().toISOString(),
+    lastLogin: user.lastLogin || null
+  };
+
+  console.log('🔧 Utilisateur normalisé:', normalized);
+  return normalized;
+}
+
+  /**
+   * 💾 Stocker utilisateur et token
+   */
+  private storeUserAndToken(user: User, token?: string): void {
+    console.log('💾 Stockage des données...');
+    console.log('👤 User à stocker:', user);
+    console.log('🔑 Token à stocker:', token ? 'OUI' : 'NON');
+
+    // Stocker l'utilisateur
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+    console.log('✅ currentUser stocké dans localStorage');
+
+    // Stocker le token
+    if (token) {
+      localStorage.setItem('accessToken', token);
+      console.log('✅ accessToken stocké dans localStorage');
+    } else {
+      console.warn('⚠️ Aucun token à stocker !');
+    }
+
+    // Vérification immédiate
+    const storedUser = localStorage.getItem('currentUser');
+    const storedToken = localStorage.getItem('accessToken');
+    console.log('🔍 Vérification stockage:');
+    console.log('  - currentUser:', storedUser ? 'OK' : 'MANQUANT');
+    console.log('  - accessToken:', storedToken ? 'OK' : 'MANQUANT');
+  }
+
+  /**
+   * ✅ Vérifier l'authentification
+   */
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    const user = this.getCurrentUser();
+
+    const isAuth = !!(token && user);
+
+    console.log('🔍 isAuthenticated() appelé:');
+    console.log('  - Token présent:', !!token);
+    console.log('  - User présent:', !!user);
+    console.log('  - Résultat:', isAuth);
+
+    return isAuth;
+  }
+
+  /**
+   * 🔑 Gestion des tokens
+   */
+  getToken(): string | null {
+    const token = localStorage.getItem('accessToken');
+    console.log('🔑 getToken():', token ? 'Présent' : 'Absent');
+    return token;
+  }
+
+  storeToken(token: string): void {
+    localStorage.setItem('accessToken', token);
+    console.log('✅ Token stocké');
+  }
+
+  clearTokens(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('currentStationId');
+    console.log('🗑️ Tokens et user supprimés');
+  }
+
+  /**
+   * 👤 Obtenir l'utilisateur actuel
+   */
+  getCurrentUser(): User | null {
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        console.log('👤 getCurrentUser():', user.email);
+        return user;
+      } catch {
+        console.error('❌ Erreur parsing currentUser');
+        return null;
+      }
+    }
+    console.log('👤 getCurrentUser(): Aucun user');
+    return null;
+  }
+
   get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
 
-
   /**
-   * Vérifier si l'utilisateur a accès à une station
-   */
-  hasAccessToStation(stationId: string): boolean {
-    const user = this.currentUserValue;
-    if (!user) return false;
-
-    // Admin a accès à tout
-    if (user.role === 'admin' || user.station_id === 'ALL') return true;
-
-    // Vérifier si c'est la station de l'agent
-    return user.station_id === stationId;
-  }
-
-  /**
-   * Authentifier un agent pour une station spécifique
-   */
-  async authenticateForStation(stationId: string, email: string, password: string): Promise<{ success: boolean; message: string; user?: User }> {
-    try {
-      console.log('🔐 Tentative d\'authentification:', { stationId, email });
-
-      // Rechercher l'utilisateur par email
-      const users = await this.kuzzleService.getUserByEmail(email);
-
-      if (!users || users.length === 0) {
-        return {
-          success: false,
-          message: 'Email non trouvé. Veuillez vérifier vos identifiants.'
-        };
-      }
-
-      const user = users[0];
-      const userData = user._source || user;
-
-      // Vérifier le mot de passe (en production, utiliser bcrypt)
-      if (userData.password !== password) {
-        return {
-          success: false,
-          message: 'Mot de passe incorrect.'
-        };
-      }
-
-      // Vérifier si le compte est actif
-      if (!userData.active) {
-        return {
-          success: false,
-          message: 'Votre compte est désactivé. Contactez l\'administrateur.'
-        };
-      }
-
-      // Vérifier l'accès à la station
-      if (userData.role !== 'admin' && userData.station_id !== 'ALL' && userData.station_id !== stationId) {
-        return {
-          success: false,
-          message: `Vous n'avez pas accès à cette station. Votre station assignée : ${userData.station_name || userData.station_id}`
-        };
-      }
-
-      // Créer l'objet utilisateur (sans le mot de passe pour la sécurité)
-      const authenticatedUser: User = {
-        _id: user._id,
-        name: userData.name,
-        email: userData.email,
-        // ⚠️ NE PAS INCLURE LE MOT DE PASSE dans l'objet stocké
-        role: userData.role,
-        station_id: userData.station_id,
-        station_name: userData.station_name,
-        permissions: userData.permissions,
-        phone: userData.phone,
-        active: userData.active,
-        createdAt: userData.createdAt,
-        lastLogin: new Date().toISOString(),
-        _kuzzle_info: userData._kuzzle_info
-      };
-
-      // Mettre à jour la dernière connexion dans Kuzzle
-      await this.kuzzleService.updateUserLastLogin(user._id);
-
-      // Sauvegarder dans localStorage (sans le mot de passe)
-      localStorage.setItem('currentUser', JSON.stringify(authenticatedUser));
-      localStorage.setItem('currentStationId', stationId);
-
-      // Émettre le nouvel utilisateur
-      this.currentUserSubject.next(authenticatedUser);
-
-      console.log('✅ Authentification réussie:', authenticatedUser.name);
-
-      return {
-        success: true,
-        message: `Bienvenue ${authenticatedUser.name} !`,
-        user: authenticatedUser
-      };
-
-    } catch (error) {
-      console.error('❌ Erreur authentification:', error);
-      return {
-        success: false,
-        message: 'Erreur de connexion. Veuillez réessayer.'
-      };
-    }
-  }
-
-  /**
-   * Authentification générale (pour les admins)
-   */
-  async login(email: string, password: string): Promise<{ success: boolean; message: string; user?: User }> {
-    try {
-      console.log('🔐 Tentative de connexion admin:', email);
-
-      // Rechercher l'utilisateur par email
-      const users = await this.kuzzleService.getUserByEmail(email);
-
-      if (!users || users.length === 0) {
-        return {
-          success: false,
-          message: 'Email non trouvé. Veuillez vérifier vos identifiants.'
-        };
-      }
-
-      const user = users[0];
-      const userData = user._source || user;
-
-      // Vérifier le mot de passe
-      if (userData.password !== password) {
-        return {
-          success: false,
-          message: 'Mot de passe incorrect.'
-        };
-      }
-
-      // Vérifier si le compte est actif
-      if (!userData.active) {
-        return {
-          success: false,
-          message: 'Votre compte est désactivé. Contactez l\'administrateur.'
-        };
-      }
-
-      // Créer l'objet utilisateur (sans le mot de passe)
-      const authenticatedUser: User = {
-        _id: user._id,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        station_id: userData.station_id,
-        station_name: userData.station_name,
-        permissions: userData.permissions,
-        phone: userData.phone,
-        active: userData.active,
-        createdAt: userData.createdAt,
-        lastLogin: new Date().toISOString(),
-        _kuzzle_info: userData._kuzzle_info
-      };
-
-      // Mettre à jour la dernière connexion dans Kuzzle
-      await this.kuzzleService.updateUserLastLogin(user._id);
-
-      // Sauvegarder dans localStorage (sans le mot de passe)
-      localStorage.setItem('currentUser', JSON.stringify(authenticatedUser));
-      // Note: on ne définit pas de station spécifique pour l'admin ici
-
-      // Émettre le nouvel utilisateur
-      this.currentUserSubject.next(authenticatedUser);
-
-      console.log('✅ Connexion admin réussie:', authenticatedUser.name);
-
-      return {
-        success: true,
-        message: `Bienvenue ${authenticatedUser.name} !`,
-        user: authenticatedUser
-      };
-
-    } catch (error) {
-      console.error('❌ Erreur connexion admin:', error);
-      return {
-        success: false,
-        message: 'Erreur de connexion. Veuillez réessayer.'
-      };
-    }
-  }
-
-  /**
-   * Vérifier les permissions utilisateur
+   * 🛡️ Vérifier les permissions
    */
   hasPermission(permission: keyof User['permissions']): boolean {
     const user = this.currentUserValue;
-    return user?.permissions?.[permission] ?? false;
+    const hasPerm = user?.permissions?.[permission] ?? false;
+    console.log(`🛡️ hasPermission(${permission}):`, hasPerm);
+    return hasPerm;
   }
 
-  /**
-   * Vérifier si l'utilisateur est admin
-   */
   isAdmin(): boolean {
     return this.currentUserValue?.role === 'admin';
   }
 
-  /**
-   * Vérifier si l'utilisateur peut gérer les utilisateurs
-   */
   canManageUsers(): boolean {
     return this.hasPermission('canManageUsers') || this.isAdmin();
   }
 
   /**
-   * Déconnexion
+   * 🚪 Déconnexion
    */
   logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('currentStationId');
+    this.clearTokens();
     this.currentUserSubject.next(null);
     console.log('👋 Déconnexion réussie');
   }
 
   /**
-   * Obtenir la station actuelle
+   * ❌ Gestion des erreurs
    */
-  getCurrentStationId(): string | null {
-    return localStorage.getItem('currentStationId');
-  }
+  private handleError(error: any): Observable<never> {
+    console.error('❌ Erreur AuthService:', error);
 
-  /**
-   * Obtenir le nom de l'utilisateur
-   */
-  getUserName(): string {
-    return this.currentUserValue?.name || 'Utilisateur';
+    let errorMessage = 'Une erreur est survenue';
+
+    if (error.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return throwError(() => ({
+      success: false,
+      message: errorMessage
+    }));
   }
 }

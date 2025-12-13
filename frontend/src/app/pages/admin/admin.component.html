@@ -1,0 +1,461 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<div class="admin-container">
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="header-content">
+      <h1>
+        <i class="fas fa-users-cog"></i>
+        Administration des utilisateurs
+      </h1>
+      <p class="subtitle">Gérez les comptes utilisateurs et leurs permissions</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="toggleFilters()">
+        <i class="fas fa-filter"></i>
+        Filtres
+      </button>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-user-plus"></i>
+        Nouvel utilisateur
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.total }}</h3>
+        <p>Total utilisateurs</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.active }}</h3>
+        <p>Actifs</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon inactive">
+        <i class="fas fa-user-times"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stats.inactive }}</h3>
+        <p>Inactifs</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon roles">
+        <i class="fas fa-user-tag"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ availableRoles.length }}</h3>
+        <p>Rôles</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-section" *ngIf="showFilters">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Recherche</label>
+        <form [formGroup]="searchForm">
+          <input
+            type="text"
+            formControlName="searchTerm"
+            placeholder="Nom, email, département..."
+            class="search-input"
+          />
+        </form>
+      </div>
+
+      <div class="filter-group">
+        <label>Rôle</label>
+        <select [(ngModel)]="selectedRole" (change)="applyFilters()" class="filter-select">
+          <option value="all">Tous les rôles</option>
+          <option *ngFor="let role of availableRoles" [value]="role.value">
+            {{ role.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Station</label>
+        <select [(ngModel)]="selectedStation" (change)="applyFilters()" class="filter-select">
+          <option value="ALL">Toutes les stations</option>
+          <!-- ✅ CORRECTION : Utiliser name/nom -->
+          <option *ngFor="let station of stations" [value]="station._id">
+            {{ station.name || station.nom || station._source?.name || station.body?.name || 'Station ' + station._id }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Statut</label>
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="filter-select">
+          <option value="all">Tous</option>
+          <option value="active">Actifs</option>
+          <option value="inactive">Inactifs</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn btn-secondary btn-sm" (click)="resetFilters()">
+          <i class="fas fa-redo"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <div class="table-header">
+      <div class="table-info">
+        <span>{{ filteredUsers.length }} utilisateur(s)</span>
+      </div>
+      <div class="table-actions">
+        <button class="btn btn-outline btn-sm" (click)="exportToCsv()">
+          <i class="fas fa-file-csv"></i>
+          CSV
+        </button>
+        <button class="btn btn-outline btn-sm" (click)="exportToJson()">
+          <i class="fas fa-file-code"></i>
+          JSON
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Chargement des utilisateurs...</p>
+    </div>
+
+    <table *ngIf="!loading && filteredUsers.length > 0" class="users-table">
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Station</th>
+          <th>Département</th>
+          <th>Statut</th>
+          <th>Dernière connexion</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of paginatedUsers">
+          <td>
+            <div class="user-info">
+              <div class="user-avatar">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <div class="user-name">{{ user.name }}</div>
+                <div class="user-position">{{ user.position }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">
+              {{ getRoleLabel(user.role) }}
+            </span>
+          </td>
+          <td>{{ user.station_name }}</td>
+          <td>{{ user.department }}</td>
+          <td>
+            <span class="status-badge" [class.active]="user.active" [class.inactive]="!user.active">
+              {{ user.active ? 'Actif' : 'Inactif' }}
+            </span>
+          </td>
+          <td class="text-sm">{{ formatDate(user.lastLogin) }}</td>
+          <td>
+            <div class="action-buttons">
+              <button
+                *ngIf="canEditUser(user)"
+                class="btn-icon"
+                (click)="openEditModal(user)"
+                title="Modifier"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+              <button
+                class="btn-icon"
+                [class.active]="user.active"
+                [class.inactive]="!user.active"
+                (click)="toggleUserStatus(user)"
+                [title]="user.active ? 'Désactiver' : 'Activer'"
+              >
+                <i [class.fa-toggle-on]="user.active" [class.fa-toggle-off]="!user.active" class="fas"></i>
+              </button>
+              <button
+                *ngIf="canDeleteUser(user)"
+                class="btn-icon danger"
+                (click)="deleteUser(user)"
+                title="Supprimer"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && filteredUsers.length === 0" class="empty-state">
+      <i class="fas fa-users-slash"></i>
+      <h3>Aucun utilisateur trouvé</h3>
+      <p>Essayez de modifier vos filtres de recherche</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="filteredUsers.length > itemsPerPage" class="pagination">
+      <button
+        class="btn btn-sm"
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+      >
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <span class="page-info">
+        Page {{ currentPage }} sur {{ totalPages }}
+      </span>
+
+      <button
+        class="btn btn-sm"
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+      >
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Créer/Éditer -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>
+          <i [class.fa-user-plus]="!isEditMode" [class.fa-user-edit]="isEditMode" class="fas"></i>
+          {{ isEditMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}
+        </h2>
+        <button class="btn-close" (click)="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="modal-body">
+          <!-- Informations personnelles -->
+          <div class="form-section">
+            <h3>Informations personnelles</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nom complet *</label>
+                <input
+                  type="text"
+                  formControlName="name"
+                  placeholder="Jean Dupont"
+                />
+                <span class="error" *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+                  Nom requis (min 3 caractères)
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  formControlName="email"
+                  placeholder="jean.dupont@example.com"
+                />
+                <span class="error" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+                  Email valide requis
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label>{{ isEditMode ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe *' }}</label>
+                <input
+                  type="password"
+                  formControlName="password"
+                  placeholder="••••••••"
+                />
+                <span class="error" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+                  {{ isEditMode ? 'Min 6 caractères' : 'Mot de passe requis (min 6 caractères)' }}
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label>Téléphone *</label>
+                <input
+                  type="tel"
+                  formControlName="phone"
+                  placeholder="+221 77 123 45 67"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Département *</label>
+                <input
+                  type="text"
+                  formControlName="department"
+                  placeholder="Technique"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Poste *</label>
+                <input
+                  type="text"
+                  formControlName="position"
+                  placeholder="Ingénieur"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Affectation -->
+          <div class="form-section">
+            <h3>Affectation</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Rôle *</label>
+                <select formControlName="role" (change)="onRoleChange($any($event.target).value)">
+                  <option *ngFor="let role of availableRoles" [value]="role.value">
+                    {{ role.label }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Station *</label>
+
+                <!-- ✅ AMÉLIORATION : Afficher un message si aucune station -->
+                <div *ngIf="stations.length === 0" class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span *ngIf="loading">Chargement des stations...</span>
+                  <span *ngIf="!loading">Aucune station disponible</span>
+                </div>
+
+                <!-- ✅ CORRECTION : Utiliser name/nom avec fallback -->
+                <select
+                  *ngIf="stations.length > 0"
+                  formControlName="station_id"
+                  (change)="onStationChange($event)"
+                >
+                  <option value="">Sélectionner une station</option>
+                  <option *ngFor="let station of stations" [value]="station._id">
+                    {{ station.name || station.nom || station._source?.name || station.body?.name || 'Station ' + station._id }}
+                  </option>
+                </select>
+
+                <!-- ✅ AMÉLIORATION : Afficher le nombre de stations -->
+                <small *ngIf="stations.length > 0" class="text-muted">
+                  {{ stations.length }} station(s) disponible(s)
+                </small>
+
+                <span class="error" *ngIf="userForm.get('station_id')?.invalid && userForm.get('station_id')?.touched">
+                  Veuillez sélectionner une station
+                </span>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="active" />
+                  <span>Compte actif</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permissions -->
+          <div class="form-section" formGroupName="permissions">
+            <h3>Permissions</h3>
+            <div class="permissions-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="canAccessAlerts" />
+                <span>
+                  <i class="fas fa-bell"></i>
+                  Accès aux alertes
+                </span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="canAccessGraphs" />
+                <span>
+                  <i class="fas fa-chart-line"></i>
+                  Accès aux graphiques
+                </span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="canAccessFilters" />
+                <span>
+                  <i class="fas fa-filter"></i>
+                  Accès aux filtres
+                </span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="canAccessData" />
+                <span>
+                  <i class="fas fa-database"></i>
+                  Accès aux données
+                </span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="canManageUsers" />
+                <span>
+                  <i class="fas fa-users-cog"></i>
+                  Gestion des utilisateurs
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || loading">
+            <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+            <i [class.fa-save]="!loading" class="fas" *ngIf="!loading"></i>
+            {{ isEditMode ? 'Mettre à jour' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ DEBUG MODE : Afficher temporairement les stations chargées -->
+<!-- Décommentez cette section pour debugger -->
+<!--
+<div style="position: fixed; bottom: 10px; right: 10px; background: white; border: 2px solid #333; padding: 10px; max-width: 300px; max-height: 200px; overflow: auto; z-index: 9999;">
+  <h4 style="margin: 0 0 10px 0;">🔍 Debug Stations</h4>
+  <p><strong>Total:</strong> {{ stations.length }}</p>
+  <div *ngFor="let station of stations; let i = index" style="margin: 5px 0; padding: 5px; background: #f0f0f0;">
+    <strong>{{ i + 1 }}.</strong> {{ station._id }}<br>
+    <small>Name: {{ station.name || 'N/A' }}</small><br>
+    <small>Nom: {{ station.nom || 'N/A' }}</small><br>
+    <small>Source: {{ station._source?.name || station._source?.nom || 'N/A' }}</small>
+  </div>
+</div>
+-->

@@ -1,0 +1,23 @@
+/* Styling pour le lien admin */
+.nav-link.border-danger:hover {
+  background-color: #fff5f5 !important;
+  transform: translateX(5px);
+  transition: all 0.3s ease;
+}
+
+.nav-link.active {
+  background-color: #e3f2fd !important;
+  border-left: 3px solid #2196F3;
+}
+
+/* Avatar style */
+.avatar {
+  font-size: 1.2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-link-text {
+    font-size: 0.9rem;
+  }
+}

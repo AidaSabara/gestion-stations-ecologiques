@@ -792,62 +792,76 @@ getCycleVie(filtreId: string): CycleVieFiltre | null {
     });
   }
 
-  createPerformanceChart() {
-    const ctx = document.getElementById('performanceChart') as HTMLCanvasElement;
-    if (!ctx) return;
+createPerformanceChart() {
+  const ctx = document.getElementById('performanceChart') as HTMLCanvasElement;
+  if (!ctx) return;
 
-    if (this.performanceChart) {
-      this.performanceChart.destroy();
+  if (this.performanceChart) {
+    this.performanceChart.destroy();
+  }
+
+  // 👇 DÉFINIR L'ORDRE SOUHAITÉ DES FILTRES
+  const ordreFiltre = ['General', 'FV1', 'FV2', 'FH'];
+
+  // 👇 TRIER LES PERFORMANCES SELON L'ORDRE DÉFINI
+  const performancesTries = [...this.filterPerformances].sort((a, b) => {
+    const indexA = ordreFiltre.indexOf(a.id_filtre);
+    const indexB = ordreFiltre.indexOf(b.id_filtre);
+
+    // Si un filtre n'est pas dans l'ordre défini, le mettre à la fin
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+
+    return indexA - indexB;
+  });
+
+  const datasets: ChartDataset[] = [
+    {
+      label: 'Efficacité DBO5 (%)',
+      data: performancesTries.map(f => f.efficacite_dbo5),
+      backgroundColor: 'rgba(54, 162, 235, 0.8)',
+      borderColor: 'rgba(54, 162, 235, 1)',
+      borderWidth: 1
+    },
+    {
+      label: 'Efficacité Coliformes (%)',
+      data: performancesTries.map(f => f.efficacite_coliformes),
+      backgroundColor: 'rgba(255, 99, 132, 0.8)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 1
     }
+  ];
 
-    const datasets: ChartDataset[] = [
-      {
-        label: 'Efficacité DBO5 (%)',
-        data: this.filterPerformances.map(f => f.efficacite_dbo5),
-        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
+  this.performanceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: performancesTries.map(f => f.id_filtre),
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Performance des Filtres par Paramètre'
+        },
+        legend: {
+          position: 'top',
+        }
       },
-      {
-        label: 'Efficacité Coliformes (%)',
-        data: this.filterPerformances.map(f => f.efficacite_coliformes),
-        backgroundColor: 'rgba(255, 99, 132, 0.8)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 1
-      }
-    ];
-
-    this.performanceChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: this.filterPerformances.map(f => f.id_filtre),
-        datasets: datasets
-      },
-      options: {
-        responsive: true,
-        plugins: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
           title: {
             display: true,
-            text: 'Performance des Filtres par Paramètre'
-          },
-          legend: {
-            position: 'top',
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            title: {
-              display: true,
-              text: 'Efficacité (%)'
-            }
+            text: 'Efficacité (%)'
           }
         }
       }
-    });
-  }
-
+    }
+  });
+}
   createRemovalChart() {
     const ctx = document.getElementById('removalChart') as HTMLCanvasElement;
     if (!ctx) return;
