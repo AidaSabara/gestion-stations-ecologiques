@@ -131,6 +131,24 @@
           </span>
         </a>
       </li>
+
+      <!-- Historique des Activités (Admin) -->
+      <li class="nav-item" *ngIf="hasPermission('canManageUsers')">
+        <a
+          class="nav-link p-3 border-start border-danger border-3"
+          routerLink="/user-activity"
+          routerLinkActive="active"
+          role="button"
+        >
+          <div class="nav-link-icon text-danger">
+            <i class="bi bi-journal-text"></i>
+          </div>
+          <span class="nav-link-text fw-bold text-danger">
+            Historique des Activités
+            <span class="badge bg-danger ms-2">ADMIN</span>
+          </span>
+        </a>
+      </li>
     </ul>
 
     <!-- Informations utilisateur (bas de sidebar) -->

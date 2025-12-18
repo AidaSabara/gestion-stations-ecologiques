@@ -70,37 +70,7 @@
               </form>
 
               <!-- Comptes de test utilisant la MÊME collection User -->
-              <div class="alert alert-info">
-                <h6 class="alert-heading">Comptes de test (même collection):</h6>
-                <div class="row g-2">
-                  <div class="col-4">
-                    <button
-                      class="btn btn-sm btn-outline-danger w-100"
-                      (click)="useTestAccount('admin')"
-                      [disabled]="isLoading"
-                    >
-                      Admin
-                    </button>
-                  </div>
-                  <div class="col-4">
-                    <button
-                      class="btn btn-sm btn-outline-warning w-100"
-                      (click)="useTestAccount('supervisor')"
-                      [disabled]="isLoading"
-                    >
-                      Supervisor
-                    </button>
-                  </div>
-                  <div class="col-4">
-                    <button
-                      class="btn btn-sm btn-outline-info w-100"
-                      (click)="useTestAccount('agent')"
-                      [disabled]="isLoading"
-                    >
-                      Agent
-                    </button>
-                  </div>
-                </div>
+
               </div>
 
             </div>
@@ -108,4 +78,3 @@
 
         </div>
       </div>
-    </div>

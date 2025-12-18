@@ -1,0 +1,215 @@
+<!-- src/app/pages/user-activity/user-activity.component.html CORRIGÉ -->
+<div class="activity-container">
+  <!-- Header -->
+  <div class="activity-header">
+    <div class="header-content">
+      <h1 class="title">
+        <span class="icon">📋</span>
+        Historique des activités
+      </h1>
+      <p class="subtitle">Suivez toutes les actions effectuées sur la plateforme</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportCSV()">
+        <span>📥</span> Export CSV
+      </button>
+      <button class="btn-export" (click)="exportJSON()">
+        <span>📄</span> Export JSON
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #3b82f6">📊</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalLogs }}</div>
+        <div class="stat-label">Total activités</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #10b981">🕒</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.todayLogs }}</div>
+        <div class="stat-label">Aujourd'hui</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #8b5cf6">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.byStatus['success'] || 0 }}</div>
+        <div class="stat-label">Réussies</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #ef4444">❌</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.byStatus['error'] || 0 }}</div>
+        <div class="stat-label">Erreurs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>🔍 Recherche</label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="applyFilters()"
+          placeholder="Rechercher..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>🎯 Type d'action</label>
+        <select [(ngModel)]="selectedAction" (change)="applyFilters()" class="filter-select">
+          <option value="all">Toutes les actions</option>
+          <option *ngFor="let action of availableActions" [value]="action">
+            {{ getActionLabel(action) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>📊 Statut</label>
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="filter-select">
+          <option value="all">Tous les statuts</option>
+          <option value="success">Réussi</option>
+          <option value="error">Erreur</option>
+          <option value="warning">Avertissement</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>📅 Date début</label>
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          (change)="applyFilters()"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>📅 Date fin</label>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          (change)="applyFilters()"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group filter-actions">
+        <button class="btn-clear" (click)="clearFilters()">
+          🔄 Réinitialiser
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline-container">
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de l'historique...</p>
+    </div>
+
+    <div *ngIf="!loading && logs.length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>Aucune activité</h3>
+      <p>Aucune activité ne correspond à vos critères de recherche.</p>
+    </div>
+
+    <div *ngIf="!loading && logs.length > 0" class="timeline">
+      <div *ngFor="let log of logs; let i = index" class="timeline-item">
+        <div class="timeline-marker" [style.background]="getActionColor(log.action)">
+          <span>{{ getActionIcon(log.action) }}</span>
+        </div>
+
+        <div class="timeline-content">
+          <div class="timeline-header">
+            <div class="timeline-info">
+              <h3 class="timeline-title">{{ getActionLabel(log.action) }}</h3>
+              <span class="timeline-time">{{ getRelativeTime(log.timestamp) }}</span>
+            </div>
+            <span class="timeline-status" [ngClass]="getStatusClass(log.status)">
+              {{ getStatusLabel(log.status) }}  <!-- CORRECTION ICI -->
+            </span>
+          </div>
+
+          <p class="timeline-description">{{ log.description }}</p>
+
+          <div class="timeline-meta">
+            <span class="meta-item">
+              <span class="meta-icon">👤</span>
+              {{ log.userName }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">✉️</span>
+              {{ log.userEmail }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">🎭</span>
+              {{ log.userRole }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">🕐</span>
+              {{ log.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
+            </span>
+          </div>
+
+          <div *ngIf="log.metadata" class="timeline-metadata">
+            <details>
+              <summary>Détails supplémentaires</summary>
+              <pre>{{ log.metadata | json }}</pre>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1" class="pagination">
+    <button
+      class="pagination-btn"
+      (click)="previousPage()"
+      [disabled]="currentPage === 1"
+    >
+      ← Précédent
+    </button>
+
+    <div class="pagination-pages">
+      <button
+        *ngFor="let page of getPageNumbers()"
+        class="pagination-page"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+    </div>
+
+    <button
+      class="pagination-btn"
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages"
+    >
+      Suivant →
+    </button>
+  </div>
+
+  <div class="pagination-info">
+    Page {{ currentPage }} sur {{ totalPages }} • {{ totalLogs }} activité(s) au total
+  </div>
+</div>

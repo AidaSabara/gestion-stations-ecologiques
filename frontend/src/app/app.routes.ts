@@ -15,8 +15,8 @@ import { dataAccessGuard } from './data-access.guard';
 import { AuthComponent } from './pages/auth/auth.component';
 import { StationDetailComponent } from './pages/station-detail/station-detail.component';
 import { RealtimeMonitoringComponent } from './pages/realtime-monitoring/realtime-monitoring.component';
-//import { AlertHistoryComponent } from './pages/alert-history/alert-history.component';
 import { AdminComponent } from './pages/admin/admin.component';
+import { UserActivityComponent } from './pages/user-activity/user-activity.component';  // ✅ AJOUTÉ
 
 export const routes: Routes = [
     // 🔓 Route publique (pas de guard)
@@ -24,7 +24,6 @@ export const routes: Routes = [
         path: 'auth',
         component: AuthComponent
     },
-
 
     // 🏠 Layout principal avec routes protégées
     {
@@ -41,40 +40,48 @@ export const routes: Routes = [
                 path: 'home',
                 component: HomeComponent
             },
+
             // 👤 ADMINISTRATION UTILISATEURS (nécessite canManageUsers)
             {
                 path: 'admin',
                 component: AdminComponent,
-                data: { permission: 'canManageUsers' } // Uniquement pour les utilisateurs autorisés
+                data: { permission: 'canManageUsers' }
+            },
+
+            // ✅ HISTORIQUE DES ACTIVITÉS (tous les utilisateurs authentifiés)
+            {
+                path: 'user-activity',
+                component: UserActivityComponent,
+                // Pas de permission spécifique : chaque user voit son historique
+                // Les supervisors voient leur équipe, les admins voient tout
             },
 
             // 📊 DÉTAIL STATION (nécessite canAccessData)
             {
                 path: 'station/:id',
                 component: StationDetailComponent,
-                // dataAccessGuard déjà appliqué via le parent
             },
 
             // 🔔 PAGES SPÉCIALISÉES POUR STATION SPÉCIFIQUE
             {
                 path: 'station/:id/alerts',
                 component: AlertsComponent,
-                data: { permission: 'canAccessAlerts' } // canAccessData + canAccessAlerts
+                data: { permission: 'canAccessAlerts' }
             },
             {
                 path: 'station/:id/data',
                 component: DataTableComponent,
-                data: { permission: 'canAccessData' } // Déjà vérifié par le guard parent
+                data: { permission: 'canAccessData' }
             },
             {
                 path: 'station/:id/charts',
                 component: ChartsComponent,
-                data: { permission: 'canAccessGraphs' } // canAccessData + canAccessGraphs
+                data: { permission: 'canAccessGraphs' }
             },
             {
                 path: 'station/:id/filtres',
                 component: FiltresComponent,
-                data: { permission: 'canAccessFilters' } // canAccessData + canAccessFilters
+                data: { permission: 'canAccessFilters' }
             },
 
             // 🌍 PAGES GLOBALES
@@ -120,14 +127,6 @@ export const routes: Routes = [
             }
         ],
     },
-     // Route globale pour l'historique
- // { path: 'alert-history', component: AlertHistoryComponent },
-  // Route pour l'historique d'une station spécifique
-    //{ path: 'alert-history', component: AlertHistoryComponent },
-
-  // Route pour l'historique d'une station spécifique
-  //{ path: 'alert-history/:id', component: AlertHistoryComponent },
-
 
     // 🚫 Redirection pour routes inconnues
     {

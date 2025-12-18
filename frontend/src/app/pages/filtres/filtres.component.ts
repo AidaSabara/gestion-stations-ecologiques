@@ -100,6 +100,385 @@ interface ChartDataset {
   fill?: boolean;
   tension?: number;
 }
+interface RiskAlert {
+  id: string;
+  severity: 'CRITIQUE' | 'ELEVEE' | 'MOYENNE' | 'FAIBLE';
+  category: 'POLLUTION' | 'CONFORMITE' | 'MAINTENANCE' | 'QUALITE_DONNEES';
+  title: string;
+  description: string;
+  impact: string;
+  actions: ActionCorrective[];
+  deadline: string;
+  responsible?: string;
+}
+
+interface ActionCorrective {
+  id: string;
+  action: string;
+  priority: 'URGENT' | 'HAUTE' | 'NORMALE';
+  estimatedTime: string;
+  status: 'A_FAIRE' | 'EN_COURS' | 'TERMINEE';
+}
+
+interface ComplianceStatus {
+  isCompliant: boolean;
+  regulation: string;
+  threshold: number;
+  currentValue: number;
+  gap: number;
+  potentialPenalty?: string;
+}
+class RiskManagementService {
+
+  /**
+   * Analyser les risques basés sur le score KPI
+   */
+  analyzeRisks(filter: FilterPerformance): RiskAlert[] {
+    const risks: RiskAlert[] = [];
+    const details = filter.detailsScore;
+
+    // Risque DBO5
+    if (details.pointsDBO5 < 15) {
+      risks.push({
+        id: `DBO5_${filter.id_filtre}`,
+        severity: details.pointsDBO5 < 10 ? 'CRITIQUE' : 'ELEVEE',
+        category: 'POLLUTION',
+        title: 'Pollution organique élevée (DBO5)',
+        description: `Efficacité DBO5 insuffisante: ${filter.efficacite_dbo5.toFixed(1)}%. Risque de contamination et non-conformité.`,
+        impact: 'Risque sanitaire, dépassement normes environnementales, pollution des eaux de surface',
+        actions: [
+          {
+            id: 'dbo5_1',
+            action: 'Vérifier et optimiser le système d\'aération des bassins',
+            priority: 'URGENT',
+            estimatedTime: '2-4 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'dbo5_2',
+            action: 'Analyser la charge organique entrante et ajuster le débit',
+            priority: 'HAUTE',
+            estimatedTime: '1 jour',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'dbo5_3',
+            action: 'Contrôler l\'activité biologique (boues activées)',
+            priority: 'HAUTE',
+            estimatedTime: '4 heures',
+            status: 'A_FAIRE'
+          }
+        ],
+        deadline: this.calculateDeadline(details.pointsDBO5 < 10 ? 24 : 72),
+        responsible: 'Chef d\'exploitation'
+      });
+    }
+
+    // Risque MES
+    if (details.pointsMES < 15) {
+      risks.push({
+        id: `MES_${filter.id_filtre}`,
+        severity: details.pointsMES < 10 ? 'CRITIQUE' : 'ELEVEE',
+        category: 'POLLUTION',
+        title: 'Matières en suspension élevées (MES)',
+        description: `Efficacité MES insuffisante: ${filter.efficacite_mes.toFixed(1)}%. Risque de colmatage et turbidité excessive.`,
+        impact: 'Colmatage des filtres, réduction de l\'efficacité, coûts de maintenance accrus',
+        actions: [
+          {
+            id: 'mes_1',
+            action: 'Nettoyer les filtres et vérifier l\'état du substrat',
+            priority: 'URGENT',
+            estimatedTime: '3-5 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'mes_2',
+            action: 'Optimiser la décantation primaire',
+            priority: 'HAUTE',
+            estimatedTime: '1 jour',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'mes_3',
+            action: 'Envisager le remplacement du substrat filtrant',
+            priority: 'NORMALE',
+            estimatedTime: '2-3 jours',
+            status: 'A_FAIRE'
+          }
+        ],
+        deadline: this.calculateDeadline(details.pointsMES < 10 ? 48 : 96),
+        responsible: 'Technicien filtration'
+      });
+    }
+
+    // Risque Nitrates
+    if (details.pointsNitrates < 15) {
+      risks.push({
+        id: `NITRATES_${filter.id_filtre}`,
+        severity: details.pointsNitrates < 10 ? 'ELEVEE' : 'MOYENNE',
+        category: 'POLLUTION',
+        title: 'Nitrates élevés - Eutrophisation',
+        description: `Efficacité nitrates insuffisante: ${filter.efficacite_nitrates.toFixed(1)}%. Risque d\'eutrophisation.`,
+        impact: 'Contamination des eaux souterraines, eutrophisation, non-conformité directive nitrates',
+        actions: [
+          {
+            id: 'nit_1',
+            action: 'Vérifier les zones anoxiques pour dénitrification',
+            priority: 'HAUTE',
+            estimatedTime: '4 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'nit_2',
+            action: 'Ajuster le ratio C/N (carbone/azote)',
+            priority: 'HAUTE',
+            estimatedTime: '1 jour',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'nit_3',
+            action: 'Optimiser le temps de séjour hydraulique',
+            priority: 'NORMALE',
+            estimatedTime: '2 jours',
+            status: 'A_FAIRE'
+          }
+        ],
+        deadline: this.calculateDeadline(168),
+        responsible: 'Ingénieur procédé'
+      });
+    }
+
+    // Risque Coliformes
+    if (details.pointsColiformes < 15) {
+      risks.push({
+        id: `COLIF_${filter.id_filtre}`,
+        severity: 'CRITIQUE',
+        category: 'POLLUTION',
+        title: 'Contamination microbiologique (Coliformes)',
+        description: `Efficacité coliformes insuffisante: ${filter.efficacite_coliformes.toFixed(1)}%. RISQUE SANITAIRE MAJEUR.`,
+        impact: '⚠️ RISQUE SANITAIRE IMMÉDIAT - Contamination fécale, maladies hydriques, interdiction de réutilisation',
+        actions: [
+          {
+            id: 'col_1',
+            action: '🚨 URGENCE: Renforcer la désinfection (UV/Chlore)',
+            priority: 'URGENT',
+            estimatedTime: '1-2 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'col_2',
+            action: 'Isoler la zone contaminée et analyser la source',
+            priority: 'URGENT',
+            estimatedTime: '4 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'col_3',
+            action: 'Prélèvements microbiologiques d\'urgence',
+            priority: 'URGENT',
+            estimatedTime: '2 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'col_4',
+            action: 'Informer les autorités sanitaires si seuils dépassés',
+            priority: 'URGENT',
+            estimatedTime: '1 heure',
+            status: 'A_FAIRE'
+          }
+        ],
+        deadline: this.calculateDeadline(4),
+        responsible: 'Responsable qualité + Direction'
+      });
+    }
+
+    // Risque pH
+    if (details.pointsPH < 7) {
+      risks.push({
+        id: `PH_${filter.id_filtre}`,
+        severity: details.pointsPH <= 4 ? 'ELEVEE' : 'MOYENNE',
+        category: 'QUALITE_DONNEES',
+        title: 'Instabilité du pH',
+        description: `Variance pH élevée: ${details.stabilityPH.toFixed(2)}. Risque pour l\'activité biologique.`,
+        impact: 'Inhibition des micro-organismes, corrosion, efficacité réduite du traitement',
+        actions: [
+          {
+            id: 'ph_1',
+            action: 'Calibrer les sondes pH et vérifier leur fonctionnement',
+            priority: 'HAUTE',
+            estimatedTime: '2 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'ph_2',
+            action: 'Installer un système de régulation automatique du pH',
+            priority: 'NORMALE',
+            estimatedTime: '1-2 jours',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'ph_3',
+            action: 'Identifier et éliminer les sources de variation',
+            priority: 'HAUTE',
+            estimatedTime: '1 jour',
+            status: 'A_FAIRE'
+          }
+        ],
+        deadline: this.calculateDeadline(72),
+        responsible: 'Technicien instrumentation'
+      });
+    }
+
+    // Risque Données manquantes
+    if (details.pointsDonnees < 7) {
+      risks.push({
+        id: `DATA_${filter.id_filtre}`,
+        severity: details.pointsDonnees <= 4 ? 'ELEVEE' : 'MOYENNE',
+        category: 'QUALITE_DONNEES',
+        title: 'Données insuffisantes - Traçabilité compromise',
+        description: `Taux de données manquantes: ${(details.tauxValeursManquantes * 100).toFixed(1)}%. Risque de non-conformité réglementaire.`,
+        impact: 'Impossibilité de prouver la conformité, sanctions administratives, perte de traçabilité',
+        actions: [
+          {
+            id: 'data_1',
+            action: 'Vérifier et réparer les capteurs défaillants',
+            priority: 'HAUTE',
+            estimatedTime: '4 heures',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'data_2',
+            action: 'Mettre en place un planning de prélèvements manuels',
+            priority: 'HAUTE',
+            estimatedTime: '1 jour',
+            status: 'A_FAIRE'
+          },
+          {
+            id: 'data_3',
+            action: 'Installer des capteurs de backup/redondance',
+            priority: 'NORMALE',
+            estimatedTime: '3-5 jours',
+            status: 'A_FAIRE'
+          }
+        ],
+        deadline: this.calculateDeadline(48),
+        responsible: 'Responsable LIMS/Data'
+      });
+    }
+
+    return risks.sort((a, b) => this.getSeverityWeight(a.severity) - this.getSeverityWeight(b.severity));
+  }
+
+  /**
+   * Vérifier la conformité réglementaire
+   */
+  checkCompliance(filter: FilterPerformance): ComplianceStatus[] {
+    const statuses: ComplianceStatus[] = [];
+
+    // Directive européenne sur les eaux usées urbaines (91/271/CEE)
+    // DBO5: Limite 25 mg/L en sortie
+    const dbo5Output = this.estimateOutputConcentration(100, filter.efficacite_dbo5);
+    statuses.push({
+      isCompliant: dbo5Output <= 25,
+      regulation: 'Directive 91/271/CEE - DBO5',
+      threshold: 25,
+      currentValue: dbo5Output,
+      gap: Math.max(0, dbo5Output - 25),
+      potentialPenalty: dbo5Output > 25 ? 'Jusqu\'à 15 000 € d\'amende' : undefined
+    });
+
+    // MES: Limite 35 mg/L
+    const mesOutput = this.estimateOutputConcentration(200, filter.efficacite_mes);
+    statuses.push({
+      isCompliant: mesOutput <= 35,
+      regulation: 'Directive 91/271/CEE - MES',
+      threshold: 35,
+      currentValue: mesOutput,
+      gap: Math.max(0, mesOutput - 35),
+      potentialPenalty: mesOutput > 35 ? 'Jusqu\'à 15 000 € d\'amende' : undefined
+    });
+
+    // Coliformes: < 1000 CFU/100ml pour réutilisation
+    const coliOutput = this.estimateOutputConcentration(1000000, filter.efficacite_coliformes);
+    statuses.push({
+      isCompliant: coliOutput < 1000,
+      regulation: 'Normes OMS - Coliformes fécaux',
+      threshold: 1000,
+      currentValue: coliOutput,
+      gap: Math.max(0, coliOutput - 1000),
+      potentialPenalty: coliOutput >= 1000 ? 'Interdiction réutilisation + sanctions sanitaires' : undefined
+    });
+
+    return statuses;
+  }
+
+  /**
+   * Générer des recommandations prédictives
+   */
+  generatePredictiveRecommendations(filter: FilterPerformance, cycleVie: CycleVieFiltre | null): string[] {
+    const recommendations: string[] = [];
+
+    // Basé sur le score
+    if (filter.scorePerformance < 60) {
+      recommendations.push('⚠️ Performance dégradée détectée - Planifier une intervention sous 7 jours');
+    }
+
+    // Basé sur le cycle de vie
+    if (cycleVie) {
+      if (cycleVie.pourcentage_usure > 80) {
+        recommendations.push(`🔧 Usure critique (${cycleVie.pourcentage_usure}%) - Remplacement du substrat recommandé dans les 30 jours`);
+      } else if (cycleVie.pourcentage_usure > 60) {
+        recommendations.push(`⚙️ Usure avancée (${cycleVie.pourcentage_usure}%) - Prévoir maintenance préventive dans les 60 jours`);
+      }
+
+      // Calcul des jours restants basé sur fin_vie_estimee
+      if (cycleVie.jalons?.fin_vie_estimee) {
+        const dateFinVie = new Date(cycleVie.jalons.fin_vie_estimee);
+        const aujourdhui = new Date();
+        const diffMs = dateFinVie.getTime() - aujourdhui.getTime();
+        const joursRestants = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+        if (joursRestants < 90 && joursRestants > 0) {
+          recommendations.push(`📅 Fin de vie estimée dans ${joursRestants} jours - Commander substrat de remplacement`);
+        }
+      }
+
+      // Recommandation basée sur la prochaine maintenance
+      if (cycleVie.jalons?.prochaine_maintenance) {
+        const dateProchaineMaintenance = new Date(cycleVie.jalons.prochaine_maintenance);
+        const aujourdhui = new Date();
+        const joursAvantMaintenance = Math.ceil((dateProchaineMaintenance.getTime() - aujourdhui.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (joursAvantMaintenance < 30 && joursAvantMaintenance > 0) {
+          recommendations.push(`🔧 Maintenance planifiée dans ${joursAvantMaintenance} jours - Préparer intervention`);
+        }
+      }
+    }
+
+    // Basé sur les tendances
+    if (filter.detailsScore.tauxValeursManquantes > 0.3) {
+      recommendations.push('📊 Qualité des données insuffisante - Risque de non-conformité lors d\'audits');
+    }
+
+    return recommendations;
+  }
+
+  // Méthodes utilitaires privées
+  private calculateDeadline(hoursFromNow: number): string {
+    const deadline = new Date();
+    deadline.setHours(deadline.getHours() + hoursFromNow);
+    return deadline.toISOString();
+  }
+
+  private getSeverityWeight(severity: string): number {
+    const weights = { 'CRITIQUE': 1, 'ELEVEE': 2, 'MOYENNE': 3, 'FAIBLE': 4 };
+    return weights[severity as keyof typeof weights] || 5;
+  }
+
+  private estimateOutputConcentration(inputConc: number, efficiency: number): number {
+    return inputConc * (1 - efficiency / 100);
+  }
+}
 
 @Component({
   selector: 'app-filtres',
@@ -145,6 +524,11 @@ export class FiltresComponent implements OnInit, AfterViewInit, OnDestroy {
   chartsReady: boolean = false;
   selectedFilterId: string = 'all';
   activeView: 'list' | 'map' = 'list';
+  private riskService = new RiskManagementService();
+  currentRisks: RiskAlert[] = [];
+  complianceStatuses: ComplianceStatus[] = [];
+  predictiveRecommendations: string[] = [];
+  activeRiskTab: 'alerts' | 'compliance' | 'predictions' = 'alerts';
 
   /**
    * Fermer le panneau de détails avec la touche Échap
@@ -1129,7 +1513,45 @@ createPerformanceChart() {
       setTimeout(() => this.initializeMap(), 50);
     }
   }
+// MÉTHODE POUR CALCULER LES JOURS RESTANTS
+  getJoursRestants(cycleVie: CycleVieFiltre): number {
+    if (cycleVie.jalons?.fin_vie_estimee) {
+      const dateFinVie = new Date(cycleVie.jalons.fin_vie_estimee);
+      const aujourdhui = new Date();
+      const diffMs = dateFinVie.getTime() - aujourdhui.getTime();
+      return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    }
 
+    const dureeVieTotaleJours = 365;
+    const joursUtilises = (cycleVie.pourcentage_usure / 100) * dureeVieTotaleJours;
+    return Math.max(0, Math.round(dureeVieTotaleJours - joursUtilises));
+  }
+
+  // ✅ MÉTHODE POUR OBTENIR LA DATE DE PROCHAINE MAINTENANCE
+  getDateProchaineMaintenance(cycleVie: CycleVieFiltre): string {
+    if (cycleVie.jalons?.prochaine_maintenance) {
+      const date = new Date(cycleVie.jalons.prochaine_maintenance);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+    return 'Non planifiée';
+  }
+
+  // ✅ MÉTHODE POUR OBTENIR LA DATE DE FIN DE VIE ESTIMÉE
+  getDateFinVieEstimee(cycleVie: CycleVieFiltre): string {
+    if (cycleVie.jalons?.fin_vie_estimee) {
+      const date = new Date(cycleVie.jalons.fin_vie_estimee);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+    return 'Non estimée';
+  }
  selectFilter(filter: FilterPerformance) {
   this.selectedFilter = filter;
 
@@ -1161,6 +1583,19 @@ createPerformanceChart() {
       marker.openPopup();
     }
   }
+  // Analyse des risques
+    this.currentRisks = this.riskService.analyzeRisks(filter);
+    console.log(`🚨 ${this.currentRisks.length} risques détectés pour ${filter.id_filtre}`);
+    // Vérification conformité
+    this.complianceStatuses = this.riskService.checkCompliance(filter);
+    console.log(`📋 Conformité: ${this.complianceStatuses.filter(s => s.isCompliant).length}/${this.complianceStatuses.length}`);
+    // Recommandations prédictives
+    const cycleVie = this.getCycleVie(filter.id_filtre);
+    this.predictiveRecommendations = this.riskService.generatePredictiveRecommendations(filter, cycleVie);
+    console.log(`🔮 ${this.predictiveRecommendations.length} recommandations générées`);
+
+    this.activeRiskTab = 'alerts';
+    document.body.style.overflow = 'hidden';
 }
 
 get filteredPerformances(): FilterPerformance[] {
@@ -1239,7 +1674,78 @@ get uniqueTypes(): string[] {
   formatNumber(value: number): string {
     return value !== undefined && value !== null ? value.toFixed(1) : 'N/A';
   }
+getRiskIcon(severity: string): string {
+    const icons = {
+      'CRITIQUE': '🚨',
+      'ELEVEE': '⚠️',
+      'MOYENNE': '⚡',
+      'FAIBLE': 'ℹ️'
+    };
+    return icons[severity as keyof typeof icons] || '📋';
+  }
 
+  getRiskColor(severity: string): string {
+    const colors = {
+      'CRITIQUE': '#dc2626',
+      'ELEVEE': '#f97316',
+      'MOYENNE': '#f59e0b',
+      'FAIBLE': '#3b82f6'
+    };
+    return colors[severity as keyof typeof colors] || '#6b7280';
+  }
+
+  getCategoryLabel(category: string): string {
+    const labels = {
+      'POLLUTION': 'Pollution',
+      'CONFORMITE': 'Conformité',
+      'MAINTENANCE': 'Maintenance',
+      'QUALITE_DONNEES': 'Qualité données'
+    };
+    return labels[category as keyof typeof labels] || category;
+  }
+
+  formatDeadline(deadline: string): string {
+    const date = new Date(deadline);
+    const now = new Date();
+    const diffHours = Math.round((date.getTime() - now.getTime()) / (1000 * 60 * 60));
+
+    if (diffHours < 0) return 'DÉPASSÉE';
+    if (diffHours < 1) return 'IMMÉDIAT';
+    if (diffHours < 24) return `Dans ${diffHours}h`;
+
+    const diffDays = Math.round(diffHours / 24);
+    return `Dans ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+  }
+
+/**
+ * Compter les risques par sévérité
+ */
+getCriticalRisksCount(): number {
+  return this.currentRisks.filter(r => r.severity === 'CRITIQUE').length;
+}
+
+getHighRisksCount(): number {
+  return this.currentRisks.filter(r => r.severity === 'ELEVEE').length;
+}
+
+getMediumRisksCount(): number {
+  return this.currentRisks.filter(r => r.severity === 'MOYENNE').length;
+}
+
+/**
+ * Compter les statuts de conformité
+ */
+getCompliantCount(): number {
+  return this.complianceStatuses.filter(s => s.isCompliant).length;
+}
+
+isFullyCompliant(): boolean {
+  return this.complianceStatuses.every(s => s.isCompliant);
+}
+
+hasNonCompliance(): boolean {
+  return !this.complianceStatuses.every(s => s.isCompliant);
+}
   refreshData() {
     this.loadData();
   }

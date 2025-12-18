@@ -229,7 +229,7 @@
           <button (click)="closeModal()" class="btn-close">✕</button>
         </div>
 
-        <!-- Contenu du modal avec l'ordre demandé -->
+
         <div class="modal-body">
             <!--LE WIDGET -->
             <div class="modal-section">
@@ -445,7 +445,263 @@
             <h3>🛠️ Historique des Interventions</h3>
             <p class="empty-message">Aucune intervention enregistrée pour ce filtre.</p>
           </div>
+           <!-- ======================================= -->
+          <!-- SECTION GESTION DES RISQUES -->
+          <!-- ======================================= -->
+          <div class="risk-management-section">
 
+            <!-- Onglets de navigation -->
+            <div class="risk-tabs">
+              <button [class.active]="activeRiskTab === 'alerts'" (click)="activeRiskTab = 'alerts'">
+                🚨 Alertes Risques ({{ currentRisks.length }})
+              </button>
+              <button [class.active]="activeRiskTab === 'compliance'" (click)="activeRiskTab = 'compliance'">
+                📋 Conformité Réglementaire
+              </button>
+              <button [class.active]="activeRiskTab === 'predictions'" (click)="activeRiskTab = 'predictions'">
+                🔮 Recommandations Prédictives
+              </button>
+            </div>
+
+            <!-- TAB 1: ALERTES RISQUES -->
+            <div *ngIf="activeRiskTab === 'alerts'" class="tab-content">
+
+              <!-- Résumé des risques -->
+              <div class="risk-summary">
+                <div class="risk-stat critical">
+                  <span class="stat-icon">🚨</span>
+                  <span class="stat-value">{{ getCriticalRisksCount() }}</span>
+                  <span class="stat-label">Critiques</span>
+                </div>
+                <div class="risk-stat high">
+                  <span class="stat-icon">⚠️</span>
+                  <span class="stat-value">{{ getHighRisksCount() }}</span>
+                  <span class="stat-label">Élevés</span>
+                </div>
+                <div class="risk-stat medium">
+                  <span class="stat-icon">⚡</span>
+                  <span class="stat-value">{{ getMediumRisksCount() }}</span>
+                  <span class="stat-label">Moyens</span>
+                </div>
+              </div>
+
+              <!-- Liste des risques -->
+              <div class="risks-list">
+                <div *ngFor="let risk of currentRisks"
+                     class="risk-card"
+                     [style.border-left-color]="getRiskColor(risk.severity)">
+
+                  <!-- En-tête du risque -->
+                  <div class="risk-header">
+                    <div class="risk-title-row">
+                      <span class="risk-icon">{{ getRiskIcon(risk.severity) }}</span>
+                      <h4>{{ risk.title }}</h4>
+                      <span class="risk-badge" [style.background-color]="getRiskColor(risk.severity)">
+                        {{ risk.severity }}
+                      </span>
+                    </div>
+                    <span class="risk-category">{{ getCategoryLabel(risk.category) }}</span>
+                  </div>
+
+                  <!-- Description -->
+                  <p class="risk-description">{{ risk.description }}</p>
+
+                  <!-- Impact -->
+                  <div class="risk-impact">
+                    <strong>💥 Impact:</strong>
+                    <p>{{ risk.impact }}</p>
+                  </div>
+
+                  <!-- Actions correctives -->
+                  <div class="corrective-actions">
+                    <strong>🔧 Actions correctives requises:</strong>
+                    <ul>
+                      <li *ngFor="let action of risk.actions"
+                          [class.urgent]="action.priority === 'URGENT'"
+                          [class.high]="action.priority === 'HAUTE'">
+                        <span class="action-priority">{{ action.priority }}</span>
+                        <span class="action-text">{{ action.action }}</span>
+                        <span class="action-time">⏱️ {{ action.estimatedTime }}</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- Deadline et responsable -->
+                  <div class="risk-footer">
+                    <span class="deadline">
+                      ⏰ <strong>Échéance:</strong> {{ formatDeadline(risk.deadline) }}
+                    </span>
+                    <span class="responsible" *ngIf="risk.responsible">
+                      👤 <strong>Responsable:</strong> {{ risk.responsible }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Aucun risque -->
+                <div *ngIf="currentRisks.length === 0" class="no-risks">
+                  <span class="success-icon">✅</span>
+                  <h3>Aucun risque détecté</h3>
+                  <p>Les performances du filtre sont conformes aux standards</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: CONFORMITÉ RÉGLEMENTAIRE -->
+            <div *ngIf="activeRiskTab === 'compliance'" class="tab-content">
+
+              <div class="compliance-header">
+                <h3>📋 Statut de Conformité Réglementaire</h3>
+                <p>Vérification par rapport aux normes européennes et nationales</p>
+              </div>
+
+              <div class="compliance-list">
+                <div *ngFor="let status of complianceStatuses"
+                     class="compliance-card"
+                     [class.compliant]="status.isCompliant"
+                     [class.non-compliant]="!status.isCompliant">
+
+                  <div class="compliance-status-badge">
+                    <span class="status-icon">{{ status.isCompliant ? '✅' : '❌' }}</span>
+                    <span class="status-text">
+                      {{ status.isCompliant ? 'CONFORME' : 'NON CONFORME' }}
+                    </span>
+                  </div>
+
+                  <h4>{{ status.regulation }}</h4>
+
+                  <div class="compliance-details">
+                    <div class="detail-row">
+                      <span class="label">Seuil réglementaire:</span>
+                      <span class="value">{{ status.threshold }} mg/L</span>
+                    </div>
+                    <div class="detail-row">
+                      <span class="label">Valeur actuelle estimée:</span>
+                      <span class="value" [class.exceeded]="!status.isCompliant">
+                        {{ status.currentValue.toFixed(1) }} mg/L
+                      </span>
+                    </div>
+                    <div class="detail-row" *ngIf="status.gap > 0">
+                      <span class="label">Écart:</span>
+                      <span class="value exceeded">+{{ status.gap.toFixed(1) }} mg/L</span>
+                    </div>
+                  </div>
+
+                  <div class="compliance-penalty" *ngIf="status.potentialPenalty">
+                    <strong>⚠️ Risque de sanction:</strong>
+                    <p>{{ status.potentialPenalty }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Résumé général -->
+              <div class="compliance-summary">
+                <div class="summary-stat">
+                  <span class="big-number">{{ getCompliantCount() }}</span>
+                  <span class="stat-label">/ {{ complianceStatuses.length }} normes respectées</span>
+                </div>
+                <div class="summary-message"
+                     [class.success]="isFullyCompliant()"
+                     [class.warning]="hasNonCompliance()">
+                  <span *ngIf="isFullyCompliant()">
+                    ✅ Station en conformité réglementaire complète
+                  </span>
+                  <span *ngIf="hasNonCompliance()">
+                    ⚠️ Non-conformités détectées - Actions correctives requises
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: RECOMMANDATIONS PRÉDICTIVES -->
+            <div *ngIf="activeRiskTab === 'predictions'" class="tab-content">
+
+              <div class="predictions-header">
+                <h3>🔮 Analyse Prédictive et Recommandations</h3>
+                <p>Basée sur les tendances, le cycle de vie et l'historique du filtre</p>
+              </div>
+
+              <!-- Score de santé global -->
+              <div class="health-score">
+                <div class="score-gauge">
+                  <svg viewBox="0 0 200 120" class="gauge-svg">
+                    <path d="M 20 100 A 80 80 0 0 1 180 100"
+                          fill="none"
+                          stroke="#e5e7eb"
+                          stroke-width="20"/>
+                    <path d="M 20 100 A 80 80 0 0 1 180 100"
+                          fill="none"
+                          [attr.stroke]="getScoreColor(selectedFilter.scorePerformance)"
+                          stroke-width="20"
+                          [attr.stroke-dasharray]="(selectedFilter.scorePerformance / 100 * 251) + ', 251'"
+                          stroke-linecap="round"/>
+                    <text x="100" y="85"
+                          text-anchor="middle"
+                          font-size="32"
+                          font-weight="bold"
+                          [attr.fill]="getScoreColor(selectedFilter.scorePerformance)">
+                      {{ selectedFilter.scorePerformance }}
+                    </text>
+                    <text x="100" y="105"
+                          text-anchor="middle"
+                          font-size="14"
+                          fill="#6b7280">
+                      / 100
+                    </text>
+                  </svg>
+                  <p class="score-label">Score de Santé Global</p>
+                </div>
+              </div>
+
+              <!-- Recommandations -->
+              <div class="recommendations-list">
+                <h4>📌 Recommandations prioritaires:</h4>
+                <div *ngFor="let recommendation of predictiveRecommendations; let i = index"
+                     class="recommendation-item">
+                  <span class="rec-number">{{ i + 1 }}</span>
+                  <p>{{ recommendation }}</p>
+                </div>
+
+                <div *ngIf="predictiveRecommendations.length === 0" class="no-recommendations">
+                  <span class="success-icon">✅</span>
+                  <p>Aucune action préventive nécessaire actuellement</p>
+                </div>
+              </div>
+
+              <!-- Prévisions de maintenance -->
+              <div class="maintenance-forecast" *ngIf="getCycleVie(selectedFilter.id_filtre) as cycleVie">
+                <h4>🔧 Prévisions de Maintenance</h4>
+                <div class="forecast-grid">
+                  <div class="forecast-card">
+                    <span class="forecast-label">Usure actuelle</span>
+                    <span class="forecast-value">{{ cycleVie.pourcentage_usure }}%</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill"
+                           [style.width.%]="cycleVie.pourcentage_usure"
+                           [class.critical]="cycleVie.pourcentage_usure > 80"
+                           [class.warning]="cycleVie.pourcentage_usure > 60 && cycleVie.pourcentage_usure <= 80">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="forecast-card">
+                    <span class="forecast-label">Jours restants</span>
+                    <span class="forecast-value">{{ getJoursRestants(cycleVie) }} j</span>
+                    <small class="forecast-subtitle">Fin estimée: {{ getDateFinVieEstimee(cycleVie) }}</small>
+                  </div>
+
+                  <div class="forecast-card">
+                    <span class="forecast-label">Heures d'utilisation</span>
+                    <span class="forecast-value">{{ cycleVie.heures_utilisation }} h</span>
+                  </div>
+
+                  <div class="forecast-card">
+                    <span class="forecast-label">Prochaine maintenance</span>
+                    <span class="forecast-value-small">{{ getDateProchaineMaintenance(cycleVie) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
