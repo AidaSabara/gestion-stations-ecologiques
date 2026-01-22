@@ -1,11 +1,33 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { KuzzleService } from '../../kuzzle.service';
 import { AuthService } from '../../auth.service';
 import { User } from '../../models/user.model';
 import { Router } from '@angular/router';
 
+interface StationCharacteristics {
+  filterTypes: {
+    type: string;
+    quantity: number;
+    installedDate?: string;
+    lastMaintenance?: string;
+  }[];
+  plantedFilters: number;
+  functionalFilters: number;
+  dailyCapacity: number;
+  numberOfTaps: number;
+  operators: { name: string; role: string; contact?: string; }[];
+  maintenanceHistory: { date: string; type: string; description: string; technician?: string; }[];
+  hasPowerBackup: boolean;
+  hasWaterStorage: boolean;
+  storageCapacity?: number;
+  accessRoad: 'good' | 'medium' | 'poor';
+  distanceToMainRoad: number;
+  lastInspection?: string;
+  nextInspection?: string;
+  notes?: string;
+}
 interface Station {
   _id: string;
   _source?: {
@@ -18,6 +40,7 @@ interface Station {
     type: 'mobile' | 'fixed';
     installedAt: string;
     region?: string;
+    characteristics?: StationCharacteristics;
   };
   body?: any;
   name?: string;
@@ -26,6 +49,7 @@ interface Station {
   type?: any;
   installedAt?: any;
   region?: string;
+  characteristics?: StationCharacteristics;
 }
 
 @Component({
@@ -44,11 +68,18 @@ export class StationsComponent implements OnInit {
   regionsList: string[] = [];
   selectedRegion: string = '';
 
+  showCharacteristicsModal = false;
+  selectedStationForCharacteristics: Station | null = null;
+  characteristicsForm: FormGroup;
+  isLoadingCharacteristics = false;
+
+
   isLoading = true;
   showAddModal = false;
   showEditModal = false;
   showAuthModal = false;
   showAdminAuthModal = false;
+
 
   stationForm: FormGroup;
   authForm: FormGroup;
@@ -87,7 +118,16 @@ export class StationsComponent implements OnInit {
     { name: 'Sédhiou', lat: 12.7081, lon: -15.5569 },
     { name: 'Kaffrine', lat: 14.1167, lon: -15.7 }
   ];
-
+    filterTypeOptions = [
+    'Filtre à sable',
+    'Roseaux',
+    'Vetiver',
+    'Coco',
+    'Substrat',
+    'Coco',
+    'Typha',
+    'Autre'
+  ];
   constructor(
     private kuzzleService: KuzzleService,
     private fb: FormBuilder,
@@ -98,25 +138,38 @@ export class StationsComponent implements OnInit {
     this.stationForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       region: ['', Validators.required],
-      latitude: [{ value: '', disabled: false }, [Validators.required, Validators.min(-90), Validators.max(90)]],
-      longitude: [{ value: '', disabled: false }, [Validators.required, Validators.min(-180), Validators.max(180)]],
-      status: ['active', Validators.required],
-      type: ['mobile', Validators.required]
+      latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
+  longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
+  status: ['active', Validators.required],
+  type: ['mobile', Validators.required]
     });
 
-    // Auto-remplir les coordonnées quand une région est sélectionnée (seulement pour l'ajout)
-    this.stationForm.get('region')?.valueChanges.subscribe(regionName => {
-      if (!this.isEditing) {
-        const region = this.regions.find(r => r.name === regionName);
-        if (region) {
-          this.stationForm.patchValue({
-            latitude: region.lat,
-            longitude: region.lon
-          });
-        }
+    // Auto-remplir les coordonnées quand une région est sélectionnée avec décalage aléatoire (seulement pour l'ajout)
+this.stationForm.get('region')?.valueChanges.subscribe(regionName => {
+    if (!this.isEditing) {
+      const region = this.regions.find(r => r.name === regionName);
+      if (region) {
+        // Génération d'un décalage aléatoire entre 0.001° et 0.01° (≈ 110m à 1.1km)
+        const randomOffsetLat = (Math.random() - 0.5) * 0.02;
+        const randomOffsetLon = (Math.random() - 0.5) * 0.02;
+
+        const newLat = region.lat + randomOffsetLat;
+        const newLon = region.lon + randomOffsetLon;
+
+        console.log('📍 Coordonnées auto-générées (modifiables):');
+        console.log(`   Base: ${region.lat}, ${region.lon}`);
+        console.log(`   Offset: ${randomOffsetLat.toFixed(4)}, ${randomOffsetLon.toFixed(4)}`);
+        console.log(`   Proposition: ${newLat.toFixed(6)}, ${newLon.toFixed(6)}`);
+        console.log('   💡 Vous pouvez modifier ces valeurs manuellement');
+
+        // ✅ Remplir les champs SANS les désactiver
+        this.stationForm.patchValue({
+          latitude: parseFloat(newLat.toFixed(6)),
+          longitude: parseFloat(newLon.toFixed(6))
+        });
       }
-    });
-
+    }
+  });
     // Formulaire d'authentification utilisateur
     this.authForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -127,6 +180,22 @@ export class StationsComponent implements OnInit {
     this.adminAuthForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+
+    this.characteristicsForm = this.fb.group({
+      filterTypes: this.fb.array([]),
+      plantedFilters: [0, [Validators.min(0)]],
+      functionalFilters: [0, [Validators.min(0)]],
+      dailyCapacity: [0, [Validators.min(0)]],
+      numberOfTaps: [0, [Validators.min(0)]],
+      hasPowerBackup: [false],
+      hasWaterStorage: [false],
+      storageCapacity: [0],
+      accessRoad: ['good'],
+      distanceToMainRoad: [0, [Validators.min(0)]],
+      lastInspection: [''],
+      nextInspection: [''],
+      notes: ['']
     });
   }
 
@@ -269,38 +338,64 @@ onAdminAuthSubmit(): void {
     this.isEditing = false;
     this.showAddModal = true;
     this.stationForm.reset({ status: 'active', type: 'mobile' });
-    this.stationForm.get('latitude')?.disable();
-    this.stationForm.get('longitude')?.disable();
+    //this.stationForm.get('latitude')?.disable();
+    //this.stationForm.get('longitude')?.disable();
     this.errorMessage = '';
     this.successMessage = '';
   }
 
   /**
-   * ✅ OUVERTURE MODAL ÉDITION APRÈS AUTH
-   */
-  private openEditModalAfterAuth(station: Station): void {
-    this.isEditing = true;
-    this.currentEditingStation = station;
-    this.showEditModal = true;
+ * ✅ OUVERTURE MODAL ÉDITION APRÈS AUTH
+ */
+private openEditModalAfterAuth(station: Station): void {
+  this.isEditing = true;
+  this.currentEditingStation = station;
+  this.showEditModal = true;
 
-    const stationData = this.getStationData(station);
+  const stationData = this.getStationData(station);
 
-    this.stationForm.patchValue({
-      name: stationData.name,
-      region: stationData.region || this.getStationRegion(station),
-      latitude: stationData.location?.lat || '',
-      longitude: stationData.location?.lon || '',
-      status: stationData.status || 'active',
-      type: stationData.type || 'mobile'
+  // 1. Remplir les infos de base
+  this.stationForm.patchValue({
+    name: stationData.name,
+    region: stationData.region || this.getStationRegion(station),
+    latitude: stationData.location?.lat || '',
+    longitude: stationData.location?.lon || '',
+    status: stationData.status || 'active',
+    type: stationData.type || 'mobile'
+  });
+
+  // 2. Remplir les caractéristiques si elles existent
+  const chars = stationData.characteristics;
+  if (chars) {
+    this.characteristicsForm.patchValue({
+      plantedFilters: chars.plantedFilters || 0,
+      functionalFilters: chars.functionalFilters || 0,
+      dailyCapacity: chars.dailyCapacity || 0,
+      numberOfTaps: chars.numberOfTaps || 0,
+      hasPowerBackup: chars.hasPowerBackup || false,
+      hasWaterStorage: chars.hasWaterStorage || false,
+      storageCapacity: chars.storageCapacity || 0,
+      accessRoad: chars.accessRoad || 'good',
+      distanceToMainRoad: chars.distanceToMainRoad || 0,
+      lastInspection: chars.lastInspection || '',
+      nextInspection: chars.nextInspection || '',
+      notes: chars.notes || ''
     });
 
-    this.stationForm.get('latitude')?.enable();
-    this.stationForm.get('longitude')?.enable();
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    console.log('📝 Ouverture modal édition après auth:', station);
+    // Charger les types de filtres
+    this.clearFilterTypes();
+    if (chars.filterTypes && chars.filterTypes.length > 0) {
+      chars.filterTypes.forEach((filter: any) => {
+        this.addFilterType(filter);
+      });
+    }
   }
+
+  this.errorMessage = '';
+  this.successMessage = '';
+
+  console.log('📝 Ouverture modal édition après auth:', station);
+}
 
   /**
    * ✅ SUPPRESSION APRÈS AUTH
@@ -423,11 +518,16 @@ onAdminAuthSubmit(): void {
     this.showEditModal = false;
     this.currentEditingStation = null;
     this.stationForm.reset();
-    this.stationForm.get('latitude')?.disable();
-    this.stationForm.get('longitude')?.disable();
+    //this.stationForm.get('latitude')?.disable();
+    //this.stationForm.get('longitude')?.disable();
     this.errorMessage = '';
     this.successMessage = '';
   }
+    canManageCharacteristics(): boolean {
+  if (!this.currentUser) return false;
+  // Seuls les admins peuvent ajouter/modifier les caractéristiques
+  return this.currentUser.role === 'admin';
+}
 
   /**
    * ✅ GESTION DU DOUBLE-CLIC SUR UNE STATION
@@ -472,7 +572,6 @@ onAdminAuthSubmit(): void {
   openAuthModal(station: Station): void {
     console.log('🔐 openAuthModal appelée');
     console.log('📍 Station sélectionnée:', station);
-
     this.selectedStationForAuth = station;
     this.showAuthModal = true;
     this.authForm.reset();
@@ -683,42 +782,66 @@ canAdd(): boolean {
   /**
    * ✅ METTRE À JOUR UNE STATION
    */
-  private async updateStation(formValue: any): Promise<void> {
-    if (!this.currentEditingStation) {
-      throw new Error('Aucune station à modifier');
-    }
-
-    const stationId = this.currentEditingStation._id;
-
-    const updatedStation = {
-      name: formValue.name,
-      location: {
-        lat: parseFloat(formValue.latitude),
-        lon: parseFloat(formValue.longitude)
-      },
-      status: formValue.status,
-      type: formValue.type,
-      region: formValue.region
-    };
-
-    console.log('🔄 Station à mettre à jour:', stationId, updatedStation);
-
-    const result = await this.kuzzleService.updateStation(stationId, updatedStation);
-    console.log('✅ Station mise à jour dans Kuzzle:', result);
-
-    this.stationUpdated.emit({ _id: stationId, ...updatedStation } as any);
-    this.notifyMapDirectly({ _id: stationId, body: updatedStation }, 'STATION_UPDATED');
-
-    this.successMessage = '✅ Station modifiée avec succès !';
-
-    console.log('🔄 Rechargement de la liste des stations...');
-    await this.loadStations();
-
-    setTimeout(() => {
-      this.closeEditModal();
-      this.successMessage = '';
-    }, 1500);
+  /**
+ * ✅ METTRE À JOUR UNE STATION (avec caractéristiques)
+ */
+private async updateStation(formValue: any): Promise<void> {
+  if (!this.currentEditingStation) {
+    throw new Error('Aucune station à modifier');
   }
+
+  const stationId = this.currentEditingStation._id;
+
+  // 1. Données de base
+  const updatedStation: any = {
+    name: formValue.name,
+    location: {
+      lat: parseFloat(formValue.latitude),
+      lon: parseFloat(formValue.longitude)
+    },
+    status: formValue.status,
+    type: formValue.type,
+    region: formValue.region
+  };
+
+  // 2. Ajouter les caractéristiques
+  const charsValue = this.characteristicsForm.value;
+  updatedStation.characteristics = {
+    filterTypes: charsValue.filterTypes || [],
+    plantedFilters: charsValue.plantedFilters || 0,
+    functionalFilters: charsValue.functionalFilters || 0,
+    dailyCapacity: charsValue.dailyCapacity || 0,
+    numberOfTaps: charsValue.numberOfTaps || 0,
+    operators: [],
+    maintenanceHistory: [],
+    hasPowerBackup: charsValue.hasPowerBackup || false,
+    hasWaterStorage: charsValue.hasWaterStorage || false,
+    storageCapacity: charsValue.storageCapacity || 0,
+    accessRoad: charsValue.accessRoad || 'good',
+    distanceToMainRoad: charsValue.distanceToMainRoad || 0,
+    lastInspection: charsValue.lastInspection || '',
+    nextInspection: charsValue.nextInspection || '',
+    notes: charsValue.notes || ''
+  };
+
+  console.log('🔄 Station à mettre à jour:', stationId, updatedStation);
+
+  const result = await this.kuzzleService.updateStation(stationId, updatedStation);
+  console.log('✅ Station mise à jour dans Kuzzle:', result);
+
+  this.stationUpdated.emit({ _id: stationId, ...updatedStation } as any);
+  this.notifyMapDirectly({ _id: stationId, body: updatedStation }, 'STATION_UPDATED');
+
+  this.successMessage = '✅ Station modifiée avec succès !';
+
+  console.log('🔄 Rechargement de la liste des stations...');
+  await this.loadStations();
+
+  setTimeout(() => {
+    this.closeEditModal();
+    this.successMessage = '';
+  }, 1500);
+}
 
   /**
    * ✅ SUPPRIMER UNE STATION
@@ -761,9 +884,20 @@ canAdd(): boolean {
     console.log('📢 Carte notifiée:', eventType);
   }
 
-  getStationData(station: Station): any {
-    return station._source || station.body || station;
-  }
+ getStationData(station: any): any {
+  if (!station) return {};
+
+  // Cas 1 : Format avec _source (Kuzzle Search)
+  if (station._source) return station._source;
+
+  // Cas 2 : Format avec body (ton Interface actuelle)
+  if (station.body) return station.body;
+
+  // Cas 3 : Format à plat (création Front directe)
+  // On retourne l'objet lui-même mais on enlève les propriétés système
+  const { _id, _kuzzle_info, ...rest } = station;
+  return rest;
+}
 
   private extractRegionFromName(name: string): string {
     if (!name) return 'Dakar';
@@ -929,5 +1063,392 @@ get displayRole(): string {
         structure: station
       });
     });
+  }
+
+  /**
+   * Ouvre le modal des caractéristiques
+   */
+  openCharacteristicsModal(station: Station): void {
+    console.log('📊 Ouverture des caractéristiques pour:', station);
+    this.selectedStationForCharacteristics = station;
+    this.showCharacteristicsModal = true;
+    this.loadStationCharacteristics(station);
+  }
+
+  /**
+   * Ferme le modal des caractéristiques
+   */
+  closeCharacteristicsModal(): void {
+    this.showCharacteristicsModal = false;
+    this.selectedStationForCharacteristics = null;
+    this.characteristicsForm.reset({
+      plantedFilters: 0,
+      functionalFilters: 0,
+      dailyCapacity: 0,
+      numberOfTaps: 0,
+      hasPowerBackup: false,
+      hasWaterStorage: false,
+      storageCapacity: 0,
+      accessRoad: 'good',
+      distanceToMainRoad: 0
+    });
+    this.clearFilterTypes();
+  }
+
+  /**
+   * Charge les caractéristiques d'une station
+   */
+  private async loadStationCharacteristics(station: Station): Promise<void> {
+    this.isLoadingCharacteristics = true;
+
+    try {
+      const stationData = this.getStationData(station);
+      const chars = stationData.characteristics;
+
+      if (chars) {
+        this.characteristicsForm.patchValue({
+          plantedFilters: chars.plantedFilters || 0,
+          functionalFilters: chars.functionalFilters || 0,
+          dailyCapacity: chars.dailyCapacity || 0,
+          numberOfTaps: chars.numberOfTaps || 0,
+          hasPowerBackup: chars.hasPowerBackup || false,
+          hasWaterStorage: chars.hasWaterStorage || false,
+          storageCapacity: chars.storageCapacity || 0,
+          accessRoad: chars.accessRoad || 'good',
+          distanceToMainRoad: chars.distanceToMainRoad || 0,
+          lastInspection: chars.lastInspection || '',
+          nextInspection: chars.nextInspection || '',
+          notes: chars.notes || ''
+        });
+
+        if (chars.filterTypes && chars.filterTypes.length > 0) {
+          chars.filterTypes.forEach((filter: any) => {
+            this.addFilterType(filter);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement caractéristiques:', error);
+    } finally {
+      this.isLoadingCharacteristics = false;
+    }
+  }
+
+  /**
+   * Sauvegarde les caractéristiques
+   */
+async saveCharacteristics(): Promise<void> {
+  if (!this.selectedStationForCharacteristics || this.characteristicsForm.invalid) {
+    return;
+  }
+
+  this.isSubmitting = true;
+
+  try {
+    const formValue = this.characteristicsForm.value;
+    const stationId = this.selectedStationForCharacteristics._id;
+
+    // 1. Préparer l'objet caractéristiques
+    const characteristics: StationCharacteristics = {
+      ...formValue,
+      operators: [],
+      maintenanceHistory: []
+    };
+
+    // 2. Récupérer les données actuelles de la station (nom, location, etc.)
+    const currentData = this.getStationData(this.selectedStationForCharacteristics);
+
+    // 3. Fusionner : On garde tout ce qu'il y avait, et on ajoute/écrase characteristics
+    const updatedStation = {
+      ...currentData,
+      characteristics: characteristics
+    };
+
+    // 4. Envoyer à Kuzzle
+    await this.kuzzleService.updateStation(stationId, updatedStation);
+
+    this.successMessage = '✅ Caractéristiques sauvegardées !';
+    await this.loadStations();
+
+    setTimeout(() => {
+      this.closeCharacteristicsModal();
+      this.successMessage = '';
+    }, 1500);
+
+  } catch (error) {
+    console.error('❌ Erreur:', error);
+    this.errorMessage = 'Erreur lors de la sauvegarde.';
+  } finally {
+    this.isSubmitting = false;
+  }
+}
+  /**
+   * Gestion du FormArray des types de filtres
+   */
+  get filterTypesArray(): FormArray {
+    return this.characteristicsForm.get('filterTypes') as FormArray;
+  }
+
+  addFilterType(data?: any): void {
+    const filterGroup = this.fb.group({
+      type: [data?.type || '', Validators.required],
+      quantity: [data?.quantity || 1, [Validators.required, Validators.min(1)]],
+      installedDate: [data?.installedDate || ''],
+      lastMaintenance: [data?.lastMaintenance || '']
+    });
+    this.filterTypesArray.push(filterGroup);
+  }
+
+  removeFilterType(index: number): void {
+    this.filterTypesArray.removeAt(index);
+  }
+
+  clearFilterTypes(): void {
+    while (this.filterTypesArray.length > 0) {
+      this.filterTypesArray.removeAt(0);
+    }
+  }
+
+  /**
+   * Vérifie si une station a des caractéristiques
+   */
+hasCharacteristics(station: Station): boolean {
+  if (!station) return false; // Sécurité si la station est nulle
+
+  const stationData = this.getStationData(station);
+
+  // On vérifie que stationData existe ET qu'il possède des caractéristiques
+  return !!(stationData && stationData.characteristics);
+}
+  /**
+   * Calcule la santé d'une station (0-100%)
+   */
+ /**
+ * Calcule la santé d'une station (0-100%)
+ * Intègre la disponibilité technique, la maintenance et la qualité de l'eau
+ */
+calculateStationHealth(station: any, waterQualityData?: any[]): number {
+  const stationData = this.getStationData(station);
+  const chars = stationData?.characteristics;
+
+  // Si aucune caractéristique n'est renseignée, on ne peut pas calculer de santé réelle
+  if (!chars) return 0;
+
+  let score = 0;
+  const weights = { environnement: 40, technique: 30, maintenance: 30 };
+
+  // --- 1. PERFORMANCE ENVIRONNEMENTALE (40 points) ---
+  // On calcule l'efficacité réelle basée sur l'abattement de la pollution
+  if (waterQualityData && waterQualityData.length > 0) {
+    const rendementMoyen = this.calculateAverageEfficiency(waterQualityData);
+    score += (rendementMoyen / 100) * weights.environnement;
+  } else {
+    // Score par défaut si pas de données d'analyse (pénalité pour manque de suivi)
+    score += 10;
+  }
+
+  // --- 2. SANTÉ TECHNIQUE / FILTRES (30 points) ---
+  // On utilise Number() pour s'assurer que les calculs ne foirent pas avec les inputs formulaires
+  const fonctionnels = Number(chars.functionalFilters) || 0;
+  const plantes = Number(chars.plantedFilters) || 0;
+  const total = fonctionnels + plantes;
+
+  if (total > 0) {
+    const filterRatio = Math.min(fonctionnels / total, 1);
+    score += filterRatio * weights.technique;
+  }
+
+  // --- 3. MAINTENANCE ET RÉSILIENCE (30 points) ---
+  let maintenanceScore = 0;
+  if (chars.lastInspection) {
+    const daysSinceInspection = Math.floor(
+      (Date.now() - new Date(chars.lastInspection).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (daysSinceInspection < 30) maintenanceScore += 20;      // Très récent
+    else if (daysSinceInspection < 90) maintenanceScore += 10; // Acceptable
+  }
+
+  // Bonus pour l'infrastructure
+  if (chars.hasPowerBackup) maintenanceScore += 5;
+  if (chars.hasWaterStorage) maintenanceScore += 5;
+
+  score += maintenanceScore;
+
+  // Retourne le score arrondi, bridé entre 0 et 100
+  return Math.min(Math.max(Math.round(score), 0), 100);
+}
+
+/**
+ * Calcule le rendement épuratoire moyen sur une série de mesures
+ * Formule : ((Entrée - Sortie) / Entrée) * 100
+ */
+private calculateAverageEfficiency(data: any[]): number {
+  if (!data || data.length === 0) return 0;
+
+  // On ne garde que les mesures qui ont les deux valeurs pour comparer
+  const validMeasures = data.filter(m =>
+    m.valeur_entree !== undefined && m.valeur_entree !== null &&
+    m.valeur_sortie !== undefined && m.valeur_sortie !== null
+  );
+
+  if (validMeasures.length === 0) return 0;
+
+  const totalEfficiency = validMeasures.reduce((acc, curr) => {
+    const entree = parseFloat(curr.valeur_entree);
+    const sortie = parseFloat(curr.valeur_sortie);
+
+    if (isNaN(entree) || isNaN(sortie) || entree <= 0) return acc;
+
+    const efficiency = ((entree - sortie) / entree) * 100;
+    // On limite l'efficience entre 0 et 100 pour éviter les aberrations
+    return acc + Math.min(Math.max(efficiency, 0), 100);
+  }, 0);
+
+  return totalEfficiency / validMeasures.length;
+}
+
+  /**
+   * Obtient l'icône de santé
+   */
+  getStationHealthIcon(station: Station): string {
+    const health = this.calculateStationHealth(station);
+    if (health >= 80) return 'bi-check-circle-fill text-success';
+    if (health >= 50) return 'bi-exclamation-circle-fill text-warning';
+    return 'bi-x-circle-fill text-danger';
+  }
+
+  /**
+   * Obtient un résumé des caractéristiques
+   */
+  getCharacteristicsSummary(station: Station): string {
+    const stationData = this.getStationData(station);
+    const chars = stationData.characteristics;
+
+    if (!chars) return 'Aucune caractéristique définie';
+
+    const parts: string[] = [];
+
+    if (chars.filterTypes && chars.filterTypes.length > 0) {
+      const totalFilters = chars.filterTypes.reduce((sum: number, f: any) => sum + f.quantity, 0);
+      parts.push(`${totalFilters} filtre(s)`);
+    }
+
+    if (chars.plantedFilters > 0) {
+      parts.push(`${chars.plantedFilters} planté(s)`);
+    }
+
+    if (chars.dailyCapacity > 0) {
+      parts.push(`${chars.dailyCapacity}L/jour`);
+    }
+
+    return parts.length > 0 ? parts.join(' • ') : 'Caractéristiques partielles';
+  }
+
+  /**
+   * Génère un rapport pour une station
+   */
+  generateStationReport(station: Station): void {
+    const stationData = this.getStationData(station);
+    const chars = stationData.characteristics;
+
+    if (!chars) {
+      alert('Aucune caractéristique définie pour cette station');
+      return;
+    }
+
+    const report = `
+═══════════════════════════════════════════════════════════════════════════
+                            RAPPORT DE STATION
+═══════════════════════════════════════════════════════════════════════════
+
+📍 INFORMATIONS GÉNÉRALES
+──────────────────────────────────────────────────────────────────────────
+Station         : ${stationData.name}
+Région          : ${this.getStationRegion(station)}
+Statut          : ${stationData.status === 'active' ? '🟢 Active' : '🔴 Inactive'}
+Type            : ${stationData.type === 'fixed' ? '📍 Fixe' : '🚗 Mobile'}
+
+🔧 ÉQUIPEMENTS
+──────────────────────────────────────────────────────────────────────────
+Types de filtres : ${chars.filterTypes.length}
+${chars.filterTypes.map((f: any) => `  • ${f.type} : ${f.quantity} unité(s)`).join('\n') || '  Aucun'}
+Filtres plantés  : ${chars.plantedFilters}
+Filtres actifs   : ${chars.functionalFilters}
+
+💧 CAPACITÉ
+──────────────────────────────────────────────────────────────────────────
+Capacité/jour    : ${chars.dailyCapacity.toLocaleString('fr-FR')} L
+Robinets         : ${chars.numberOfTaps}
+
+🏗️ INFRASTRUCTURE
+──────────────────────────────────────────────────────────────────────────
+Générateur       : ${chars.hasPowerBackup ? '✅ Oui' : '❌ Non'}
+Réservoir        : ${chars.hasWaterStorage ? '✅ Oui' : '❌ Non'}
+Capacité stock   : ${chars.storageCapacity || 0} L
+
+🔨 MAINTENANCE
+──────────────────────────────────────────────────────────────────────────
+Dernière insp.   : ${chars.lastInspection || 'Non renseignée'}
+Prochaine insp.  : ${chars.nextInspection || 'Non planifiée'}
+
+📊 SANTÉ : ${this.calculateStationHealth(station)}%
+
+═══════════════════════════════════════════════════════════════════════════
+Généré le : ${new Date().toLocaleString('fr-FR')}
+═══════════════════════════════════════════════════════════════════════════
+    `.trim();
+
+    console.log(report);
+
+    navigator.clipboard.writeText(report).then(() => {
+      this.successMessage = '📋 Rapport copié dans le presse-papier !';
+      setTimeout(() => this.successMessage = '', 3000);
+    }).catch(() => {
+      alert('Rapport généré (consultez la console)');
+    });
+  }
+
+  /**
+   * Exporte toutes les caractéristiques en CSV
+   */
+  exportAllCharacteristicsToCSV(): void {
+    const headers = [
+      'ID', 'Nom', 'Région', 'Statut', 'Type',
+      'Filtres plantés', 'Filtres actifs', 'Capacité L/jour',
+      'Robinets', 'Générateur', 'Réservoir', 'Santé %'
+    ];
+
+    const rows = this.stations.map(station => {
+      const stationData = this.getStationData(station);
+      const chars = stationData.characteristics;
+
+      return [
+        station._id,
+        stationData.name,
+        this.getStationRegion(station),
+        stationData.status,
+        stationData.type,
+        chars?.plantedFilters || 0,
+        chars?.functionalFilters || 0,
+        chars?.dailyCapacity || 0,
+        chars?.numberOfTaps || 0,
+        chars?.hasPowerBackup ? 'Oui' : 'Non',
+        chars?.hasWaterStorage ? 'Oui' : 'Non',
+        this.calculateStationHealth(station)
+      ];
+    });
+
+    const csv = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `stations_caracteristiques_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    this.successMessage = '📊 Export CSV réussi !';
+    setTimeout(() => this.successMessage = '', 3000);
   }
 }

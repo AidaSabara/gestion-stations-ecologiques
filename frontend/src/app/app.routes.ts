@@ -12,11 +12,14 @@ import { ChartsComponent } from './pages/charts/charts.component';
 import { PredictionsComponent } from './pages/predictions/predictions.component';
 import { FiltresComponent } from './pages/filtres/filtres.component';
 import { dataAccessGuard } from './data-access.guard';
+import { mapAccessGuard } from './map-access.guard';
 import { AuthComponent } from './pages/auth/auth.component';
 import { StationDetailComponent } from './pages/station-detail/station-detail.component';
 import { RealtimeMonitoringComponent } from './pages/realtime-monitoring/realtime-monitoring.component';
 import { AdminComponent } from './pages/admin/admin.component';
-import { UserActivityComponent } from './pages/user-activity/user-activity.component';  // ✅ AJOUTÉ
+import { UserActivityComponent } from './pages/user-activity/user-activity.component';
+import { SensorInjectionComponent } from './pages/sensor-injection/sensor-injection.component';
+import { WaterQualityInjectionComponent } from './pages/water-quality-injection/water-quality-injection.component';
 
 export const routes: Routes = [
     // 🔓 Route publique (pas de guard)
@@ -29,7 +32,7 @@ export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
-        canActivate: [dataAccessGuard], // ✅ Protège tout le layout
+        canActivate: [dataAccessGuard],
         children: [
             // 🏠 Pages d'accueil
             {
@@ -48,12 +51,11 @@ export const routes: Routes = [
                 data: { permission: 'canManageUsers' }
             },
 
-            // ✅ HISTORIQUE DES ACTIVITÉS (tous les utilisateurs authentifiés)
+            // ✅ HISTORIQUE DES ACTIVITÉS (Admin et Agent uniquement)
             {
                 path: 'user-activity',
                 component: UserActivityComponent,
-                // Pas de permission spécifique : chaque user voit son historique
-                // Les supervisors voient leur équipe, les admins voient tout
+                data: { allowedRoles: ['admin', 'agent'] } // ✅ Supervisor exclu
             },
 
             // 📊 DÉTAIL STATION (nécessite canAccessData)
@@ -84,15 +86,18 @@ export const routes: Routes = [
                 data: { permission: 'canAccessFilters' }
             },
 
+            // 🗺️ CARTE COMPLÈTE - ADMIN UNIQUEMENT
+            {
+                path: 'map',
+                component: MapViewComponent,
+                canActivate: [mapAccessGuard]
+            },
+
             // 🌍 PAGES GLOBALES
             {
                 path: 'alerts',
                 component: AlertsComponent,
                 data: { permission: 'canAccessAlerts' }
-            },
-            {
-                path: 'map',
-                component: MapViewComponent
             },
             {
                 path: 'data',
@@ -124,7 +129,17 @@ export const routes: Routes = [
             {
                 path: 'realtime',
                 component: RealtimeMonitoringComponent
-            }
+            },
+            {
+                path: 'sensor-injection',
+                component: SensorInjectionComponent
+            },
+            {
+                path: 'water-quality-injection',
+                component: WaterQualityInjectionComponent,
+
+            },
+
         ],
     },
 

@@ -143,7 +143,7 @@
       />
 
       <select [(ngModel)]="selectedStation" class="filter-select">
-        <option value="all">Toutes les stations</option>
+        <option value="all">Toutes les stations ({{ stationsCount }})</option>
         <option *ngFor="let station of uniqueStations" [value]="station">
           {{ station }}
         </option>

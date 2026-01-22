@@ -1,509 +1,510 @@
 """
-Surveillance avec Kuzzle via API HTTP
-Station Sanar - Système d'Alertes - Version Autonome
+Système de Prédiction ML ROBUSTE
+Utilise les modèles fiables + stratégies de fallback
+
+Usage:
+  python predictions_ml_robuste.py --interactive
+  python predictions_ml_robuste.py --kuzzle
 """
 
-import requests
-import json
+import joblib
+import pandas as pd
+import numpy as np
 from datetime import datetime
-import time
-import sys
+import os
+import argparse
+
+from config_seuils import get_seuil, determiner_niveau_alerte, NIVEAUX_ALERTE
 
 # ==================================================
-# CONFIGURATION DES SEUILS (INTÉGRÉE DIRECTEMENT)
+# RENDEMENTS PAR DÉFAUT (basés sur littérature)
 # ==================================================
 
-# Copie complète de config_seuils.py intégrée ici
-SEUILS_REJET = {
-    'dco_mg_l': 125,              # DCO (Demande Chimique en Oxygène)
-    'dbo5_mg_l': 25,              # DBO5 (Demande Biologique en Oxygène)
-    'mes_mg_l': 30,               # MES (Matières En Suspension)
-    'ammonium_mg_l': 10,          # Ammonium NH4+
-    'nitrates_mg_l': 50,          # Nitrates NO3-
-    'azote_total_mg_l': 15,       # Azote total
-    'phosphates_mg_l': 2,         # Phosphates PO4
-    'coliformes_fecaux_cfu_100ml': 10000,  # Coliformes fécaux
-    'ph_min': 6.5,                # pH minimum
-    'ph_max': 8.5,                # pH maximum
+RENDEMENTS_MOYENS = {
+    'FV1': {'dco': 75.0, 'dbo5': 85.0},
+    'FV2': {'dco': 65.0, 'dbo5': 95.0},
+    'FH': {'dco': 90.0, 'dbo5': 98.0}
 }
 
-NIVEAUX_ALERTE = {
-    'CONFORME': {
-        'seuil': 0.8, 'couleur': 'green', 'icone': '🟢', 'priorite': 0,
-        'action': 'Aucune action requise'
-    },
-    'ATTENTION': {
-        'seuil': 1.0, 'couleur': 'yellow', 'icone': '🟡', 'priorite': 1,
-        'action': 'Surveillance renforcée'
-    },
-    'ALERTE': {
-        'seuil': 1.5, 'couleur': 'orange', 'icone': '🔴', 'priorite': 2,
-        'action': 'Intervention recommandée sous 24h'
-    },
-    'CRITIQUE': {
-        'seuil': float('inf'), 'couleur': 'red', 'icone': '⚠️', 'priorite': 3,
-        'action': 'INTERVENTION IMMÉDIATE REQUISE'
-    }
-}
-
-SEUILS_SPECIFIQUES_FILTRES = {
-    'FV1': {'use_general': True, 'overrides': {}},
-    'FV2': {'use_general': True, 'overrides': {}},
-    'FH': {'use_general': True, 'overrides': {}}
-}
-
-# Fonctions de configuration intégrées
-def get_seuil(parametre, filtre='general'):
-    if filtre in SEUILS_SPECIFIQUES_FILTRES:
-        config_filtre = SEUILS_SPECIFIQUES_FILTRES[filtre]
-        if not config_filtre.get('use_general', True):
-            return config_filtre.get('overrides', {}).get(parametre)
-        if 'overrides' in config_filtre and parametre in config_filtre['overrides']:
-            return config_filtre['overrides'][parametre]
-    return SEUILS_REJET.get(parametre)
-
-def determiner_niveau_alerte(valeur, seuil):
-    if seuil is None or seuil == 0:
-        return 'CONFORME'
-    ratio = valeur / seuil
-    for niveau in ['CONFORME', 'ATTENTION', 'ALERTE', 'CRITIQUE']:
-        if ratio <= NIVEAUX_ALERTE[niveau]['seuil']:
-            return niveau
-    return 'CRITIQUE'
-
-def verifier_ph(ph_value):
-    ph_min = SEUILS_REJET['ph_min']
-    ph_max = SEUILS_REJET['ph_max']
-    if ph_min <= ph_value <= ph_max:
-        return True, 'CONFORME'
-    if ph_value < ph_min:
-        ecart = (ph_min - ph_value) / ph_min
-    else:
-        ecart = (ph_value - ph_max) / ph_max
-    if ecart <= 0.05:
-        return False, 'ATTENTION'
-    elif ecart <= 0.15:
-        return False, 'ALERTE'
-    else:
-        return False, 'CRITIQUE'
-
-print("✅ Configuration des seuils intégrée avec succès")
+SEUIL_R2_FIABLE = 0.5
 
 # ==================================================
-# CONFIGURATION KUZZLE
+# CLASSE PRÉDICTEUR ROBUSTE
 # ==================================================
 
-KUZZLE_CONFIG = {
-    'url': 'http://localhost:7512',
-    'index': 'iot',
-    'collections': {
-        'input': 'water_quality',
-        'alerts': 'alerts'
-    }
-}
-
-# ==================================================
-# CLASSE CLIENT KUZZLE HTTP
-# ==================================================
-
-class KuzzleHTTPClient:
-    """Client HTTP simple pour Kuzzle"""
+class PredicteurRobuste:
+    """Prédicteur avec fallback intelligent"""
     
-    def __init__(self, url):
-        self.base_url = url
-        self.session = requests.Session()
-        self.session.headers.update({'Content-Type': 'application/json'})
+    def __init__(self, models_dir='../models'):
+        self.models_dir = models_dir
+        self.modeles = {}
+        self.modeles_fiables = {}
+        self.charger_tous_modeles()
     
-    def _request(self, method, endpoint, data=None):
-        """Effectuer une requête HTTP vers Kuzzle"""
-        url = f"{self.base_url}{endpoint}"
+    def charger_tous_modeles(self):
+        """Charger et évaluer la fiabilité des modèles"""
         
-        try:
-            if method == 'GET':
-                response = self.session.get(url)
-            elif method == 'POST':
-                response = self.session.post(url, json=data)
-            elif method == 'PUT':
-                response = self.session.put(url, json=data)
-            
-            response.raise_for_status()
-            return response.json()
+        print("\n📦 Chargement et évaluation des modèles...\n")
         
-        except requests.exceptions.ConnectionError:
-            print(f"❌ Erreur de connexion à Kuzzle ({url})")
-            print("💡 Vérifiez que Kuzzle est démarré")
-            return None
-        except requests.exceptions.HTTPError as e:
-            print(f"❌ Erreur HTTP : {e}")
-            return None
-        except Exception as e:
-            print(f"❌ Erreur : {e}")
-            return None
-    
-    def ping(self):
-        """Tester la connexion à Kuzzle"""
-        result = self._request('GET', '/_serverInfo')
-        return result is not None
-    
-    def search_documents(self, index, collection, query=None, size=100):
-        """Rechercher des documents"""
-        endpoint = f"/{index}/{collection}/_search"
-        
-        body = {
-            "query": query or {"match_all": {}},
-            "size": size
-        }
-        
-        result = self._request('POST', endpoint, body)
-        
-        if result and 'result' in result:
-            return result['result'].get('hits', [])
-        return []
-    
-    def create_document(self, index, collection, document):
-        """Créer un document"""
-        endpoint = f"/{index}/{collection}"
-        result = self._request('POST', endpoint, document)
-        
-        if result and 'result' in result:
-            return result['result']
-        return None
-
-# ==================================================
-# CLASSE PRINCIPALE
-# ==================================================
-
-class MoniteurHTTP:
-    """Moniteur utilisant l'API HTTP de Kuzzle"""
-    
-    def __init__(self, config=KUZZLE_CONFIG):
-        self.config = config
-        self.client = KuzzleHTTPClient(config['url'])
-        self.dernier_traitement = None
-    
-    def tester_connexion(self):
-        """Tester la connexion à Kuzzle"""
-        print("\n🔌 Test de connexion à Kuzzle...")
-        print(f"   URL: {self.config['url']}")
-        
-        if self.client.ping():
-            print("✅ Connexion réussie !\n")
-            return True
-        else:
-            print("❌ Impossible de se connecter à Kuzzle")
-            print("\n💡 Solutions :")
-            print("   1. Vérifiez que Kuzzle est démarré")
-            print("   2. Vérifiez l'URL dans KUZZLE_CONFIG")
-            return False
-    
-    def analyser_document(self, doc):
-        """Analyser un document et retourner le résultat"""
-        
-        source = doc.get('_source', doc)
-        id_doc = doc.get('_id', 'unknown')
-        
-        id_station = source.get('id_station')
-        id_filtre = source.get('id_filtre')
-        phase = source.get('phase')
-        
-        if phase != 'Sortie':
-            return None
-        
-        filtre_clean = id_filtre.rstrip('abc') if id_filtre else ''
-        if 'FV1' in filtre_clean:
-            groupe_filtre = 'FV1'
-        elif 'FV2' in filtre_clean:
-            groupe_filtre = 'FV2'
-        elif 'FH' in filtre_clean:
-            groupe_filtre = 'FH'
-        else:
-            groupe_filtre = 'general'
-        
-        depassements = []
-        niveau_max = 'CONFORME'
-        
-        parametres = {
-            'dco_mg_l': source.get('dco_mg_l'),
-            'dbo5_mg_l': source.get('dbo5_mg_l'),
-            'mes_mg_l': source.get('mes_mg_l'),
-            'ammonium_mg_l': source.get('ammonium_mg_l'),
-            'nitrates_mg_l': source.get('nitrates_mg_l'),
-            'phosphates_mg_l': source.get('phosphates_mg_l'),
-            'coliformes_fecaux_cfu_100ml': source.get('coliformes_fecaux_cfu_100ml')
-        }
-        
-        for param, valeur in parametres.items():
-            if valeur is None or valeur == '':
-                continue
-            
-            try:
-                valeur = float(valeur)
-            except (ValueError, TypeError):
-                continue
-            
-            seuil = get_seuil(param, groupe_filtre)
-            if seuil is None:
-                continue
-            
-            niveau = determiner_niveau_alerte(valeur, seuil)
-            
-            if niveau != 'CONFORME':
-                depassement = {
-                    'parametre': param,
-                    'valeur': float(valeur),
-                    'seuil': float(seuil),
-                    'ratio': float(valeur / seuil),
-                    'niveau': niveau
-                }
-                depassements.append(depassement)
-                
-                if NIVEAUX_ALERTE[niveau]['priorite'] > NIVEAUX_ALERTE[niveau_max]['priorite']:
-                    niveau_max = niveau
-        
-        ph = source.get('ph')
-        if ph is not None and ph != '':
-            try:
-                ph = float(ph)
-                conforme_ph, niveau_ph = verifier_ph(ph)
-                
-                if not conforme_ph:
-                    depassement_ph = {
-                        'parametre': 'ph',
-                        'valeur': float(ph),
-                        'seuil': '6.5-8.5',
-                        'ratio': None,
-                        'niveau': niveau_ph
-                    }
-                    depassements.append(depassement_ph)
-                    
-                    if NIVEAUX_ALERTE[niveau_ph]['priorite'] > NIVEAUX_ALERTE[niveau_max]['priorite']:
-                        niveau_max = niveau_ph
-            except (ValueError, TypeError):
-                pass
-        
-        resultat = {
-            'document_id': id_doc,
-            'id_station': id_station,
-            'id_filtre': id_filtre,
-            'groupe_filtre': groupe_filtre,
-            'niveau_global': niveau_max,
-            'conforme': niveau_max == 'CONFORME',
-            'nombre_depassements': len(depassements),
-            'depassements': depassements,
-            'donnees_source': source
-        }
-        
-        return resultat
-    
-    def analyser_collection(self):
-        """Analyser tous les documents de sortie dans la collection"""
-        print("\n🔍 Analyse de la collection Kuzzle...")
-        print(f"   Index: {self.config['index']}")
-        print(f"   Collection: {self.config['collections']['input']}\n")
-        
-        query = {"term": {"phase": "Sortie"}}
-        
-        docs = self.client.search_documents(
-            self.config['index'],
-            self.config['collections']['input'],
-            query,
-            size=1000
-        )
-        
-        if not docs:
-            print("⚠️  Aucun document trouvé")
+        if not os.path.exists(self.models_dir):
+            print(f"❌ Dossier models/ introuvable")
             return
         
-        print(f"✅ {len(docs)} document(s) trouvé(s)\n")
-        print("-" * 70)
+        fichiers = [f for f in os.listdir(self.models_dir) if f.endswith('.pkl')]
+        
+        if not fichiers:
+            print(f"❌ Aucun modèle trouvé")
+            return
+        
+        for fichier in fichiers:
+            nom_modele = fichier.replace('_model.pkl', '')
+            chemin = os.path.join(self.models_dir, fichier)
+            
+            try:
+                data = joblib.load(chemin)
+                self.modeles[nom_modele] = data
+                
+                r2 = data.get('metrics', {}).get('test_r2', -999)
+                
+                if pd.notna(r2) and r2 >= SEUIL_R2_FIABLE:
+                    self.modeles_fiables[nom_modele] = True
+                    print(f"  ✅ {nom_modele:15s} R²={r2:.3f} (FIABLE)")
+                else:
+                    self.modeles_fiables[nom_modele] = False
+                    if pd.isna(r2):
+                        print(f"  ⚠️  {nom_modele:15s} R²=nan (Fallback)")
+                    else:
+                        print(f"  ⚠️  {nom_modele:15s} R²={r2:.3f} (Fallback)")
+                        
+            except Exception as e:
+                print(f"  ❌ {nom_modele}: {e}")
+        
+        nb_fiables = sum(self.modeles_fiables.values())
+        print(f"\n✅ {len(self.modeles)} modèle(s) chargé(s), {nb_fiables} fiable(s)")
+    
+    def predire_avec_fallback(self, donnees_entree, groupe_filtre, variable):
+        """Prédire avec fallback si modèle pas fiable"""
+        
+        nom_modele = f"{groupe_filtre}_{variable}"
+        
+        if nom_modele in self.modeles and self.modeles_fiables.get(nom_modele, False):
+            try:
+                model_data = self.modeles[nom_modele]
+                model = model_data['model']
+                scaler = model_data['scaler']
+                
+                X_new = pd.DataFrame([{
+                    f'entree_{variable}': donnees_entree.get(f'{variable}_mg_l'),
+                    'entree_ph': donnees_entree.get('ph'),
+                    'entree_mes': donnees_entree.get('mes_mg_l')
+                }])
+                
+                if not X_new.isna().any().any():
+                    X_scaled = scaler.transform(X_new)
+                    rendement = model.predict(X_scaled)[0]
+                    rendement = max(0, min(100, rendement))
+                    
+                    return {
+                        'rendement': rendement,
+                        'methode': 'ML',
+                        'fiabilite': 'haute',
+                        'r2': model_data.get('metrics', {}).get('test_r2', 0)
+                    }
+            except Exception as e:
+                print(f"   ⚠️ Erreur ML pour {variable}: {e}")
+        
+        rendement_moyen = RENDEMENTS_MOYENS[groupe_filtre][variable]
+        
+        return {
+            'rendement': rendement_moyen,
+            'methode': 'Fallback (moyenne)',
+            'fiabilite': 'moyenne',
+            'r2': None
+        }
+    
+    def predire_sortie(self, donnees_entree, groupe_filtre):
+        """Prédire qualité de sortie pour tous les paramètres"""
+        
+        predictions = {}
+        
+        for variable in ['dco', 'dbo5']:
+            pred = self.predire_avec_fallback(donnees_entree, groupe_filtre, variable)
+            
+            valeur_entree = donnees_entree.get(f'{variable}_mg_l')
+            rendement = pred['rendement']
+            valeur_sortie = valeur_entree * (1 - rendement / 100)
+            valeur_sortie = max(0, valeur_sortie)
+            
+            predictions[f'{variable}_mg_l'] = {
+                'entree': valeur_entree,
+                'sortie_predite': round(valeur_sortie, 2),
+                'rendement_predit': round(rendement, 2),
+                'methode': pred['methode'],
+                'fiabilite': pred['fiabilite'],
+                'r2': pred['r2']
+            }
+        
+        return predictions
+    
+    def analyser_et_alerter(self, predictions, groupe_filtre):
+        """Analyser prédictions et générer alertes"""
         
         alertes = []
-        conformes = 0
+        conforme = True
         
-        for doc in docs:
-            resultat = self.analyser_document(doc)
+        for param, pred in predictions.items():
+            valeur_predite = pred['sortie_predite']
+            seuil = get_seuil(param, groupe_filtre)
             
-            if resultat is None:
-                continue
+            if seuil:
+                niveau = determiner_niveau_alerte(valeur_predite, seuil)
+                
+                if niveau != 'CONFORME':
+                    conforme = False
+                    alertes.append({
+                        'parametre': param,
+                        'valeur_predite': valeur_predite,
+                        'seuil': seuil,
+                        'niveau': niveau,
+                        'action': NIVEAUX_ALERTE[niveau]['action']
+                    })
+        
+        return {
+            'conforme': conforme,
+            'alertes': alertes,
+            'niveau_global': max(
+                [a['niveau'] for a in alertes],
+                key=lambda x: NIVEAUX_ALERTE[x]['priorite']
+            ) if alertes else 'CONFORME'
+        }
+    
+    def afficher_predictions(self, predictions, analyse, groupe_filtre):
+        """Afficher résultats"""
+        
+        print("\n" + "="*70)
+        print(f"  🔮 PRÉDICTIONS - FILTRE {groupe_filtre}")
+        print("="*70 + "\n")
+        
+        for param, pred in predictions.items():
+            param_display = param.replace('_mg_l', '').upper()
+            icone_methode = "🤖" if pred['methode'] == 'ML' else "📊"
             
-            icone = NIVEAUX_ALERTE[resultat['niveau_global']]['icone']
-            print(f"{icone} {resultat['id_filtre']:10s} → {resultat['niveau_global']:10s}", end='')
+            print(f"{icone_methode} {param_display}:")
+            print(f"   Entrée:          {pred['entree']:.2f} mg/L")
+            print(f"   Sortie prédite:  {pred['sortie_predite']:.2f} mg/L")
+            print(f"   Rendement:       {pred['rendement_predit']:.1f}%")
+            print(f"   Méthode:         {pred['methode']}")
+            print(f"   Fiabilité:       {pred['fiabilite']}")
             
-            if resultat['conforme']:
-                conformes += 1
-                print(" ✓")
-            else:
-                print(f" ({resultat['nombre_depassements']} dépassement(s))")
-                alertes.append(resultat)
-                self.creer_alerte(resultat)
+            if pred['r2'] is not None:
+                print(f"   R²:              {pred['r2']:.3f}")
+            
+            seuil = get_seuil(param, groupe_filtre)
+            if seuil:
+                niveau = determiner_niveau_alerte(pred['sortie_predite'], seuil)
+                icone = NIVEAUX_ALERTE[niveau]['icone']
+                print(f"   Statut:          {icone} {niveau} (seuil: {seuil} mg/L)")
+            
+            print()
         
         print("-" * 70)
-        print(f"\n📊 Résumé :")
-        print(f"   Conformes: {conformes}")
-        print(f"   Alertes: {len(alertes)}")
+        if analyse['conforme']:
+            print("✅ RÉSULTAT: Qualité prédite CONFORME")
+        else:
+            print(f"🚨 RÉSULTAT: {analyse['niveau_global']}")
+            print(f"\n⚠️  {len(analyse['alertes'])} alerte(s) préventive(s):")
+            for alerte in analyse['alertes']:
+                print(f"   • {alerte['parametre']}: {alerte['valeur_predite']:.2f} > {alerte['seuil']}")
+                print(f"     → {alerte['action']}")
         
-        if alertes:
-            self.afficher_details_alertes(alertes)
-    
-    def creer_alerte(self, resultat):
-        """Créer une alerte dans Kuzzle"""
-        try:
-            level_mapping = {
-                'CONFORME': 'info',
-                'ATTENTION': 'warning',
-                'ALERTE': 'warning',
-                'CRITIQUE': 'critical'
-            }
-            
-            message = f"Dépassement de seuil détecté sur le filtre {resultat['id_filtre']}"
-            if resultat['nombre_depassements'] > 0:
-                depassements_list = [dep['parametre'].upper() for dep in resultat['depassements']]
-                message += f" - Paramètres: {', '.join(depassements_list)}"
-            
-            premier_depassement = resultat['depassements'][0] if resultat['depassements'] else None
-            
-            alerte = {
-                'stationId': resultat['id_station'],
-                'type': 'seuil dépassé',
-                'level': level_mapping.get(resultat['niveau_global'], 'warning'),
-                'message': message,
-                'timestamp': datetime.now().isoformat(),
-                'resolved': False,
-                'metadata': {
-                    'id_filtre': resultat['id_filtre'],
-                    'groupe_filtre': resultat['groupe_filtre'],
-                    'severity_original': resultat['niveau_global'],
-                    'nombre_depassements': resultat['nombre_depassements'],
-                    'tous_depassements': resultat['depassements']
-                }
-            }
-            
-            result = self.client.create_document(
-                self.config['index'],
-                self.config['collections']['alerts'],
-                alerte
-            )
-            
-            if result:
-                alert_id = result.get('_id')
-                print(f"✅ Alerte créée: {alert_id}")
-                return alert_id
-            else:
-                print(f"❌ Échec création alerte pour {resultat['id_filtre']}")
-                return None
-                
-        except Exception as e:
-            print(f"❌ Erreur création alerte: {e}")
-            return None
-    
-    def afficher_details_alertes(self, alertes):
-        """Afficher les détails des alertes"""
-        print("\n" + "="*70)
-        print("  🚨 DÉTAILS DES ALERTES")
-        print("="*70 + "\n")
-        
-        for i, alerte in enumerate(alertes, 1):
-            icone = NIVEAUX_ALERTE[alerte['niveau_global']]['icone']
-            
-            print(f"{icone} ALERTE #{i} - {alerte['niveau_global']}")
-            print(f"   Filtre: {alerte['id_filtre']} ({alerte['groupe_filtre']})")
-            print(f"   Dépassements:")
-            
-            for dep in alerte['depassements']:
-                param = dep['parametre'].replace('_mg_l', '').replace('_cfu_100ml', '').upper()
-                print(f"      • {param}: {dep['valeur']:.2f} (seuil: {dep['seuil']})", end='')
-                if dep['ratio']:
-                    print(f" - {dep['ratio']:.1%}")
-                else:
-                    print()
-            
-            print(f"   ⚠️  {NIVEAUX_ALERTE[alerte['niveau_global']]['action']}")
-            print()
-    
-    def afficher_alertes_actives(self):
-        """Afficher les alertes non résolues"""
-        print("\n" + "="*70)
-        print("  🚨 ALERTES ACTIVES (Non résolues)")
-        print("="*70 + "\n")
-        
-        query = {"term": {"resolved": False}}
-        
-        alertes = self.client.search_documents(
-            self.config['index'],
-            self.config['collections']['alerts'],
-            query
-        )
-        
-        if not alertes:
-            print("✅ Aucune alerte active\n")
-            return
-        
-        print(f"Total: {len(alertes)} alerte(s)\n")
-        
-        for hit in alertes:
-            source = hit['_source']
-            timestamp = datetime.fromisoformat(source['timestamp'])
-            
-            niveau_alerte = source.get('level', 'warning')
-            niveau_mapping = {'info': 'CONFORME', 'warning': 'ALERTE', 'critical': 'CRITIQUE'}
-            niveau_corrige = niveau_mapping.get(niveau_alerte, 'ALERTE')
-            icone = NIVEAUX_ALERTE[niveau_corrige]['icone']
-            
-            print(f"{icone} {niveau_alerte.upper()}")
-            print(f"   Date: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"   Filtre: {source.get('metadata', {}).get('id_filtre', 'Inconnu')}")
-            print(f"   Dépassements: {source.get('metadata', {}).get('nombre_depassements', 0)}")
-            print()
-    
-    def surveillance_continue(self, intervalle=60):
-        """Surveiller en continu (polling)"""
-        print("\n🔄 MODE SURVEILLANCE CONTINUE")
-        print(f"   Intervalle: {intervalle} secondes")
-        print("   (Appuyez sur Ctrl+C pour arrêter)\n")
-        
-        try:
-            while True:
-                print(f"\n⏰ [{datetime.now().strftime('%H:%M:%S')}] Analyse en cours...")
-                self.analyser_collection()
-                print(f"\n💤 Attente de {intervalle}s...")
-                time.sleep(intervalle)
-        except KeyboardInterrupt:
-            print("\n\n⏹️  Surveillance arrêtée")
+        print("="*70)
+
 
 # ==================================================
-# FONCTION PRINCIPALE
+# MODE INTERACTIF
+# ==================================================
+
+def mode_interactif():
+    """Mode interactif"""
+    
+    print("\n" + "="*70)
+    print("  🎮 MODE INTERACTIF - PRÉDICTIONS ROBUSTES")
+    print("="*70)
+    
+    predicteur = PredicteurRobuste()
+    
+    if not predicteur.modeles:
+        print("\n❌ Aucun modèle disponible")
+        return
+    
+    while True:
+        print("\n📋 Données d'ENTRÉE:")
+        
+        print("\n1. FV1  2. FV2  3. FH")
+        choix = input("Filtre (1-3): ").strip()
+        groupe_map = {'1': 'FV1', '2': 'FV2', '3': 'FH'}
+        groupe = groupe_map.get(choix, 'FV1')
+        
+        print(f"\n✅ Filtre: {groupe}")
+        
+        donnees = {}
+        params = [
+            ('dco_mg_l', 'DCO (mg/L)', 1200),
+            ('dbo5_mg_l', 'DBO5 (mg/L)', 550),
+            ('mes_mg_l', 'MES (mg/L)', 250),
+            ('ph', 'pH', 7.5)
+        ]
+        
+        for param, label, defaut in params:
+            val = input(f"{label} [{defaut}]: ").strip()
+            donnees[param] = float(val) if val else defaut
+        
+        print("\n🔮 Prédiction...")
+        predictions = predicteur.predire_sortie(donnees, groupe)
+        analyse = predicteur.analyser_et_alerter(predictions, groupe)
+        predicteur.afficher_predictions(predictions, analyse, groupe)
+        
+        if input("\n➡️  Autre prédiction ? (o/n): ").strip().lower() != 'o':
+            break
+    
+    print("\n👋 Au revoir !")
+
+
+# ==================================================
+# MODE KUZZLE (CORRIGÉ)
+# ==================================================
+
+def obtenir_station_valide(kuzzle_url, index):
+    """Obtenir un stationId valide depuis Kuzzle"""
+    import requests
+    
+    try:
+        response = requests.post(
+            f"{kuzzle_url}/{index}/stations/_search",
+            json={"size": 1},
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            hits = response.json().get('result', {}).get('hits', [])
+            if hits:
+                station = hits[0]
+                station_id = station['_id']
+                station_name = station.get('_source', {}).get('name', 'Inconnue')
+                print(f"✅ Station trouvée: {station_name}")
+                print(f"   ID: {station_id}\n")
+                return station_id
+    except Exception as e:
+        print(f"⚠️  Erreur récupération station: {e}")
+    
+    # Fallback
+    return 'station-saint-louis-1764092258261'
+
+
+def mode_kuzzle():
+    """Mode Kuzzle avec prédictions robustes"""
+    
+    print("\n" + "="*70)
+    print("  🌊 MODE KUZZLE - PRÉDICTIONS TEMPS RÉEL ROBUSTES")
+    print("="*70)
+    
+    try:
+        import requests
+    except ImportError:
+        print("❌ Module 'requests' requis: pip install requests")
+        return
+    
+    KUZZLE_URL = "http://localhost:7512"
+    INDEX = "iot"
+    
+    predicteur = PredicteurRobuste()
+    
+    if not predicteur.modeles:
+        print("\n❌ Aucun modèle disponible")
+        return
+    
+    # Test connexion
+    print("\n🔌 Test connexion Kuzzle...")
+    try:
+        response = requests.get(f"{KUZZLE_URL}/_serverInfo")
+        response.raise_for_status()
+        print("✅ Connecté à Kuzzle")
+    except Exception as e:
+        print(f"❌ Erreur: {e}")
+        return
+    
+    # 🔴 CORRECTION 1: Obtenir un stationId valide
+    station_id = obtenir_station_valide(KUZZLE_URL, INDEX)
+    
+    print("\n📊 Recherche données d'entrée récentes...")
+    
+    try:
+        response = requests.post(
+            f"{KUZZLE_URL}/{INDEX}/water_quality/_search",
+            json={
+                "query": {"term": {"phase": "Entree"}},
+                "sort": [{"_kuzzle_info.createdAt": "desc"}],
+                "size": 10
+            }
+        )
+        
+        if response.status_code == 200:
+            hits = response.json().get('result', {}).get('hits', [])
+            
+            if not hits:
+                print("⚠️  Aucune donnée trouvée")
+                return
+            
+            print(f"✅ {len(hits)} document(s) trouvé(s)\n")
+            
+            predictions_ok = 0
+            alertes_creees = 0
+            
+            for i, hit in enumerate(hits, 1):
+                source = hit.get('_source', {})
+                id_filtre = source.get('id_filtre', '')
+                
+                print(f"\n{'='*70}")
+                print(f"  📄 Document {i}/{len(hits)}: {id_filtre}")
+                print(f"{'='*70}")
+                
+                if 'FV1' in id_filtre:
+                    groupe = 'FV1'
+                elif 'FV2' in id_filtre:
+                    groupe = 'FV2'
+                else:
+                    groupe = 'FH'
+                
+                donnees = {
+                    'dco_mg_l': source.get('dco_mg_l') or 1000,
+                    'dbo5_mg_l': source.get('dbo5_mg_l') or 500,
+                    'mes_mg_l': source.get('mes_mg_l') or 200,
+                    'ph': source.get('ph') or 7.0
+                }
+                
+                if donnees['dco_mg_l'] < 10 or donnees['dbo5_mg_l'] < 10:
+                    print("⚠️  Données trop faibles, skip")
+                    continue
+                
+                predictions = predicteur.predire_sortie(donnees, groupe)
+                analyse = predicteur.analyser_et_alerter(predictions, groupe)
+                predicteur.afficher_predictions(predictions, analyse, groupe)
+                
+                predictions_ok += 1
+                
+                # 🔴 CORRECTION 2: Utiliser le stationId valide
+                if not analyse['conforme']:
+                    if creer_alerte_kuzzle(KUZZLE_URL, INDEX, station_id, predictions, analyse, groupe, id_filtre):
+                        alertes_creees += 1
+            
+            print(f"\n{'='*70}")
+            print(f"  📊 RÉSUMÉ")
+            print(f"{'='*70}")
+            print(f"✅ Prédictions: {predictions_ok}")
+            print(f"🚨 Alertes créées: {alertes_creees}")
+            
+            if alertes_creees > 0:
+                print(f"\n💡 Pour voir les alertes:")
+                print(f"   - Vue globale: http://localhost:4200/alerts")
+                print(f"   - Vue station: http://localhost:4200/alerts/{station_id}")
+            
+            print()
+            
+        else:
+            print(f"❌ Erreur {response.status_code}")
+            
+    except Exception as e:
+        print(f"❌ Erreur: {e}")
+
+
+def creer_alerte_kuzzle(url, index, station_id, predictions, analyse, groupe, id_filtre):
+    """Créer alerte dans Kuzzle avec le format correct"""
+    
+    import requests
+    
+    try:
+        # 🔴 CORRECTION 3: Mapper les niveaux correctement
+        severity_mapping = {
+            'CONFORME': 'info',
+            'ATTENTION': 'warning',
+            'ALERTE': 'high',      # ✅ Changé de 'warning' à 'high'
+            'CRITIQUE': 'critical'
+        }
+        
+        params_alertes = [a['parametre'].replace('_mg_l', '').upper() for a in analyse['alertes']]
+        message = f"Prédiction {groupe}/{id_filtre}: {', '.join(params_alertes)} au-dessus des seuils"
+        
+        methodes = [p['methode'] for p in predictions.values()]
+        methode_globale = 'ML' if 'ML' in methodes else 'Fallback'
+        
+        # Premier dépassement pour les champs principaux
+        premier_depassement = analyse['alertes'][0]
+        
+        # 🔴 CORRECTION 4: Utiliser le format attendu par le frontend
+        alerte = {
+            'stationId': station_id,  # ✅ Utiliser le stationId valide
+            'type': 'Alerte Préventive ML',  # ✅ Type reconnaissable
+            'severity': severity_mapping.get(analyse['niveau_global'], 'warning'),  # ✅ Utiliser 'severity'
+            'message': message,
+            'timestamp': datetime.now().isoformat(),  # ✅ Format ISO
+            'status': 'active',  # ✅ Statut pour le filtrage
+            'parameter': premier_depassement['parametre'],  # ✅ Champ attendu
+            'value': float(premier_depassement['valeur_predite']),  # ✅ Champ attendu
+            'threshold': float(premier_depassement['seuil']),  # ✅ Champ attendu
+            'metadata': {
+                'predictive': True,
+                'source': 'ML_Prevention',
+                'methode': f'Prédiction {methode_globale}',
+                'groupe_filtre': groupe,
+                'id_filtre': id_filtre,
+                'niveau_predit': analyse['niveau_global'],
+                'predictions': {
+                    k: {
+                        'entree': v['entree'],
+                        'sortie_predite': v['sortie_predite'],
+                        'rendement': v['rendement_predit'],
+                        'methode': v['methode']
+                    }
+                    for k, v in predictions.items()
+                },
+                'tous_depassements': analyse['alertes']
+            }
+        }
+        
+        response = requests.post(f"{url}/{index}/alerts", json=alerte, timeout=5)
+        
+        if response.status_code in [200, 201]:
+            result = response.json().get('result', {})
+            alert_id = result.get('_id')
+            print(f"   ✅ Alerte créée dans Kuzzle (ID: {alert_id})")
+            return True
+        else:
+            print(f"   ⚠️  Erreur création alerte: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ Erreur: {e}")
+        return False
+
+
+# ==================================================
+# MAIN
 # ==================================================
 
 def main():
-    print("\n" + "="*70)
-    print("  🌊 SYSTÈME D'ALERTES - STATION SANAR")
-    print("  Version Autonome (Sans dépendances externes)")
-    print("="*70)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--interactive', action='store_true', help='Mode interactif')
+    parser.add_argument('--kuzzle', action='store_true', help='Mode Kuzzle temps réel')
+    args = parser.parse_args()
     
-    moniteur = MoniteurHTTP()
-    
-    if not moniteur.tester_connexion():
-        print("\n⚠️  Impossible de continuer sans connexion Kuzzle")
-        return
-    
-    print("\n📋 MENU:")
-    print("  1. Analyser la collection (une fois)")
-    print("  2. Surveiller en continu (toutes les 60s)")
-    print("  3. Afficher les alertes actives")
-    print("  4. Quitter")
-    
-    choix = input("\nVotre choix (1-4): ").strip()
-    
-    if choix == "1":
-        moniteur.analyser_collection()
-    elif choix == "2":
-        intervalle = input("Intervalle en secondes (défaut: 60): ").strip()
-        intervalle = int(intervalle) if intervalle.isdigit() else 60
-        moniteur.surveillance_continue(intervalle)
-    elif choix == "3":
-        moniteur.afficher_alertes_actives()
+    if args.kuzzle:
+        mode_kuzzle()
+    elif args.interactive or len(os.sys.argv) == 1:
+        mode_interactif()
     else:
-        print("\n👋 Au revoir !")
+        print("\nUsage:")
+        print("  python predictions_ml_robuste.py --interactive")
+        print("  python predictions_ml_robuste.py --kuzzle")
 
 if __name__ == "__main__":
     main()

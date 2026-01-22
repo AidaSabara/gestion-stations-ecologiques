@@ -12,6 +12,8 @@ export class ActivityLogService {
   private kuzzle: any;
   private readonly INDEX = 'iot';
   private readonly COLLECTION = 'user_activity_logs';
+  private isConnected: boolean = false;
+  private connectionPromise: Promise<void> | null = null;
 
   constructor() {
     const protocol = new WebSocket(
@@ -29,13 +31,38 @@ export class ActivityLogService {
    * Connexion à Kuzzle
    */
   async connect(): Promise<void> {
-    try {
-      await this.kuzzle.connect();
-      console.log('✅ ActivityLogService connecté à Kuzzle');
-      await this.ensureCollection();
-    } catch (error) {
-      console.error('❌ Erreur connexion ActivityLogService:', error);
-      throw error;
+    if (this.isConnected) {
+      return;
+    }
+
+    if (this.connectionPromise) {
+      return this.connectionPromise;
+    }
+
+    this.connectionPromise = (async () => {
+      try {
+        await this.kuzzle.connect();
+        this.isConnected = true;
+        console.log('✅ ActivityLogService connecté à Kuzzle');
+        await this.ensureCollection();
+      } catch (error) {
+        console.error('❌ Erreur connexion ActivityLogService:', error);
+        this.isConnected = false;
+        this.connectionPromise = null;
+        throw error;
+      }
+    })();
+
+    return this.connectionPromise;
+  }
+
+  /**
+   * S'assure que la connexion est établie
+   */
+  private async ensureConnected(): Promise<void> {
+    if (!this.isConnected) {
+      console.log('⚠️ ActivityLogService pas connecté, connexion en cours...');
+      await this.connect();
     }
   }
 
@@ -48,9 +75,11 @@ export class ActivityLogService {
       if (!exists) {
         await this.kuzzle.collection.create(this.INDEX, this.COLLECTION);
         console.log('✅ Collection user_activity_logs créée');
+      } else {
+        console.log('✅ Collection user_activity_logs existe déjà');
       }
     } catch (error) {
-      console.error('❌ Erreur création collection:', error);
+      console.error('❌ Erreur vérification/création collection:', error);
     }
   }
 
@@ -59,10 +88,19 @@ export class ActivityLogService {
    */
   async logActivity(logData: CreateActivityLogDto): Promise<ActivityLog> {
     try {
+      // 🔥 S'assurer que la connexion est établie
+      await this.ensureConnected();
+
       const document = {
         ...logData,
         timestamp: new Date().toISOString()
       };
+
+      console.log('📝 Tentative d\'enregistrement d\'activité:', {
+        action: logData.action,
+        userId: logData.userId,
+        userEmail: logData.userEmail
+      });
 
       const result = await this.kuzzle.document.create(
         this.INDEX,
@@ -73,9 +111,16 @@ export class ActivityLogService {
       );
 
       console.log(`✅ Activité enregistrée: ${logData.action} par ${logData.userName}`);
+      console.log(`📄 Document ID: ${result._id}`);
+      
       return this.mapKuzzleToActivityLog(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erreur logActivity:', error);
+      console.error('📋 Détails de l\'erreur:', {
+        message: error.message,
+        stack: error.stack,
+        logData
+      });
       throw error;
     }
   }
@@ -89,6 +134,9 @@ export class ActivityLogService {
     currentUser?: { userId: string; role: string; stationId?: string }
   ): Promise<{ logs: ActivityLog[]; total: number }> {
     try {
+      // 🔥 S'assurer que la connexion est établie
+      await this.ensureConnected();
+
       const query: any = { bool: { must: [] } };
 
       // Filtrer par permissions
@@ -142,6 +190,8 @@ export class ActivityLogService {
       const limit = pagination?.limit || 50;
       const from = (page - 1) * limit;
 
+      console.log('🔍 Recherche logs avec query:', JSON.stringify(searchQuery, null, 2));
+
       const result = await this.kuzzle.document.search(
         this.INDEX,
         this.COLLECTION,
@@ -153,11 +203,14 @@ export class ActivityLogService {
         }
       );
 
+      console.log(`📊 ${result.total} logs trouvés, ${result.hits.length} retournés`);
+
       const logs = result.hits.map((hit: any) => this.mapKuzzleToActivityLog(hit));
 
       return { logs, total: result.total };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erreur getActivityLogs:', error);
+      console.error('📋 Détails:', error.message);
       throw error;
     }
   }
@@ -167,6 +220,8 @@ export class ActivityLogService {
    */
   async getActivityStats(currentUser?: { userId: string; role: string }): Promise<ActivityLogStats> {
     try {
+      await this.ensureConnected();
+
       const { logs } = await this.getActivityLogs(
         {},
         { limit: 10000 },
@@ -232,6 +287,7 @@ export class ActivityLogService {
     userId: string,
     pagination?: PaginationParams
   ): Promise<{ logs: ActivityLog[]; total: number }> {
+    await this.ensureConnected();
     return this.getActivityLogs({ userId }, pagination);
   }
 
@@ -240,6 +296,8 @@ export class ActivityLogService {
    */
   async cleanOldLogs(daysToKeep: number = 90): Promise<number> {
     try {
+      await this.ensureConnected();
+
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
@@ -290,8 +348,12 @@ export class ActivityLogService {
    */
   async disconnect(): Promise<void> {
     try {
-      this.kuzzle.disconnect();
-      console.log('✅ ActivityLogService déconnecté');
+      if (this.isConnected) {
+        this.kuzzle.disconnect();
+        this.isConnected = false;
+        this.connectionPromise = null;
+        console.log('✅ ActivityLogService déconnecté');
+      }
     } catch (error) {
       console.error('❌ Erreur déconnexion:', error);
     }

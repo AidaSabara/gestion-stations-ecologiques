@@ -1,415 +1,269 @@
-/* ========================================
-   VARIABLES CSS - Configuration globale
-   ======================================== */
-:root {
-  --primary-color: #2c5aa0;
-  --secondary-color: #6c757d;
-  --success-color: #198754;
-  --danger-color: #dc3545;
-  --warning-color: #ffc107;
-  --info-color: #0dcaf0;
-  --light-color: #f8f9fa;
-  --dark-color: #212529;
-  --border-radius: 0.75rem;
-  --box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.1);
-  --box-shadow-hover: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
-  --transition: all 0.3s ease;
-}
-
-/* ========================================
-   STYLES DE BASE
-   ======================================== */
 .charts-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f8fafc;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
 }
 
-/* ========================================
-   CARTES MODERNES
-   ======================================== */
-.card {
-  border: none;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  transition: var(--transition);
+/* Header */
+.charts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
   background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card-hover {
-  cursor: pointer;
+.page-title h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #2c3e50;
+  font-weight: 700;
 }
 
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--box-shadow-hover);
+.subtitle {
+  margin: 5px 0 0;
+  color: #7f8c8d;
+  font-size: 1rem;
 }
 
-.card-header {
-  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-  border-bottom: 1px solid #e9ecef;
-  font-weight: 600;
+.refresh-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-/* ========================================
-   🆕 BORDURES COLORÉES SELON STATUT
-   ======================================== */
-.card-status-success {
-  border-left: 4px solid var(--success-color);
-}
-
-.card-status-warning {
-  border-left: 4px solid var(--warning-color);
-}
-
-.card-status-danger {
-  border-left: 4px solid var(--danger-color);
-}
-
-.card-status-info {
-  border-left: 4px solid var(--info-color);
-}
-
-/* ========================================
-   CONTENEURS DE GRAPHIQUES
-   ======================================== */
-.chart-container {
-  position: relative;
-  width: 100%;
-  min-height: 200px;
-}
-
-.chart-container canvas {
-  border-radius: 8px;
-}
-
-/* ========================================
-   🆕 SKELETON LOADER POUR GRAPHIQUES
-   ======================================== */
-.skeleton-chart {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 8px;
-  height: 300px;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* ========================================
-   🆕 TOOLTIP PERSONNALISÉ
-   ======================================== */
-.custom-tooltip {
-  position: relative;
-  cursor: help;
-}
-
-.custom-tooltip::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.9);
+.btn-refresh {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  z-index: 1000;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.custom-tooltip:hover::after {
-  opacity: 1;
+.btn-refresh:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
-/* Flèche du tooltip */
-.custom-tooltip::before {
-  content: '';
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.9);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  z-index: 1000;
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.custom-tooltip:hover::before {
-  opacity: 1;
+.last-update {
+  color: #7f8c8d;
+  font-size: 0.9rem;
 }
 
-/* ========================================
-   🆕 INDICATEUR DE QUALITÉ DE L'EAU
-   ======================================== */
-.water-quality-indicator {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-left: 8px;
-  animation: pulse-quality 2s ease-in-out infinite;
-  vertical-align: middle;
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.water-quality-good {
-  background-color: var(--success-color);
-  box-shadow: 0 0 8px rgba(25, 135, 84, 0.6);
+.kpi-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 5px solid #3498db;
 }
 
-.water-quality-moderate {
-  background-color: var(--warning-color);
-  box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-.water-quality-poor {
-  background-color: var(--danger-color);
-  box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+.kpi-success { border-left-color: #27ae60; }
+.kpi-info { border-left-color: #3498db; }
+.kpi-warning { border-left-color: #f39c12; }
+.kpi-primary { border-left-color: #9b59b6; }
+
+.kpi-icon {
+  font-size: 3rem;
+  opacity: 0.8;
 }
 
-@keyframes pulse-quality {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
-}
-
-/* ========================================
-   🆕 ANIMATION PULSE POUR ALERTES
-   ======================================== */
-.alert-pulse {
-  animation: pulse-alert 2s ease-in-out infinite;
-}
-
-@keyframes pulse-alert {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-/* ========================================
-   INDICATEURS DE COULEUR
-   ======================================== */
-.color-indicator {
-  flex-shrink: 0;
-  transition: var(--transition);
-}
-
-.color-indicator:hover {
-  transform: scale(1.1);
-}
-
-/* ========================================
-   BADGES
-   ======================================== */
-.badge {
-  font-size: 0.75em;
+.kpi-content h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #7f8c8d;
   font-weight: 500;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* ========================================
-   ÉTATS DE CHARGEMENT
-   ======================================== */
-.loading-state {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: var(--border-radius);
+.kpi-value {
+  margin: 10px 0 5px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
 }
 
-.spinner-border {
-  animation: spinner-rotate 0.75s linear infinite;
-  border-width: 3px;
+.kpi-label {
+  color: #95a5a6;
+  font-size: 0.85rem;
 }
 
-@keyframes spinner-rotate {
-  to {
-    transform: rotate(360deg);
-  }
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.progress {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  background: linear-gradient(90deg, var(--primary-color) 0%, var(--info-color) 100%);
-  animation: progress-animation 2s ease-in-out infinite;
-}
-
-@keyframes progress-animation {
-  0% {
-    transform: translateX(-100%);
-  }
-  50% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-}
-
-/* ========================================
-   EN-TÊTE ET NAVIGATION
-   ======================================== */
-.page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: var(--border-radius);
-  color: white;
-}
-
-/* ========================================
-   BOUTONS
-   ======================================== */
-.btn {
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: var(--transition);
-  border: 2px solid transparent;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-}
-
-.btn-outline-primary {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.btn-outline-primary:hover {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  transform: translateY(-1px);
-}
-
-.btn-outline-secondary:hover {
-  transform: translateY(-1px);
-}
-
-/* ========================================
-   🆕 GROUPE DE BOUTONS FILTRES
-   ======================================== */
-.btn-group-sm .btn {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-}
-
-.btn-group .btn.active {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-
-/* ========================================
-   INDICATEURS DE STATISTIQUES
-   ======================================== */
-.stats-card {
-  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-  border-left: 4px solid var(--primary-color);
-}
-
-.stats-card .bg-opacity-10 {
-  backdrop-filter: blur(10px);
-}
-
-/* ========================================
-   GUIDE DES PARAMÈTRES
-   ======================================== */
-.param-guide {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: var(--border-radius);
-}
-
-.param-item {
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: var(--transition);
-}
-
-.param-item:hover {
-  background-color: rgba(255, 255, 255, 0.7);
-  transform: translateX(5px);
-}
-
-/* ========================================
-   ÉTAT VIDE
-   ======================================== */
-.empty-state {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.empty-state i {
-  opacity: 0.7;
-  transition: var(--transition);
-}
-
-.empty-state:hover i {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-/* ========================================
-   🆕 TIMELINE DES ÉVÉNEMENTS
-   ======================================== */
-.timeline {
-  position: relative;
-  padding-left: 30px;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 10px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(to bottom, var(--primary-color), transparent);
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.timeline-item::before {
-  content: '';
-  position: absolute;
-  left: -25px;
-  top: 5px;
-  width: 12px;
-  height: 12px;
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
   border-radius: 50%;
-  background-color: var(--primary-color);
-  border: 3px solid white;
-  box-shadow: 0 0 0 2px var(--primary-color);
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
 }
 
-/* ========================================
-   ANIMATIONS D'ENTRÉE
-   ======================================== */
-@keyframes fadeInUp {
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  margin-top: 20px;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.chart-large {
+  grid-column: span 6;
+}
+
+.chart-medium {
+  grid-column: span 12;
+}
+
+.chart-full {
+  grid-column: span 12;
+}
+
+/* Responsive pour tablettes */
+@media (max-width: 1200px) {
+  .chart-large,
+  .chart-medium {
+    grid-column: span 12;
+  }
+}
+
+/* Responsive pour mobiles */
+@media (max-width: 768px) {
+  .charts-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-header {
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 15px;
+}
+
+.chart-header h2 {
+  margin: 0 0 5px;
+  font-size: 1.3rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.chart-header p {
+  margin: 0;
+  color: #95a5a6;
+  font-size: 0.9rem;
+}
+
+.chart-body {
+  position: relative;
+  height: 350px;
+}
+
+.chart-body canvas {
+  max-height: 100%;
+}
+
+/* Info Footer */
+.info-footer {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+/* Animations */
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -420,219 +274,158 @@
   }
 }
 
-.card {
-  animation: fadeInUp 0.5s ease-out;
+.chart-card {
+  animation: fadeIn 0.5s ease-out;
 }
 
-/* Retard d'animation pour effet cascade */
-.card:nth-child(1) { animation-delay: 0.1s; }
-.card:nth-child(2) { animation-delay: 0.2s; }
-.card:nth-child(3) { animation-delay: 0.3s; }
-.card:nth-child(4) { animation-delay: 0.4s; }
+.kpi-card:nth-child(1) { animation-delay: 0.1s; }
+.kpi-card:nth-child(2) { animation-delay: 0.2s; }
+.kpi-card:nth-child(3) { animation-delay: 0.3s; }
+.kpi-card:nth-child(4) { animation-delay: 0.4s; }
 
-/* ========================================
-   SCROLLBAR PERSONNALISÉE
-   ======================================== */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.charts-header-nav {
+  margin-bottom: 2rem;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.charts-header-nav .d-flex {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary {
+  padding: 8px 16px;
+  border: 2px solid #0d6efd;
+  color: #0d6efd;
+  background: white;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+}
+
+.btn-outline-primary i {
+  margin-right: 5px;
+}
+
+.text-primary {
+  color: #0d6efd !important;
+  font-weight: 600;
+}
+
+/* Alert pour info station */
+.charts-header-nav .alert-info {
+  border-left: 4px solid #0dcaf0;
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
   border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 10px;
+.charts-header-nav .alert-info i {
+  color: #0c5460;
+  font-size: 1.2rem;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #1e4a8a;
+/* Message d'avertissement pour stations sans données */
+.alert-warning {
+  background: white;
+  border-left: 5px solid #f39c12;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* ========================================
-   ÉTATS DE FOCUS (Accessibilité)
-   ======================================== */
-.btn:focus,
-.card:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+.alert-warning i {
+  color: #f39c12;
 }
 
-/* ========================================
-   RESPONSIVE DESIGN
-   ======================================== */
+.alert-warning .btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
 
-/* Tablettes et petits écrans */
+.alert-warning .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.alert-warning .btn-secondary {
+  background: #6c757d;
+  border: none;
+  color: white;
+}
+
+.alert-warning .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Message pour vue sans données */
+.text-center.py-5 {
+  background: white;
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.text-center.py-5 .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.text-center.py-5 .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Ajustement du titre dans le nouveau header */
+.charts-header-nav .page-title h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #2c3e50;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.charts-header-nav .page-title .subtitle {
+  margin: 5px 0 0;
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+/* Responsive pour le nouveau header */
 @media (max-width: 768px) {
-  .container-fluid {
-    padding-left: 12px;
-    padding-right: 12px;
+  .charts-header-nav .d-flex {
+    flex-direction: column !important;
+    gap: 15px;
   }
 
-  .card-body {
-    padding: 1rem !important;
-  }
-
-  .chart-container {
-    height: 250px !important;
-  }
-
-  .card-header h5 {
-    font-size: 1rem;
-  }
-
-  .btn {
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-  }
-
-  /* Empiler les cartes sur mobile */
-  .row {
-    margin-left: -8px;
-    margin-right: -8px;
-  }
-
-  .col,
-  [class*="col-"] {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  /* Ajustements pour les badges */
-  .badge {
-    font-size: 0.7em;
-  }
-
-  /* Timeline plus compacte */
-  .timeline {
-    padding-left: 20px;
-  }
-}
-
-/* Smartphones */
-@media (max-width: 576px) {
-  .chart-container {
-    height: 200px !important;
-  }
-
-  .d-flex.justify-content-between {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .d-flex.justify-content-between > div {
-    text-align: center;
-  }
-
-  /* Ajustements texte mobile */
-  h1.h3 {
-    font-size: 1.5rem;
-  }
-
-  .text-muted {
-    font-size: 0.875rem;
-  }
-
-  /* Boutons empilés sur mobile */
-  .btn-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .btn-group .btn {
-    border-radius: 0.5rem !important;
-    margin-bottom: 0.25rem;
-  }
-
-  /* Water quality indicator plus petit */
-  .water-quality-indicator {
-    width: 10px;
-    height: 10px;
-  }
-
-  /* Card footer responsive */
-  .card-footer .d-flex {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-}
-
-/* ========================================
-   MODE SOMBRE (Préférence système)
-   ======================================== */
-@media (prefers-color-scheme: dark) {
-  .charts-container {
-    background-color: #1a1d23;
-    color: #e9ecef;
-  }
-
-  .card {
-    background-color: #2d3748;
-    color: #e9ecef;
-    border: 1px solid #4a5568;
-  }
-
-  .card-header {
-    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-    border-bottom-color: #4a5568;
-  }
-
-  .text-muted {
-    color: #a0aec0 !important;
-  }
-
-  .bg-light {
-    background-color: #2d3748 !important;
-  }
-
-  .skeleton-chart {
-    background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
-  }
-}
-
-/* ========================================
-   IMPRESSION
-   ======================================== */
-@media print {
-  .btn,
-  .badge,
-  .card-footer,
-  .alert-pulse {
-    display: none !important;
-  }
-
-  .card {
-    box-shadow: none !important;
-    border: 1px solid #dee2e6 !important;
-    page-break-inside: avoid;
-  }
-
-  .chart-container {
-    height: 300px !important;
-  }
-
-  /* Forcer les couleurs en impression */
-  .card-status-success,
-  .card-status-warning,
-  .card-status-danger {
-    border-left-width: 2px !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}
-
-/* ========================================
-   ANIMATIONS DE PERFORMANCE
-   ======================================== */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .btn-outline-primary {
+    width: 100%;
+    justify-content: center;
   }
 }

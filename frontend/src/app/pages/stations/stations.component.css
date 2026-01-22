@@ -12,11 +12,6 @@
   background: transparent !important;
 }
 
-/* Supprimer le fond de dégradé qui pourrait cacher la carte */
-.map-container {
-  background: transparent !important;
-}
-
 .map-placeholder {
   text-align: center;
   color: #1976d2;
@@ -76,7 +71,7 @@
 .legend-color.alert { background-color: #dc3545; }
 
 /* ============================================================================ */
-/* STYLES GÉNÉRAUX INTÉGRÉS DE STATIONS */
+/* STYLES GÉNÉRAUX */
 /* ============================================================================ */
 
 .container-fluid {
@@ -179,37 +174,53 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.station-card .card-footer .btn-outline-primary:hover {
-  background-color: #6366f1;
-  border-color: #6366f1;
-  color: white;
-}
-
-.station-card .card-footer .btn-outline-danger:hover {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  color: white;
-}
-
 /* Icônes dans les cartes */
 .station-card .bi {
   font-size: 1.2rem;
 }
 
 /* ============================================================================ */
-/* MODALS - SYSTÈME UNIFIÉ */
+/* 🔥 MODALS - SYSTÈME UNIFIÉ CORRIGÉ */
 /* ============================================================================ */
 
+/* ✅ MODAL DE BASE - Règle unique et claire */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+  z-index: 1055; /* Au-dessus du backdrop */
+  display: none; /* Caché par défaut */
+}
+
+/* ✅ Quand le modal est visible */
 .modal.show {
   display: block !important;
-  opacity: 1;
+  opacity: 1 !important;
+}
+
+/* ✅ BACKDROP - Fond sombre */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050; /* En dessous du modal */
+  display: none;
 }
 
 .modal-backdrop.show {
-  opacity: 0.5;
+  display: block !important;
+  opacity: 0.5 !important;
 }
 
-/* Animation d'apparition du modal */
+/* ✅ Animation d'apparition du modal */
 .modal.show .modal-dialog {
   animation: modalSlideDown 0.3s ease-out;
 }
@@ -225,6 +236,44 @@
   }
 }
 
+/* ✅ DIALOG - Conteneur du modal */
+.modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto;
+  pointer-events: none;
+}
+
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - 3.5rem);
+}
+
+/* ✅ CONTENT - Contenu du modal */
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  outline: 0;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ TAILLES DE MODAL */
+.modal-xl {
+  max-width: 1200px !important;
+}
+
+.modal-lg {
+  max-width: 800px;
+}
+
 /* Style pour les formulaires dans les modals */
 .modal-body .form-control:focus {
   border-color: #6366f1;
@@ -237,7 +286,27 @@
 }
 
 /* ============================================================================ */
-/* MODAL D'AUTHENTIFICATION ADMIN - STYLES SPÉCIFIQUES */
+/* MODAL D'AUTHENTIFICATION UTILISATEUR */
+/* ============================================================================ */
+
+/* En-tête du modal d'authentification normale */
+.modal-header.bg-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+  border-bottom: 2px solid #0a58ca;
+  color: white !important;
+}
+
+.modal-header.bg-primary .modal-title {
+  font-weight: 700;
+  color: white !important;
+}
+
+.modal-header.bg-primary .btn-close-white {
+  filter: brightness(1.5);
+}
+
+/* ============================================================================ */
+/* MODAL D'AUTHENTIFICATION ADMIN */
 /* ============================================================================ */
 
 /* En-tête du modal admin */
@@ -289,18 +358,92 @@
   box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
-.btn-warning:active {
-  transform: scale(0.98);
+/* ============================================================================ */
+/* MODAL CARACTÉRISTIQUES */
+/* ============================================================================ */
+
+/* En-tête du modal caractéristiques */
+.modal-header.bg-info {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0ba8d0 100%) !important;
+  border-bottom: 2px solid #0a8fb3;
 }
 
-/* Identifiants admin */
-.alert-info {
-  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
-  border: 1px solid #b6d4fe;
+.modal-header.bg-info .modal-title {
+  font-weight: 700;
+  color: white !important;
 }
 
-.alert-info strong {
-  color: #0c5460;
+.modal-header.bg-info .btn-close-white {
+  filter: brightness(1.5);
+}
+
+/* Corps du modal avec scroll */
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+/* Scrollbar personnalisée */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Cartes dans le modal */
+.modal .card {
+  border: 1px solid #dee2e6;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.modal .card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+.modal .card-header h6 {
+  margin: 0;
+  color: #495057;
+}
+
+.modal .card-body {
+  padding: 1rem;
+}
+
+/* Footer du modal */
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+  padding: 1rem;
+  gap: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f8f9fa;
+}
+
+.modal-footer .btn {
+  min-width: 120px;
 }
 
 /* ============================================================================ */
@@ -332,31 +475,6 @@
   border: 1px solid #dee2e6;
 }
 
-.filter-section .form-select {
-  cursor: pointer;
-}
-
-.filter-section .badge {
-  font-size: 0.75rem;
-}
-
-/* ============================================================================ */
-/* ALERTES */
-/* ============================================================================ */
-
-.alert {
-  border-radius: 0.5rem;
-}
-
-.alert .btn-close {
-  font-size: 0.875rem;
-}
-
-/* Badge Mode Admin */
-.badge.bg-success {
-  background: linear-gradient(135deg, #198754 0%, #157347 100%) !important;
-}
-
 /* ============================================================================ */
 /* BOUTONS */
 /* ============================================================================ */
@@ -368,39 +486,6 @@
 .btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-group .btn {
-  transition: all 0.2s ease;
-}
-
-/* ============================================================================ */
-/* LOADING SPINNER */
-/* ============================================================================ */
-
-.spinner-border {
-  animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ============================================================================ */
-/* ÉTAT VIDE */
-/* ============================================================================ */
-
-.empty-state {
-  padding: 4rem 2rem;
-  text-align: center;
-}
-
-.empty-state i {
-  font-size: 4rem;
-  color: #d1d5db;
-  margin-bottom: 1rem;
 }
 
 /* ============================================================================ */
@@ -416,463 +501,22 @@
     height: 400px !important;
   }
 
-  .station-card .badge.bg-info {
-    font-size: 0.6rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .station-card {
-    margin-bottom: 1rem;
-  }
-
-  .modal-dialog {
+  .modal-xl {
+    max-width: 95% !important;
     margin: 0.5rem;
   }
 
   .modal-body {
+    max-height: 60vh;
     padding: 1rem;
   }
 
-  .btn-group {
+  .modal-footer {
     flex-direction: column;
-    width: 100%;
   }
 
-  .btn-group .btn {
+  .modal-footer .btn {
+    width: 100%;
     margin-bottom: 0.5rem;
   }
-
-  .filter-section {
-    margin-bottom: 1.5rem;
-  }
-
-  .card.bg-primary h4,
-  .card.bg-success h4,
-  .card.bg-info h4 {
-    font-size: 1.5rem;
-  }
-
-  .card.bg-primary .bi,
-  .card.bg-success .bi,
-  .card.bg-info .bi {
-    font-size: 2rem;
-  }
-
-  /* Adaptation mobile pour le modal admin */
-  .modal-header.bg-warning .modal-title {
-    font-size: 1.1rem;
-  }
-
-  .alert-warning .fs-3 {
-    font-size: 1.5rem !important;
-  }
-}
-
-@media (max-width: 576px) {
-  .station-card .card-body {
-    padding: 1rem;
-  }
-
-  .station-card .card-header h5 {
-    font-size: 1rem;
-  }
-
-  .station-card .bi {
-    font-size: 1rem;
-  }
-
-  .modal-header h5 {
-    font-size: 1.1rem;
-  }
-
-  /* Adaptation mobile avancée pour le modal admin */
-  .btn-warning.btn-lg {
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-  }
-
-  .alert-info small,
-  .alert-secondary small {
-    font-size: 0.8rem;
-  }
-}
-
-/* ============================================================================ */
-/* UTILITAIRES */
-/* ============================================================================ */
-
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fw-bold {
-  font-weight: 700 !important;
-}
-
-.text-muted {
-  color: #6c757d !important;
-}
-
-/* ============================================================================ */
-/* AMÉLIORATION VISUELLE */
-/* ============================================================================ */
-
-/* Ombre douce sur les cartes */
-.card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* En-tête de carte transparent avec bordure */
-.card-header.bg-transparent {
-  background-color: transparent !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-/* Espacements harmonieux */
-.card-body > div {
-  line-height: 1.6;
-}
-
-/* Badges personnalisés */
-.badge {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-/* Formulaires améliorés */
-.form-control,
-.form-select {
-  border-radius: 0.375rem;
-  border: 1px solid #ced4da;
-}
-
-.form-control:focus,
-.form-select:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
-}
-
-.form-control-lg {
-  font-size: 1.1rem;
-  padding: 0.75rem 1rem;
-}
-
-/* Boutons radio personnalisés */
-.btn-check:checked + .btn {
-  background-color: var(--bs-btn-active-bg);
-  border-color: var(--bs-btn-active-border-color);
-  color: var(--bs-btn-active-color);
-}
-
-/* Messages de validation */
-.invalid-feedback {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: #dc3545;
-}
-
-.is-invalid {
-  border-color: #dc3545 !important;
-}
-
-/* Alerts avec icônes */
-.alert i {
-  font-size: 1.2rem;
-  vertical-align: middle;
-}
-
-/* ============================================================================ */
-/* ANIMATIONS PERSONNALISÉES */
-/* ============================================================================ */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.station-card {
-  animation: slideUp 0.3s ease-out;
-}
-
-/* Animation progressive pour les cartes */
-.station-card:nth-child(1) { animation-delay: 0.05s; }
-.station-card:nth-child(2) { animation-delay: 0.1s; }
-.station-card:nth-child(3) { animation-delay: 0.15s; }
-.station-card:nth-child(4) { animation-delay: 0.2s; }
-.station-card:nth-child(5) { animation-delay: 0.25s; }
-.station-card:nth-child(6) { animation-delay: 0.3s; }
-
-/* Animation spécifique pour le modal admin */
-.modal.show .modal-dialog {
-  animation: modalSlideDown 0.3s ease-out;
-}
-
-/* ============================================================================ */
-/* AMÉLIORATIONS SPÉCIFIQUES POUR L'AUTHENTIFICATION */
-/* ============================================================================ */
-
-/* Style pour les champs de formulaire d'authentification */
-#admin-auth-email:focus,
-#admin-auth-password:focus {
-  border-color: #ffc107;
-  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-}
-
-/* Style pour les identifiants admin */
-.alert-info code {
-  background-color: rgba(255, 255, 255, 0.7);
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
-  font-weight: 600;
-  color: #0c5460;
-}
-
-/* Indication visuelle pour le badge admin */
-.badge.bg-success {
-  animation: gentlePulse 3s infinite;
-}
-
-@keyframes gentlePulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Style pour le spinner d'authentification admin */
-.btn-warning .spinner-border-sm {
-  color: #212529;
-}
-
-/* ============================================================================ */
-/* ACCESSIBILITÉ ET INTERACTIONS */
-/* ============================================================================ */
-
-/* Focus visible pour l'accessibilité */
-.btn:focus,
-.form-control:focus,
-.form-select:focus {
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
-}
-
-.btn-warning:focus {
-  outline: 2px solid #ffc107;
-  outline-offset: 2px;
-}
-
-/* États de désactivation */
-.btn:disabled,
-.form-control:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Transition douce pour tous les états interactifs */
-* {
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-
-/* ============================================================================ */
-/* STYLES SPÉCIFIQUES POUR LA GRILLE DE STATIONS */
-/* ============================================================================ */
-
-.station-item {
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border-left: 3px solid transparent;
-}
-
-.station-item:hover {
-  background-color: #f8f9fa;
-  border-left-color: #007bff;
-  transform: translateX(3px);
-}
-
-.station-item.selected {
-  background-color: #e3f2fd;
-  border-left-color: #1976d2;
-  font-weight: 600;
-}
-
-.station-info {
-  background: white;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 15px;
-}
-
-.station-info h6 {
-  color: #1976d2;
-  margin-bottom: 10px;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LES TABLEAUX DE STATIONS */
-/* ============================================================================ */
-
-.table-responsive {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.table tbody tr {
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.table tbody tr:hover {
-  background-color: #f8f9fa;
-  transform: scale(1.01);
-}
-
-.table-success {
-  background-color: #d1e7dd !important;
-}
-
-.table-danger {
-  background-color: #f8d7da !important;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LES INDICATEURS D'ALERTE */
-/* ============================================================================ */
-
-.badge.bg-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
-}
-
-.badge.bg-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-}
-
-/* Animation pour les alertes critiques */
-@keyframes alertPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
-  }
-}
-
-.station-card.alert .badge.bg-danger {
-  animation: alertPulse 2s infinite;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LA LÉGENDE DE LA CARTE */
-/* ============================================================================ */
-
-.legend-color.online {
-  background-color: #28a745;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.legend-color.offline {
-  background-color: #6c757d;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.legend-color.alert {
-  background-color: #dc3545;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  animation: alertPulse 2s infinite;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LES POPUPS LEAFLET */
-/* ============================================================================ */
-
-.leaflet-popup-content {
-  min-width: 250px;
-  max-width: 300px;
-}
-
-.leaflet-popup-content h6 {
-  color: #1976d2;
-  margin-bottom: 8px;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 6px;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LES BADGES DE STATUT */
-/* ============================================================================ */
-
-.status-badge {
-  font-size: 0.75rem;
-  padding: 0.25em 0.6em;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LES GRADIENTS ET EFFETS VISUELS */
-/* ============================================================================ */
-
-.card.bg-primary {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
-}
-
-.card.bg-success {
-  background: linear-gradient(135deg, #198754 0%, #157347 100%) !important;
-}
-
-.card.bg-info {
-  background: linear-gradient(135deg, #0dcaf0 0%, #0ba8d0 100%) !important;
-}
-
-.card.bg-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
-}
-
-/* ============================================================================ */
-/* STYLES POUR LES TRANSITIONS ET ANIMATIONS */
-/* ============================================================================ */
-
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-.slide-up {
-  animation: slideUp 0.5s ease-out;
-}
-
-/* Animation pour les nouvelles stations */
-@keyframes newStation {
-  0% {
-    background-color: rgba(13, 110, 253, 0.1);
-    transform: scale(1.02);
-  }
-  100% {
-    background-color: transparent;
-    transform: scale(1);
-  }
-}
-
-.station-highlight {
-  animation: newStation 1.5s ease-in-out;
 }

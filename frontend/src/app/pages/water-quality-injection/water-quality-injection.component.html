@@ -1,0 +1,227 @@
+<div class="sensor-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>💧 Injection Données Qualité d'Eau</h1>
+    <p class="subtitle">Gestion des mesures physico-chimiques et microbiologiques</p>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- 📂 IMPORT FICHIER EXCEL/CSV -->
+  <!-- ===================================== -->
+  <div class="card glass-card">
+    <div class="card-header">
+      <h2>📂 Import Fichier Excel/CSV</h2>
+      <p class="subtitle">Importation en masse de données historiques</p>
+    </div>
+
+    <!-- Étape 1 : Configuration de la station -->
+    <div class="wizard-step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h3>⚙️ Configuration</h3>
+
+        <div class="alert alert-info mb-3">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <strong>Important :</strong> L'ID de la station est obligatoire.
+            La phase et les filtres seront automatiquement extraits des noms de feuilles Excel
+            (ex: "Entrée FV2" → Phase: Entrée, Filtre: FV2).
+          </div>
+        </div>
+
+        <div class="config-grid">
+          <div class="config-item">
+            <label class="config-label">
+              <span class="required-dot">*</span>
+              🏢 ID Station (obligatoire)
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="stationId"
+              placeholder="Ex: station-saint-louis-1764092258261"
+              class="config-input"
+              [class.error]="!stationId && selectedFile"
+              required
+            >
+            <span class="helper-text" *ngIf="!stationId && selectedFile">
+              ⚠️ L'ID de la station est obligatoire pour l'importation
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Étape 2 : Sélection du fichier -->
+    <div class="wizard-step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h3>📁 Sélection du fichier</h3>
+
+        <div class="dropzone" [class.has-file]="selectedFile">
+          <input type="file" id="fileInput" accept=".csv,.xlsx,.xls"
+                 (change)="onFileSelected($event)" #fileInput class="file-input-hidden">
+
+          <label for="fileInput" class="dropzone-label">
+            <div class="dropzone-icon" *ngIf="!selectedFile">📂</div>
+            <div class="dropzone-text">
+              <span class="dropzone-title" *ngIf="!selectedFile">
+                📂 Cliquez pour sélectionner votre fichier
+              </span>
+              <span class="dropzone-title success" *ngIf="selectedFile">
+                ✅ {{ selectedFile.name }}
+              </span>
+              <span class="dropzone-subtitle" *ngIf="!selectedFile">
+                Excel (.xlsx, .xls) ou CSV
+              </span>
+            </div>
+          </label>
+
+          <button class="btn-remove" (click)="removeFile()" *ngIf="selectedFile">
+            ❌ Supprimer
+          </button>
+        </div>
+
+        <div class="button-group mt-3">
+          <button class="btn btn-secondary" (click)="downloadTemplate()">
+            📥 Télécharger le template
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Étape 3 : Aperçu des données -->
+    <div class="wizard-step" *ngIf="validatedData.length > 0">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h3>👀 Aperçu</h3>
+
+        <div class="columns-preview">
+          <div class="columns-header">
+            <h4>📋 {{ previewHeaders.length }} colonnes</h4>
+            <span class="badge badge-success">{{ validatedData.length }} lignes</span>
+            <span class="badge badge-info">{{ sheetsProcessed }} feuille(s)</span>
+          </div>
+        </div>
+
+        <!-- Tableau d'aperçu -->
+        <div class="data-preview" *ngIf="previewData.length > 0">
+          <div class="table-scroll">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th *ngFor="let header of previewHeaders.slice(0, 8)">{{ header }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of previewData; let i = index">
+                  <td class="row-number">{{ i + 1 }}</td>
+                  <td *ngFor="let header of previewHeaders.slice(0, 8)">
+                    {{ row[header] || '-' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted small mt-2">
+            Affichage des 10 premières lignes sur {{ validatedData.length }}
+          </p>
+        </div>
+
+        <!-- Message de validation -->
+        <div class="alert alert-success mt-3">
+          ✅ {{ validatedData.length }} lignes prêtes ({{ sheetsProcessed }} feuille(s))
+        </div>
+
+        <!-- Bouton d'importation -->
+        <div class="button-group mt-3" *ngIf="!uploadInProgress">
+          <button class="btn btn-import btn-lg" (click)="uploadToKuzzle()">
+            <span *ngIf="!uploadInProgress">
+              📤 Importer les {{ validatedData.length }} lignes dans Kuzzle
+            </span>
+          </button>
+        </div>
+
+        <!-- Progression de l'upload -->
+        <div class="alert alert-info mt-3" *ngIf="uploadInProgress">
+          <div class="d-flex align-items-center gap-2">
+            <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <span>⏳ Importation en cours...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Étape 4 : Résultat de l'upload -->
+    <div class="wizard-step" *ngIf="uploadResult">
+      <div class="step-number">4</div>
+      <div class="step-content">
+        <h3>📊 Résultat</h3>
+
+        <!-- Succès -->
+        <div class="alert alert-success" *ngIf="uploadResult.success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <h4 class="alert-title">Succès !</h4>
+            <p>{{ uploadResult.message }}</p>
+            <div class="mt-2">
+              <div><strong>✅ Insérés :</strong> {{ uploadResult.data?.ingestion?.inserted || 0 }}</div>
+              <div *ngIf="uploadResult.data?.ingestion?.failed > 0" class="text-danger">
+                <strong>❌ Échoués :</strong> {{ uploadResult.data.ingestion.failed }}
+              </div>
+              <div><strong>⏱️ Durée :</strong> {{ uploadResult.data?.ingestion?.duration || 0 }}ms</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Erreur -->
+        <div class="alert alert-danger" *ngIf="!uploadResult.success">
+          <div class="alert-icon">❌</div>
+          <div class="alert-content">
+            <h4 class="alert-title">Erreur</h4>
+            <p>{{ uploadResult.message || 'Échec de l\'importation' }}</p>
+          </div>
+        </div>
+
+        <!-- Détails du parsing -->
+        <div class="details-card mt-3" *ngIf="uploadResult.success && uploadResult.data?.parsing">
+          <h5>📋 Détails du parsing</h5>
+          <ul>
+            <li><strong>Total lignes :</strong> {{ uploadResult.data.parsing.totalRows }}</li>
+            <li><strong>Lignes valides :</strong> {{ uploadResult.data.parsing.validRows }}</li>
+            <li><strong>Lignes invalides :</strong> {{ uploadResult.data.parsing.invalidRows }}</li>
+            <li><strong>Feuilles traitées :</strong> {{ uploadResult.data.parsing.sheets?.join(', ') }}</li>
+          </ul>
+
+          <!-- Avertissements -->
+          <div class="warnings mt-2" *ngIf="uploadResult.data.parsing.warnings?.length > 0">
+            <h6>⚠️ Avertissements :</h6>
+            <ul>
+              <li *ngFor="let warning of uploadResult.data.parsing.warnings">{{ warning }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Erreurs d'ingestion -->
+        <div class="errors-card mt-3" *ngIf="uploadResult.data?.ingestion?.errors?.length > 0">
+          <h5>❌ Erreurs d'ingestion ({{ uploadResult.data.ingestion.errors.length }} premières)</h5>
+          <ul>
+            <li *ngFor="let error of uploadResult.data.ingestion.errors">
+              <strong>Ligne {{ error.row }} :</strong> {{ error.error }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- Bouton pour recommencer -->
+        <div class="button-group mt-3">
+          <button class="btn btn-primary" (click)="resetForm()">
+            🔄 Nouvelle importation
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -57,7 +57,7 @@
           <div class="nav-link-icon text-primary">
             <i class="bi bi-menu-button-wide-fill"></i>
           </div>
-          <span class="nav-link-text fw-bold">Stations</span>
+          <span class="nav-link-text fw-bold"> Gestion des stations</span>
         </a>
       </li>
 
@@ -92,7 +92,7 @@
       </li>
 
       <!-- Historique des Alertes -->
-      <li class="nav-item">
+      <!-- <li class="nav-item">
         <a
           class="nav-link p-3"
           routerLink="/alert-history"
@@ -104,9 +104,43 @@
           </div>
           <span class="nav-link-text fw-bold">Historique des Alertes</span>
         </a>
+      </li> -->
+
+      <!-- Injection Capteurs -->
+      <li class="nav-item">
+        <a class="nav-link p-3" routerLink="/sensor-injection" routerLinkActive="active" role="button">
+          <div class="nav-link-icon text-primary">
+            <i class="bi bi-cpu-fill"></i>
+          </div>
+          <span class="nav-link-text fw-bold">Injection Capteurs</span>
+        </a>
+      </li>
+          <li class="nav-item">
+      <a class="nav-link p-3" routerLink="/water-quality-injection" routerLinkActive="active" role="button">
+        <div class="nav-link-icon text-primary">
+          <i class="bi bi-droplet-fill"></i>
+        </div>
+        <span class="nav-link-text fw-bold">Qualité d'Eau</span>
+      </a>
+    </li>
+      <!--  HISTORIQUE AGENT (visible par les agents uniquement) -->
+      <li class="nav-item" *ngIf="isAgent()">
+        <a
+          class="nav-link p-3"
+          routerLink="/user-activity"
+          routerLinkActive="active"
+          role="button"
+        >
+          <div class="nav-link-icon text-info">
+            <i class="bi bi-journal-text"></i>
+          </div>
+          <span class="nav-link-text fw-bold">
+            Mon Historique
+          </span>
+        </a>
       </li>
 
-      <!-- Section Administration (Conditionnelle) -->
+      <!-- Section Administration (Admins uniquement) -->
       <li class="nav-item mt-4" *ngIf="hasPermission('canManageUsers')">
         <h6 class="py-1 text-danger text-uppercase fs-7">
           <i class="bi bi-shield-lock-fill me-1"></i>

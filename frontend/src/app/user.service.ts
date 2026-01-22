@@ -1,70 +1,44 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from, of } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
-import { KuzzleService } from './kuzzle.service';
+import { environment } from '../environments/environment';
 import { User, CreateUserDto, UpdateUserDto } from './models/user.model';
 
-
-
-
-
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  total?: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  private apiUrl = `${environment.apiUrl}/users`;
   private usersSubject = new BehaviorSubject<User[]>([]);
   public users$ = this.usersSubject.asObservable();
 
-  constructor(private kuzzleService: KuzzleService) {
-    this.waitForKuzzleConnection();
-  }
-  private async waitForKuzzleConnection(): Promise<void> {
-    console.log('⏳ UserService: Attente connexion Kuzzle...');
-
-    // Attendre jusqu'à 10 secondes max
-    const maxAttempts = 50;
-    let attempts = 0;
-
-    const checkConnection = async (): Promise<boolean> => {
-      if (this.kuzzleService.isConnected()) {
-        console.log('✅ UserService: Kuzzle connecté, chargement users...');
-        this.loadUsers();
-        return true;
-      }
-
-      attempts++;
-      if (attempts >= maxAttempts) {
-        console.error('❌ UserService: Timeout connexion Kuzzle');
-        return false;
-      }
-
-      // Attendre 200ms et réessayer
-      await new Promise(resolve => setTimeout(resolve, 200));
-      return checkConnection();
-    };
-
-    await checkConnection();
+  constructor(private http: HttpClient) {
+    this.loadUsers();
   }
 
   /**
-   * Charge tous les utilisateurs depuis Kuzzle
+   * Créer les headers avec le token d'authentification
    */
-private loadUsers(retryCount = 0): void {
-    const maxRetries = 3;
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('accessToken');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    });
+  }
 
-    // Vérifier la connexion avant de charger
-    if (!this.kuzzleService.isConnected()) {
-      console.warn('⚠️ Kuzzle non connecté, nouvelle tentative dans 1s...');
-
-      if (retryCount < maxRetries) {
-        setTimeout(() => this.loadUsers(retryCount + 1), 1000);
-      } else {
-        console.error('❌ Impossible de charger les users: Kuzzle non connecté');
-      }
-      return;
-    }
-
+  /**
+   * Charge tous les utilisateurs depuis le backend
+   */
+  private loadUsers(): void {
     this.getAllUsers().subscribe({
       next: (users) => {
         this.usersSubject.next(users);
@@ -72,58 +46,33 @@ private loadUsers(retryCount = 0): void {
       },
       error: (error) => {
         console.error('❌ Erreur chargement users:', error);
-
-        // Retry si erreur de connexion
-        if (error.message?.includes('not connected') && retryCount < maxRetries) {
-          console.log(`🔄 Retry ${retryCount + 1}/${maxRetries}...`);
-          setTimeout(() => this.loadUsers(retryCount + 1), 2000);
-        }
       }
     });
   }
 
   /**
-   * Récupère tous les utilisateurs depuis Kuzzle
+   * Récupère tous les utilisateurs via l'API backend
    */
-    getAllUsers(): Observable<User[]> {
-    return from(
-      // Assurer la connexion avant de faire la requête
-      this.kuzzleService.ensureConnection().then(() =>
-        this.kuzzleService['kuzzle'].document.search(
-          'iot',
-          'users',
-          {
-            query: { match_all: {} }
-          },
-          {
-            size: 1000,
-            sort: [{ createdAt: 'desc' }]
-          }
-        )
-      )
-    ).pipe(
-      map((response: any) => {
-        return response.hits.map((hit: any) => ({
-          _id: hit._id,
-          ...hit._source
-        }));
-      }),
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<ApiResponse<User[]>>(this.apiUrl, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => response.data),
       catchError((error) => {
         console.error('❌ Erreur getAllUsers:', error);
-        return of([]); // Retourner tableau vide au lieu de throw
+        return of([]);
       })
     );
   }
-
 
   /**
    * Récupère un utilisateur par son ID
    */
   getUserById(id: string): Observable<User | null> {
-    return from(
-      this.kuzzleService['kuzzle'].document.get('iot', 'users', id)
-    ).pipe(
-      map((response: any) => this.mapKuzzleUserToUser(response)),
+    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => response.data),
       catchError(error => {
         console.error(`❌ Erreur getUserById ${id}:`, error);
         return of(null);
@@ -132,28 +81,15 @@ private loadUsers(retryCount = 0): void {
   }
 
   /**
-   * Crée un nouvel utilisateur dans Kuzzle
+   * Crée un nouvel utilisateur via l'API backend
    */
   createUser(userData: CreateUserDto): Observable<User> {
-    const userDocument = {
-      ...userData,
-      createdAt: new Date().toISOString(),
-      lastLogin: null,
-      active: userData.active !== undefined ? userData.active : true
-    };
-
-    return from(
-      this.kuzzleService['kuzzle'].document.create(
-        'iot',
-        'users',
-        userDocument,
-        undefined,
-        { refresh: 'wait_for' }
-      )
-    ).pipe(
-      map((response: any) => {
-        console.log('✅ Utilisateur créé:', response._id);
-        return this.mapKuzzleUserToUser(response);
+    return this.http.post<ApiResponse<User>>(this.apiUrl, userData, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => {
+        console.log('✅ Utilisateur créé:', response.data._id);
+        return response.data;
       }),
       tap(() => this.loadUsers()),
       catchError(error => {
@@ -164,24 +100,18 @@ private loadUsers(retryCount = 0): void {
   }
 
   /**
-   * Met à jour un utilisateur existant
+   * Met à jour un utilisateur existant via l'API backend
    */
   updateUser(id: string, userData: Partial<UpdateUserDto>): Observable<User> {
     // Retirer _id et _kuzzle_info des updates
     const { _id, _kuzzle_info, ...updateData } = userData as any;
 
-    return from(
-      this.kuzzleService['kuzzle'].document.update(
-        'iot',
-        'users',
-        id,
-        updateData,
-        { refresh: 'wait_for' }
-      )
-    ).pipe(
-      map((response: any) => {
-        console.log('✅ Utilisateur mis à jour:', response._id);
-        return this.mapKuzzleUserToUser(response);
+    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/${id}`, updateData, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => {
+        console.log('✅ Utilisateur mis à jour:', response.data._id);
+        return response.data;
       }),
       tap(() => this.loadUsers()),
       catchError(error => {
@@ -192,17 +122,12 @@ private loadUsers(retryCount = 0): void {
   }
 
   /**
-   * Supprime un utilisateur
+   * Supprime un utilisateur via l'API backend
    */
   deleteUser(id: string): Observable<void> {
-    return from(
-      this.kuzzleService['kuzzle'].document.delete(
-        'iot',
-        'users',
-        id,
-        { refresh: 'wait_for' }
-      )
-    ).pipe(
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    }).pipe(
       map(() => {
         console.log('✅ Utilisateur supprimé:', id);
       }),
@@ -215,22 +140,86 @@ private loadUsers(retryCount = 0): void {
   }
 
   /**
-   * Active ou désactive un utilisateur
+   * Active ou désactive un utilisateur via l'API backend
    */
   toggleUserStatus(id: string): Observable<User> {
-    return this.getUserById(id).pipe(
-      map(user => {
-        if (!user) throw new Error('Utilisateur non trouvé');
-        return user;
-      }),
-      map(user => ({ ...user, active: !user.active })),
-      map(updatedUser => this.updateUser(id, updatedUser)),
-      map(obs => obs as any)
+    return this.http.patch<ApiResponse<User>>(`${this.apiUrl}/${id}/toggle-status`, {}, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => response.data),
+      tap(() => this.loadUsers()),
+      catchError(error => {
+        console.error(`❌ Erreur toggleUserStatus ${id}:`, error);
+        throw error;
+      })
     );
   }
 
   /**
-   * Recherche des utilisateurs par terme
+   * Réinitialise le mot de passe d'un utilisateur via l'API backend
+   */
+  resetPassword(userId: string, newPassword: string): Observable<void> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/${userId}/reset-password`,
+      { newPassword },
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(() => {
+        console.log('✅ Mot de passe réinitialisé pour:', userId);
+      }),
+      catchError(error => {
+        console.error('❌ Erreur resetPassword:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Récupère les statistiques des utilisateurs via l'API backend
+   */
+  getUserStats(): Observable<{
+    total: number;
+    active: number;
+    inactive: number;
+    byRole: { [key: string]: number };
+    byStation: { [key: string]: number };
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/stats`, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => response.data),
+      catchError(error => {
+        console.error('❌ Erreur getUserStats:', error);
+        // Fallback sur calcul local si l'API échoue
+        return this.users$.pipe(
+          map(users => this.calculateStatsLocally(users))
+        );
+      })
+    );
+  }
+
+  /**
+   * Calcule les statistiques localement (fallback)
+   */
+  private calculateStatsLocally(users: User[]): any {
+    const stats = {
+      total: users.length,
+      active: users.filter(u => u.active).length,
+      inactive: users.filter(u => !u.active).length,
+      byRole: {} as { [key: string]: number },
+      byStation: {} as { [key: string]: number }
+    };
+
+    users.forEach(user => {
+      stats.byRole[user.role] = (stats.byRole[user.role] || 0) + 1;
+      const stationName = user.station_name || 'Non assigné';
+      stats.byStation[stationName] = (stats.byStation[stationName] || 0) + 1;
+    });
+
+    return stats;
+  }
+
+  /**
+   * Recherche des utilisateurs par terme (côté client)
    */
   searchUsers(term: string): Observable<User[]> {
     const lowerTerm = term.toLowerCase();
@@ -278,7 +267,7 @@ private loadUsers(retryCount = 0): void {
   }
 
   /**
-   * Vérifie si un email existe déjà
+   * Vérifie si un email existe déjà (côté client)
    */
   checkEmailExists(email: string, excludeUserId?: string): Observable<boolean> {
     return this.users$.pipe(
@@ -286,42 +275,6 @@ private loadUsers(retryCount = 0): void {
         user.email.toLowerCase() === email.toLowerCase() &&
         user._id !== excludeUserId
       ))
-    );
-  }
-
-  /**
-   * Obtient les statistiques des utilisateurs
-   */
-  getUserStats(): Observable<{
-    total: number;
-    active: number;
-    inactive: number;
-    byRole: { [key: string]: number };
-    byStation: { [key: string]: number };
-  }> {
-    return this.users$.pipe(
-      map(users => {
-        const stats = {
-          total: users.length,
-          active: users.filter(u => u.active).length,
-          inactive: users.filter(u => !u.active).length,
-          byRole: {} as { [key: string]: number },
-          byStation: {} as { [key: string]: number }
-        };
-
-        // Comptage par rôle
-        users.forEach(user => {
-          stats.byRole[user.role] = (stats.byRole[user.role] || 0) + 1;
-        });
-
-        // Comptage par station
-        users.forEach(user => {
-          const stationName = user.station_name || 'Non assigné';
-          stats.byStation[stationName] = (stats.byStation[stationName] || 0) + 1;
-        });
-
-        return stats;
-      })
     );
   }
 
@@ -374,115 +327,11 @@ private loadUsers(retryCount = 0): void {
   }
 
   /**
-   * Réinitialise le mot de passe d'un utilisateur
-   */
-  resetPassword(userId: string, newPassword: string): Observable<void> {
-    return from(
-      this.kuzzleService['kuzzle'].document.update(
-        'iot',
-        'users',
-        userId,
-        { password: newPassword },
-        { refresh: 'wait_for' }
-      )
-    ).pipe(
-      map(() => {
-        console.log('✅ Mot de passe réinitialisé pour:', userId);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur resetPassword:', error);
-        throw error;
-      })
-    );
-  }
-
-  /**
-   * Met à jour la dernière connexion d'un utilisateur
-   */
-  updateLastLogin(userId: string): Observable<void> {
-    return from(this.kuzzleService.updateUserLastLogin(userId)).pipe(
-      catchError(error => {
-        console.error('❌ Erreur updateLastLogin:', error);
-        return of(undefined);
-      })
-    );
-  }
-
-  /**
-   * Recherche un utilisateur par email (utilisé pour l'authentification)
-   */
-  getUserByEmail(email: string): Observable<User | null> {
-    return from(this.kuzzleService.getUserByEmail(email)).pipe(
-      map((results: any[]) => {
-        if (results.length === 0) return null;
-        return this.mapKuzzleUserToUser(results[0]);
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getUserByEmail:', error);
-        return of(null);
-      })
-    );
-  }
-
-  /**
-   * Mappe un document Kuzzle vers l'interface User
-   */
-  private mapKuzzleUserToUser(hit: any): User {
-    const source = hit._source || hit;
-
-    return {
-      _id: hit._id,
-      _kuzzle_info: hit._kuzzle_info,
-      name: source.name || '',
-      email: source.email || '',
-      password: source.password,
-      role: source.role || 'operator',
-      station_id: source.station_id || '',
-      station_name: source.station_name || '',
-      permissions: source.permissions || {
-        canAccessAlerts: false,
-        canAccessGraphs: false,
-        canAccessFilters: false,
-        canAccessData: false,
-        canManageUsers: false
-      },
-      phone: source.phone || '',
-      active: source.active !== undefined ? source.active : true,
-      department: source.department || '',
-      position: source.position || '',
-      createdAt: source.createdAt || new Date().toISOString(),
-      lastLogin: source.lastLogin || null,
-      avatar: source.avatar
-    };
-  }
-
-  /**
    * Récupère les utilisateurs d'une station spécifique
    */
   getUsersByStation(stationId: string): Observable<User[]> {
-    return from(
-      this.kuzzleService['kuzzle'].document.search(
-        'iot',
-        'users',
-        {
-          query: {
-            term: {
-              station_id: stationId
-            }
-          }
-        },
-        {
-          size: 1000
-        }
-      )
-    ).pipe(
-      map((response: any) => {
-        return response.hits.map((hit: any) => this.mapKuzzleUserToUser(hit));
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getUsersByStation:', error);
-        return of([]);
-      })
+    return this.users$.pipe(
+      map(users => users.filter(u => u.station_id === stationId))
     );
   }
 
@@ -490,17 +339,8 @@ private loadUsers(retryCount = 0): void {
    * Compte le nombre total d'utilisateurs
    */
   countUsers(): Observable<number> {
-    return from(
-      this.kuzzleService['kuzzle'].document.count(
-        'iot',
-        'users',
-        { query: { match_all: {} } }
-      )
-    ).pipe(
-      catchError(error => {
-        console.error('❌ Erreur countUsers:', error);
-        return of(0);
-      })
+    return this.users$.pipe(
+      map(users => users.length)
     );
   }
 
@@ -508,29 +348,8 @@ private loadUsers(retryCount = 0): void {
    * Récupère les utilisateurs actifs
    */
   getActiveUsers(): Observable<User[]> {
-    return from(
-      this.kuzzleService['kuzzle'].document.search(
-        'iot',
-        'users',
-        {
-          query: {
-            term: {
-              active: true
-            }
-          }
-        },
-        {
-          size: 1000
-        }
-      )
-    ).pipe(
-      map((response: any) => {
-        return response.hits.map((hit: any) => this.mapKuzzleUserToUser(hit));
-      }),
-      catchError(error => {
-        console.error('❌ Erreur getActiveUsers:', error);
-        return of([]);
-      })
+    return this.users$.pipe(
+      map(users => users.filter(u => u.active))
     );
   }
 }

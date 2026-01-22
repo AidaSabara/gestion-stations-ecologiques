@@ -1,0 +1,403 @@
+<div class="sensor-container">
+  <div class="toast-container">
+  <div class="toast"
+       *ngIf="notification.show"
+       [class.success]="notification.type === 'success'"
+       [class.error]="notification.type === 'error'">
+    <div class="toast-icon">{{ notification.type === 'success' ? '✅' : '❌' }}</div>
+    <div class="toast-content">
+      <div class="toast-title">{{ notification.title }}</div>
+      <div class="toast-message">{{ notification.message }}</div>
+    </div>
+    <button class="toast-close" (click)="closeNotification()">✕</button>
+  </div>
+</div>
+  <!-- ===================================== -->
+  <!-- 📊 STATISTIQUES EN TEMPS RÉEL -->
+  <!-- ===================================== -->
+  <div class="stats-banner" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalReadings || 0 }}</div>
+        <div class="stat-label">Lectures capteurs</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💧</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalWaterQuality || 0 }}</div>
+        <div class="stat-label">Analyses qualité</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔄</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ excelData.length || 0 }}</div>
+        <div class="stat-label">Lignes en attente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- 🎯 FORMULAIRE CAPTEUR UNIQUE -->
+  <!-- ===================================== -->
+  <div class="card gradient-card">
+    <div class="card-header">
+      <h2>🎯 Injection Capteur Unique</h2>
+      <p class="subtitle">Envoi manuel de données en temps réel</p>
+    </div>
+
+    <div class="form-elegant">
+      <div class="input-group">
+        <label class="floating-label">
+          <input
+            type="text"
+            [(ngModel)]="sensorData.stationId"
+            placeholder=" "
+            class="elegant-input">
+          <span>🏢 Station ID</span>
+        </label>
+      </div>
+
+      <div class="form-row">
+        <div class="input-group">
+          <label class="floating-label">
+            <input
+              type="number"
+              [(ngModel)]="sensorData.temperature"
+              placeholder=" "
+              class="elegant-input">
+            <span>🌡️ Température (°C)</span>
+          </label>
+        </div>
+
+        <div class="input-group">
+          <label class="floating-label">
+            <input
+              type="number"
+              [(ngModel)]="sensorData.humidity"
+              placeholder=" "
+              class="elegant-input">
+            <span>💧 Humidité (%)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="input-group">
+          <label class="floating-label">
+            <input
+              type="number"
+              [(ngModel)]="sensorData.ph"
+              placeholder=" "
+              class="elegant-input">
+            <span>⚗️ pH</span>
+          </label>
+        </div>
+
+        <div class="input-group">
+          <label class="floating-label">
+            <input
+              type="number"
+              [(ngModel)]="sensorData.turbidity"
+              placeholder=" "
+              class="elegant-input">
+            <span>🌊 Turbidité (NTU)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="input-group">
+          <label class="floating-label">
+            <input
+              type="number"
+              [(ngModel)]="sensorData.dissolvedOxygen"
+              placeholder=" "
+              class="elegant-input">
+            <span>💨 O₂ dissous (mg/L)</span>
+          </label>
+        </div>
+
+        <div class="input-group">
+          <label class="floating-label">
+            <input
+              type="number"
+              [(ngModel)]="sensorData.co2"
+              placeholder=" "
+              class="elegant-input">
+            <span>🌫️ CO₂ (ppm)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-secondary" (click)="generateRandomData()">
+          🎲 Générer données aléatoires
+        </button>
+        <button class="btn btn-primary" (click)="injectSingleSensor()" [disabled]="!sensorData.stationId">
+          <span *ngIf="!isLoading">🚀 Envoyer</span>
+          <span *ngIf="isLoading">⏳ Envoi...</span>
+        </button>
+        <button class="btn btn-ghost" (click)="resetForm()">
+          🔄 Réinitialiser
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- 📂 IMPORT FICHIER EXCEL/CSV -->
+  <!-- ===================================== -->
+  <div class="card glass-card">
+    <div class="card-header">
+      <h2>📂 Import Fichier Excel/CSV</h2>
+      <p class="subtitle">Importation en masse de données historiques</p>
+    </div>
+
+    <!-- ÉTAPE 1 : Configuration -->
+    <div class="config-wizard">
+      <div class="wizard-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>⚙️ Configuration de l'import</h3>
+
+          <div class="config-grid">
+            <div class="config-item">
+              <label class="config-label">
+                <span class="required-dot"></span>
+                🏢 Station ID
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="defaultStationId"
+                placeholder="Ex: station-gandiol, STEP-Dakar"
+                class="config-input"
+                [class.error]="!defaultStationId && excelData.length > 0">
+              <span class="helper-text">Identifiant unique de la station</span>
+            </div>
+
+            <div class="config-item">
+              <label class="config-label">
+                <span class="required-dot"></span>
+                🔄 Phase de Traitement
+              </label>
+              <select
+                [(ngModel)]="defaultPhase"
+                class="config-input select-fancy"
+                [class.error]="!defaultPhase && excelData.length > 0">
+                <option value="ENTREE">🔵 ENTREE (Eau brute)</option>
+                <option value="SORTIE">🟢 SORTIE (Eau traitée)</option>
+                <option value="INTERMEDIAIRE">🟡 INTERMEDIAIRE</option>
+                <option value="TEMPS_REEL">⚡ TEMPS RÉEL</option>
+              </select>
+              <span class="helper-text">Étape du processus de traitement</span>
+            </div>
+
+            <div class="config-item">
+              <label class="config-label">
+                🔧 Type de Filtre
+              </label>
+              <select
+                [(ngModel)]="defaultTypeFiltre"
+                class="config-input select-fancy">
+                <option value="">-- Sélectionnez --</option>
+                <option value="Roseaux">🌾 Roseaux</option>
+                <option value="Vetiver">🌿 Vetiver</option>
+                <option value="Typha">🍃 Typha</option>
+                <option value="Coco">🥥 Coco</option>
+                <option value="Sable">🏖️ Sable</option>
+
+                <option value="AUTRE">❓ Autre</option>
+              </select>
+              <span class="helper-text">Système de filtration utilisé</span>
+            </div>
+
+            <div class="config-item">
+              <label class="config-label">
+                🏷️ ID du Filtre <span class="optional-badge">optionnel</span>
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="defaultIdFiltre"
+                placeholder="Ex: FAB-001, Filtre-A"
+                class="config-input">
+              <span class="helper-text">Numéro spécifique du filtre</span>
+            </div>
+          </div>
+
+          <!-- Alerte validation -->
+          <div class="alert alert-warning" *ngIf="excelData.length > 0 && (!defaultStationId || !defaultPhase)">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <strong>Attention !</strong> Remplissez <strong>Station ID</strong> et <strong>Phase</strong> avant d'importer.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 : Sélection fichier -->
+      <div class="wizard-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>📁 Sélection du fichier</h3>
+
+          <div class="dropzone" [class.has-file]="selectedFile">
+            <input
+              type="file"
+              id="excelInput"
+              accept=".csv,.xlsx,.xls"
+              (change)="onFileSelected($event)"
+              #fileInput
+              class="file-input-hidden">
+
+            <label for="excelInput" class="dropzone-label">
+              <div class="dropzone-icon" *ngIf="!selectedFile">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 18C7 18 7 16.5 9 15C11 13.5 11 12 9 12C7 12 7 10.5 7 10.5M17 18C17 18 17 16.5 15 15C13 13.5 13 12 15 12C17 12 17 10.5 17 10.5M12 6V2M12 2L14 4M12 2L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M4 14V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+
+              <div class="dropzone-text">
+                <span class="dropzone-title" *ngIf="!selectedFile">
+                  📂 Cliquez ou glissez votre fichier ici
+                </span>
+                <span class="dropzone-title success" *ngIf="selectedFile">
+                  ✅ {{ selectedFile.name }}
+                </span>
+                <span class="dropzone-subtitle" *ngIf="!selectedFile">
+                  Formats : CSV, Excel (.xlsx, .xls)
+                </span>
+                <span class="dropzone-subtitle" *ngIf="selectedFile">
+                  {{ (selectedFile.size / 1024).toFixed(1) }} KB
+                </span>
+              </div>
+            </label>
+
+            <button class="btn-remove" (click)="resetFile()" *ngIf="selectedFile">
+              ❌ Supprimer
+            </button>
+          </div>
+
+          <!-- Info formats -->
+          <div class="info-pill">
+            <strong>💡 Le saviez-vous ?</strong> Les fichiers Excel sont automatiquement traités.
+            Les lignes de statistiques (MOYENNE, MAX, MIN) sont ignorées automatiquement.
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 : Aperçu et validation -->
+      <div class="wizard-step" *ngIf="excelData.length > 0">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>👀 Aperçu et validation</h3>
+
+          <!-- Colonnes détectées -->
+          <div class="columns-preview">
+            <div class="columns-header">
+              <h4>📋 {{ excelColumns.length }} colonnes détectées</h4>
+              <span class="badge badge-success">{{ excelData.length }} lignes valides</span>
+            </div>
+
+            <div class="columns-flow">
+              <div class="column-chip" *ngFor="let col of excelColumns.slice(0, 8)">
+                {{ col }}
+              </div>
+              <div class="column-chip more" *ngIf="excelColumns.length > 8">
+                +{{ excelColumns.length - 8 }} autres
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau aperçu -->
+          <div class="data-preview">
+            <div class="preview-header">
+              <h4>🔍 Aperçu des 5 premières lignes</h4>
+            </div>
+            <div class="table-scroll">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th *ngFor="let col of excelColumns.slice(0, 10)">{{ col }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of excelData.slice(0, 5); let i = index">
+                    <td class="row-number">{{ i + 1 }}</td>
+                    <td *ngFor="let col of excelColumns.slice(0, 10)">
+                      <span class="cell-content">{{ row[col] || '-' }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Bouton import -->
+          <div class="import-section">
+            <button
+              class="btn btn-import"
+              (click)="uploadFile()"
+              [disabled]="!defaultStationId || !defaultPhase || isLoading">
+              <span *ngIf="!isLoading">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="vertical-align: middle;">
+                  <path d="M12 2L12 16M12 16L8 12M12 16L16 12M4 17V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Importer {{ excelData.length }} lignes
+              </span>
+              <span *ngIf="isLoading">
+                <div class="spinner"></div>
+                Import en cours...
+              </span>
+            </button>
+          </div>
+          <div class="alert-box" *ngIf="uploadProgress && !isLoading"
+     [class.alert-success]="uploadProgress.includes('✅')"
+     [class.alert-error]="uploadProgress.includes('❌')">
+  <div class="alert-icon">
+    {{ uploadProgress.includes('✅') ? '✅' : '❌' }}
+  </div>
+  <div class="alert-text">{{ uploadProgress }}</div>
+</div>
+          <!-- Barre de progression -->
+          <div class="progress-bar" *ngIf="uploadProgress">
+            <div class="progress-content">
+              <div class="progress-icon">⏳</div>
+              <div class="progress-text">{{ uploadProgress }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- 💻 COMMANDES CURL -->
+  <!-- ===================================== -->
+  <div class="card dark-card">
+    <div class="card-header">
+      <h2>💻 Test via cURL</h2>
+      <p class="subtitle">Commandes pour simuler une passerelle IoT</p>
+    </div>
+
+    <div class="curl-section">
+      <div class="curl-block">
+        <div class="curl-header">
+          <span class="curl-title">📡 Capteur unique</span>
+          <button class="btn-copy" (click)="copyCurlCommand()">
+            📋 Copier
+          </button>
+        </div>
+        <pre class="curl-code">{{ getCurlCommand() }}</pre>
+      </div>
+
+      <div class="terminal-hint">
+        <strong>💡 Astuce :</strong> Utilisez cette commande dans un terminal pour tester l'API sans passer par l'interface web.
+      </div>
+    </div>
+  </div>
+</div>

@@ -90,24 +90,23 @@ export const dataAccessGuard: CanActivateFn = (
   }
 
   // 🎭 Étape 4 : Vérifier le rôle (si spécifié)
-  const requiredRole = route.data['role'] as 'admin' | 'supervisor' | 'agent' | undefined;
+  const allowedRoles = route.data['allowedRoles'] as string[] | undefined;
 
-  if (requiredRole) {
-    console.log('🎭 Rôle requis:', requiredRole);
+  if (allowedRoles && allowedRoles.length > 0) {
+    console.log('🎭 Rôles autorisés:', allowedRoles);
     console.log('🎭 Rôle actuel:', currentUser.role);
 
-    const hasRequiredRole = currentUser.role === requiredRole || currentUser.role === 'admin';
+    const hasRequiredRole = allowedRoles.includes(currentUser.role);
 
     if (!hasRequiredRole) {
-      console.log('⚠️ Rôle insuffisant');
-      console.log('⚠️ ========================================');
-
-      alert(`Accès refusé : Cette page nécessite le rôle "${requiredRole}"`);
-      router.navigate(['/stations']);
+      console.log('⚠️ Rôle non autorisé');
+      alert(`Accès refusé : Cette page est réservée aux rôles: ${allowedRoles.join(', ')}`);
+      router.navigate(['/']);
       return false;
     }
-  }
 
+    console.log('✅ Rôle autorisé');
+  }
   // ✅ Accès autorisé
   console.log('✅ ========================================');
   console.log('✅ ACCÈS AUTORISÉ');

@@ -42,7 +42,7 @@ router.post(
   requireRole(['admin', 'supervisor']),
   async (req: Request, res: Response) => {
     try {
-      const { stationId } = req.params;
+     const stationId = (req.query.stationId || req.params.stationId) as string;
       const { frequency = 'weekly', sendEmail = false, recipients = [] } = req.body;
 
       if (!['weekly', 'monthly'].includes(frequency)) {
@@ -178,7 +178,7 @@ router.get(
   jwtMiddleware,
   async (req: Request, res: Response) => {
     try {
-      const { filename } = req.params;
+      const filename = req.params.filename as string;
       const reportsDir = path.join(__dirname, '../../reports');
       const filePath = path.join(reportsDir, filename);
 

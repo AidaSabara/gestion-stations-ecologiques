@@ -1,7 +1,8 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';  // 👈 AJOUT Router
+import { RouterModule, Router } from '@angular/router';
 import { KuzzleService } from '../../kuzzle.service';
+import { AuthService } from '../../auth.service';
 import * as L from 'leaflet';
 
 interface Station {
@@ -11,6 +12,7 @@ interface Station {
   longitude: number;
   status: 'active' | 'alert';
   lastUpdate: number;
+  region?: string;
 }
 
 interface Alert {
@@ -67,6 +69,8 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   stations: Station[] = [];
   isLoading = true;
   selectedStation: Station | null = null;
+  currentUserRole: 'admin' | 'supervisor' | 'agent' = 'agent';
+  currentUserStationId: string | null = null;
 
   stationAlerts: Map<string, Alert[]> = new Map();
   stationWaterData: Map<string, WaterQualityData[]> = new Map();
@@ -80,15 +84,30 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private kuzzleService: KuzzleService,
-    private router: Router  // 👈 AJOUT Router
+    private authService: AuthService,
+    private router: Router
   ) {}
+  private loadUserInfo(): void {
+    const user = this.authService.getCurrentUser();
 
+    if (user) {
+      this.currentUserRole = user.role;
+      this.currentUserStationId = user.station_id;
+
+      console.log('👤 Utilisateur connecté:', user.email);
+      console.log('🎭 Rôle:', this.currentUserRole);
+      console.log('🏭 Station ID:', this.currentUserStationId);
+    } else {
+      console.error('❌ Aucun utilisateur connecté !');
+      this.router.navigate(['/auth']);
+    }
+  }
 
   async ngOnInit() {
     console.log('🗺️ Initialisation de la carte avec alertes...');
+    this.loadUserInfo();
     await this.loadAllData();
     this.setupRealTimeMonitoring();
-    
   }
 
   ngAfterViewInit(): void {}
@@ -122,39 +141,115 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private async loadStations() {
     try {
       const results = await this.kuzzleService.getStations();
-      this.stations = results
+
+      console.log('📊 === DEBUG CHARGEMENT STATIONS ===');
+      console.log('📊 Nombre total reçu de Kuzzle:', results.length);
+      console.log('🎭 Rôle utilisateur:', this.currentUserRole);
+      console.log('🏭 Station utilisateur:', this.currentUserStationId);
+
+      // ✅ ÉTAPE 1 : Mapper TOUTES les stations d'abord
+      let allStations = results
         .map((doc: any) => {
           const source = doc._source || doc.body || {};
           const location = source.location || {};
-          return {
+
+          const lat = parseFloat(location.lat) || 0;
+          const lon = parseFloat(location.lon) || 0;
+
+          const station = {
             id: doc._id,
             name: source.name || `Station ${doc._id.substring(0, 8)}`,
-            latitude: parseFloat(location.lat) || 0,
-            longitude: parseFloat(location.lon) || 0,
+            latitude: lat,
+            longitude: lon,
             status: 'active' as 'active' | 'alert',
-            lastUpdate: source.installedAt || Date.now()
+            lastUpdate: source.installedAt || Date.now(),
+            region: source.region || 'Non spécifiée'
           };
+
+          return station;
         })
-        .filter((station: Station) => station.latitude !== 0 && station.longitude !== 0);
+        .filter((station: Station) => {
+          const isValid = station.latitude !== 0 && station.longitude !== 0;
+          if (!isValid) {
+            console.warn(`⚠️ Station ignorée (coordonnées nulles): ${station.name}`);
+          }
+          return isValid;
+        });
+
+      // ✅ ÉTAPE 2 : FILTRAGE PAR RÔLE
+      if (this.currentUserRole === 'admin') {
+        // Admin voit TOUTES les stations
+        this.stations = allStations;
+        console.log('✅ ADMIN - Affichage de toutes les stations:', this.stations.length);
+      } else {
+        // Agent/Supervisor voit UNIQUEMENT sa station
+        if (this.currentUserStationId) {
+          this.stations = allStations.filter(
+            (station: Station) => station.id === this.currentUserStationId
+          );
+          console.log('✅ AGENT/SUPERVISOR - Affichage station spécifique:', this.stations.length);
+
+          if (this.stations.length === 0) {
+            console.warn('⚠️ Aucune station trouvée pour cet utilisateur !');
+            console.warn('⚠️ Station ID recherché:', this.currentUserStationId);
+          }
+        } else {
+          console.error('❌ Aucune station_id pour cet utilisateur !');
+          this.stations = [];
+        }
+      }
+
+      console.log('✅ Stations à afficher:', this.stations.length);
+      console.log('📊 === FIN DEBUG ===');
+
+      // ✅ Afficher le détail par région (seulement pour admin)
+      if (this.currentUserRole === 'admin') {
+        const stationsByRegion = this.groupStationsByRegion();
+        stationsByRegion.forEach((stations, region) => {
+          console.log(`📍 ${region}: ${stations.length} station(s)`);
+          stations.forEach(s => console.log(`   - ${s.name} (${s.latitude}, ${s.longitude})`));
+        });
+      }
+
     } catch (error) {
       console.error('❌ Erreur chargement stations:', error);
       this.stations = [];
     }
   }
 
+  // ✅ Grouper les stations par région
+  private groupStationsByRegion(): Map<string, Station[]> {
+    const grouped = new Map<string, Station[]>();
+
+    this.stations.forEach(station => {
+      const region = station.region || 'Non spécifiée';
+      if (!grouped.has(region)) {
+        grouped.set(region, []);
+      }
+      grouped.get(region)!.push(station);
+    });
+
+    return grouped;
+  }
+
   private async loadWaterQualityData() {
     try {
       const allData = await this.kuzzleService.getWaterQualityData();
+
       allData.forEach((doc: any) => {
         const source = doc._source || doc.body || {};
         const stationId = source.id_station;
-        if (stationId) {
+
+        // ✅ FILTRAGE : Charger uniquement les données des stations visibles
+        if (stationId && this.stations.some(s => s.id === stationId)) {
           if (!this.stationWaterData.has(stationId)) {
             this.stationWaterData.set(stationId, []);
           }
           this.stationWaterData.get(stationId)!.push({ _id: doc._id, body: source });
         }
       });
+
+      console.log('💧 Données water_quality chargées pour', this.stationWaterData.size, 'station(s)');
     } catch (error) {
       console.error('❌ Erreur chargement water_quality:', error);
     }
@@ -163,16 +258,21 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private async loadReadingData() {
     try {
       const allData = await this.kuzzleService.getReadingData();
+
       allData.forEach((doc: any) => {
         const source = doc._source || doc.body || {};
         const stationId = source.stationId;
-        if (stationId) {
+
+        // ✅ FILTRAGE : Charger uniquement les données des stations visibles
+        if (stationId && this.stations.some(s => s.id === stationId)) {
           if (!this.stationReadings.has(stationId)) {
             this.stationReadings.set(stationId, []);
           }
           this.stationReadings.get(stationId)!.push({ _id: doc._id, body: source });
         }
       });
+
+      console.log('📊 Données readings chargées pour', this.stationReadings.size, 'station(s)');
     } catch (error) {
       console.error('❌ Erreur chargement readings:', error);
     }
@@ -181,24 +281,31 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private async loadAlerts() {
     try {
       const activeAlerts = await this.kuzzleService.getActiveAlerts();
+
       activeAlerts.forEach((alert: any) => {
         const source = alert._source || alert.body || {};
         const stationId = source.stationId;
-        const alertData: Alert = {
-          station: stationId || 'Station inconnue',
-          message: source.message || 'Pas de message',
-          time: new Date(source.timestamp || Date.now()).toLocaleTimeString('fr-FR'),
-          severity: source.level || 'info',
-          type: source.type || 'unknown'
-        };
-        this.allAlerts.push(alertData);
-        if (stationId) {
+
+        // ✅ FILTRAGE : Charger uniquement les alertes des stations visibles
+        if (stationId && this.stations.some(s => s.id === stationId)) {
+          const alertData: Alert = {
+            station: stationId || 'Station inconnue',
+            message: source.message || 'Pas de message',
+            time: new Date(source.timestamp || Date.now()).toLocaleTimeString('fr-FR'),
+            severity: source.level || 'info',
+            type: source.type || 'unknown'
+          };
+
+          this.allAlerts.push(alertData);
+
           if (!this.stationAlerts.has(stationId)) {
             this.stationAlerts.set(stationId, []);
           }
           this.stationAlerts.get(stationId)!.push(alertData);
         }
       });
+
+      console.log('🔔 Alertes chargées pour', this.stationAlerts.size, 'station(s)');
     } catch (error) {
       console.error('❌ Erreur chargement alertes:', error);
     }
@@ -213,7 +320,13 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!d || !d.body) return;
           const ph = d.body.ph;
           if (ph !== null && ph !== undefined && (ph < 6.5 || ph > 9.5)) {
-            alerts.push({ station: station.name, message: `pH anormal : ${ph.toFixed(2)}`, time: new Date().toLocaleTimeString('fr-FR'), severity: ph < 5 || ph > 10 ? 'critical' : 'high', type: 'water_quality' });
+            alerts.push({
+              station: station.name,
+              message: `pH anormal : ${ph.toFixed(2)}`,
+              time: new Date().toLocaleTimeString('fr-FR'),
+              severity: ph < 5 || ph > 10 ? 'critical' : 'high',
+              type: 'water_quality'
+            });
           }
         });
       }
@@ -271,11 +384,14 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private initMap(): void {
     const mapElement = document.getElementById('map');
     if (!mapElement) return;
+
     this.map = L.map('map').setView([14.5, -14.5], 6);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 18
     }).addTo(this.map);
+
     if (this.stations.length > 0) {
       this.addStationMarkers();
     }
@@ -283,11 +399,21 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private addStationMarkers(): void {
     if (!this.map) return;
+
     const bounds: L.LatLngBoundsExpression = [];
-    this.stations.forEach(station => {
+
+    console.log('🗺️ === AJOUT DES MARQUEURS ===');
+    console.log('🗺️ Nombre de marqueurs à ajouter:', this.stations.length);
+
+    this.stations.forEach((station, index) => {
+      console.log(`🗺️ Marqueur ${index + 1}/${this.stations.length}: ${station.name} à [${station.latitude}, ${station.longitude}]`);
       this.addSingleStationMarker(station);
       bounds.push([station.latitude, station.longitude]);
     });
+
+    console.log('🗺️ Total marqueurs ajoutés:', this.markers.size);
+    console.log('🗺️ === FIN AJOUT MARQUEURS ===');
+
     if (bounds.length > 0) {
       this.map.fitBounds(bounds, { padding: [50, 50] });
     }
@@ -295,7 +421,10 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private addSingleStationMarker(station: Station): void {
     if (!this.map) return;
+
     const iconColor = this.getIconColor(station.status);
+
+    // ✅ MARQUEUR ORIGINAL - Taille fixe 16px
     const customIcon = L.divIcon({
       html: `<div style="background-color: ${iconColor}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
       className: 'station-marker',
@@ -306,20 +435,27 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const popupContent = this.createPopupContent(station);
     const marker = L.marker([station.latitude, station.longitude], { icon: customIcon })
       .addTo(this.map!)
-      .bindPopup(popupContent, { closeButton: true, maxWidth: 300, minWidth: 250, maxHeight: 350, autoPan: true, autoPanPadding: [50, 50], keepInView: true });
+      .bindPopup(popupContent, {
+        closeButton: true,
+        maxWidth: 300,
+        minWidth: 250,
+        maxHeight: 350,
+        autoPan: true,
+        autoPanPadding: [50, 50],
+        keepInView: true
+      });
 
     marker.on('mouseover', () => marker.openPopup());
     marker.on('mouseout', () => marker.closePopup());
-
-    // 👇 MODIFICATION : Au clic, redirection vers StationDetail
     marker.on('click', () => {
       this.selectStation(station);
     });
 
     this.markers.set(station.id, marker);
+
+    console.log(`✅ Marqueur ajouté pour ${station.name} (ID: ${station.id})`);
   }
 
-  // 👇 MODIFICATION : Popup avec bouton "Voir détails"
   private createPopupContent(station: Station): string {
     const alerts = this.stationAlerts.get(station.id) || [];
     const waterData = this.stationWaterData.get(station.id) || [];
@@ -338,7 +474,8 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
           </span>
         </div>
         <div style="margin-bottom: 8px; font-size: 10px; padding: 5px; background: #f8f9fa; border-radius: 4px;">
-          <strong>📍 Position</strong><br>
+          <strong>📍 Région:</strong> ${station.region}<br>
+          <strong>📍 Position:</strong><br>
           ${station.latitude.toFixed(4)}, ${station.longitude.toFixed(4)}
         </div>
     `;
@@ -356,7 +493,6 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
       </div>`;
     }
 
-    // 👇 BOUTON VOIR DÉTAILS
     html += `
       <div style="margin-top: 12px; text-align: center; padding-top: 10px; border-top: 1px solid #ddd;">
         <a href="/station/${station.id}"
@@ -376,7 +512,6 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
     return status === 'alert' ? '#dc3545' : '#28a745';
   }
 
-  // 👇 MODIFICATION : Redirection vers StationDetail
   selectStation(station: Station) {
     console.log('📍 Station sélectionnée:', station.name);
     this.router.navigate(['/station', station.id]);

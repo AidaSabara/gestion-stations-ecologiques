@@ -1,16 +1,22 @@
 // src/routes/user.routes.ts
 import express, { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
+import { ActivityLogService } from '../services/activity-log.service';
 import { jwtMiddleware } from '../middlewares/jwt.middleware';
 import { requireRole } from '../middlewares/roles.middleware';
 import { CreateUserDto, UpdateUserDto } from '../types/user.types';
 
 const router = express.Router();
 const userService = new UserService();
+const activityLogService = new ActivityLogService();
 
 // Connexion initiale à Kuzzle
 userService.connect().catch(err => {
   console.error('❌ Impossible de connecter UserService à Kuzzle:', err);
+});
+
+activityLogService.connect().catch(err => {
+  console.error('❌ Impossible de connecter ActivityLogService à Kuzzle:', err);
 });
 
 /**
@@ -104,7 +110,7 @@ router.get(
   jwtMiddleware,
   async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       // Vérifier les permissions
       const isAdminOrSupervisor = ['admin', 'supervisor'].includes(req.user!.role);
@@ -174,6 +180,34 @@ router.post(
 
       const user = await userService.createUser(userData);
 
+      // 🔥 LOGGER L'ACTIVITÉ
+      console.log('🔍 DEBUT LOGGING - Création utilisateur');
+      console.log('🔍 req.user:', req.user);
+      console.log('🔍 user créé:', user);
+      
+      try {
+        await activityLogService.logActivity({
+        userId: req.user!.userId,
+        userName: req.user!.email.split('@')[0],
+        userEmail: req.user!.email,
+        userRole: req.user!.role,
+        action: 'user.create',
+        status: 'success',
+        description: `${req.user!.email} a créé l'utilisateur ${user.name}`,
+        metadata: {
+          targetUserId: user._id,
+          targetUserName: user.name,
+          targetUserEmail: user.email,
+          targetUserRole: user.role,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }
+      });
+      console.log('✅ FIN LOGGING - Activité enregistrée');
+    } catch (logError) {
+      console.error('❌ ERREUR LOGGING:', logError);
+    }
+
       // Retirer le mot de passe
       const { password, ...userWithoutPassword } = user;
 
@@ -214,7 +248,7 @@ router.put(
   jwtMiddleware,
   async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const userData: UpdateUserDto = req.body;
 
       // Vérifier les permissions
@@ -248,7 +282,38 @@ router.put(
         }
       }
 
+      // Récupérer l'utilisateur avant modification pour la description
+      const oldUser = await userService.getUserById(id);
+
       const user = await userService.updateUser(id, userData);
+
+      // 🔥 LOGGER L'ACTIVITÉ
+      console.log('🔍 DEBUT LOGGING - Modification utilisateur');
+      console.log('🔍 req.user:', req.user);
+      
+      try {
+        const changedFields = Object.keys(userData).filter(key => key !== 'password');
+        await activityLogService.logActivity({
+        userId: req.user!.userId,
+        userName: req.user!.email.split('@')[0],
+        userEmail: req.user!.email,
+        userRole: req.user!.role,
+        action: 'user.update',
+        status: 'success',
+        description: `${req.user!.email} a modifié l'utilisateur ${oldUser?.name || user.name}`,
+        metadata: {
+          targetUserId: user._id,
+          targetUserName: user.name,
+          targetUserEmail: user.email,
+          changedFields: changedFields,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }
+      });
+      console.log('✅ FIN LOGGING - Activité update enregistrée');
+    } catch (logError) {
+      console.error('❌ ERREUR LOGGING UPDATE:', logError);
+    }
 
       // Retirer le mot de passe
       const { password, ...userWithoutPassword } = user;
@@ -291,7 +356,7 @@ router.delete(
   requireRole(['admin']),
   async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       // Empêcher la suppression de soi-même
       if (id === req.user?.userId) {
@@ -303,7 +368,28 @@ router.delete(
         return;
       }
 
+      // Récupérer l'utilisateur avant suppression
+      const userToDelete = await userService.getUserById(id);
+
       await userService.deleteUser(id);
+
+      // 🔥 LOGGER L'ACTIVITÉ
+      await activityLogService.logActivity({
+        userId: req.user!.userId,
+        userName: req.user!.email.split('@')[0],
+        userEmail: req.user!.email,
+        userRole: req.user!.role,
+        action: 'user.delete',
+        status: 'success',
+        description: `${req.user!.email} a supprimé l'utilisateur ${userToDelete?.name || id}`,
+        metadata: {
+          targetUserId: id,
+          targetUserName: userToDelete?.name,
+          targetUserEmail: userToDelete?.email,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }
+      });
 
       res.status(200).json({
         success: true,
@@ -332,7 +418,7 @@ router.patch(
   requireRole(['admin']),
   async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       // Empêcher de se désactiver soi-même
       if (id === req.user?.userId) {
@@ -345,6 +431,25 @@ router.patch(
       }
 
       const user = await userService.toggleUserStatus(id);
+
+      // 🔥 LOGGER L'ACTIVITÉ
+      await activityLogService.logActivity({
+        userId: req.user!.userId,
+        userName: req.user!.email.split('@')[0],
+        userEmail: req.user!.email,
+        userRole: req.user!.role,
+        action: 'user.toggle_status',
+        status: 'success',
+        description: `${req.user!.email} a ${user.active ? 'activé' : 'désactivé'} l'utilisateur ${user.name}`,
+        metadata: {
+          targetUserId: user._id,
+          targetUserName: user.name,
+          targetUserEmail: user.email,
+          newStatus: user.active,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }
+      });
 
       // Retirer le mot de passe
       const { password, ...userWithoutPassword } = user;
@@ -377,7 +482,7 @@ router.post(
   requireRole(['admin']),
   async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { newPassword } = req.body;
 
       if (!newPassword) {
@@ -398,7 +503,28 @@ router.post(
         return;
       }
 
+      // Récupérer l'utilisateur avant modification
+      const userToUpdate = await userService.getUserById(id);
+
       await userService.resetPassword(id, newPassword);
+
+      // 🔥 LOGGER L'ACTIVITÉ
+      await activityLogService.logActivity({
+        userId: req.user!.userId,
+        userName: req.user!.email.split('@')[0],
+        userEmail: req.user!.email,
+        userRole: req.user!.role,
+        action: 'user.reset_password',
+        status: 'success',
+        description: `${req.user!.email} a réinitialisé le mot de passe de ${userToUpdate?.name || id}`,
+        metadata: {
+          targetUserId: id,
+          targetUserName: userToUpdate?.name,
+          targetUserEmail: userToUpdate?.email,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }
+      });
 
       res.status(200).json({
         success: true,

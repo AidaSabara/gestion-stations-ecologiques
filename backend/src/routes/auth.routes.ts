@@ -58,8 +58,14 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // ✅ Logger la connexion réussie
     try {
+      // 🔥 CORRECTION: Utiliser id (tel que défini dans le type)
+      const userId = result.user!.id;
+      
+      console.log('🔍 DEBUG Login - User object:', JSON.stringify(result.user, null, 2));
+      console.log('🔍 DEBUG Login - userId extrait:', userId);
+
       await activityLogService.logActivity({
-        userId: result.user!.id,  // ← CORRECTION: id au lieu de userId
+        userId: userId,
         userName: result.user!.name || email.split('@')[0],
         userEmail: result.user!.email,
         userRole: result.user!.role,
@@ -69,7 +75,7 @@ router.post('/login', async (req: Request, res: Response) => {
         metadata: {
           ipAddress: req.ip,
           userAgent: req.headers['user-agent'],
-          stationId: result.user!.stationId
+          stationId: (result.user as any).stationId || (result.user as any).station_id
         }
       });
       console.log('✅ Activité de connexion enregistrée pour:', result.user!.email);
@@ -149,8 +155,14 @@ router.post('/login-station', async (req: Request, res: Response) => {
 
     // ✅ Logger l'accès réussi à la station
     try {
+      // 🔥 CORRECTION: Utiliser id (tel que défini dans le type)
+      const userId = result.user!.id;
+      
+      console.log('🔍 DEBUG Login-Station - User object:', JSON.stringify(result.user, null, 2));
+      console.log('🔍 DEBUG Login-Station - userId extrait:', userId);
+
       await activityLogService.logActivity({
-        userId: result.user!.id,  // ← CORRECTION: id au lieu de userId
+        userId: userId,
         userName: result.user!.name || email.split('@')[0],
         userEmail: result.user!.email,
         userRole: result.user!.role,
@@ -238,9 +250,11 @@ router.post('/refresh', async (req: Request, res: Response) => {
  */
 router.post('/logout', jwtMiddleware, async (req: Request, res: Response) => {
   try {
-    // ✅ Logger la déconnexion
+    // ✅ Logger la déconnexion AVANT de vider les données
     if (req.user) {
       try {
+        console.log('🔍 DEBUG Logout - req.user:', JSON.stringify(req.user, null, 2));
+        
         await activityLogService.logActivity({
           userId: req.user.userId,
           userName: req.user.email.split('@')[0],
@@ -256,7 +270,7 @@ router.post('/logout', jwtMiddleware, async (req: Request, res: Response) => {
         });
         console.log('✅ Activité de déconnexion enregistrée pour:', req.user.email);
       } catch (logError) {
-        console.error('❌ Erreur log activité:', logError);
+        console.error('❌ Erreur log activité logout:', logError);
       }
     }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Kuzzle, WebSocket } from 'kuzzle-sdk';
- // Interface basée sur la structure réelle de vos données Kuzzle
+
 export interface MaintenanceIntervention {
   _id?: string;
   _kuzzle_info?: {
@@ -20,6 +20,12 @@ export interface MaintenanceIntervention {
   notes?: string;
   statut?: string;
   pieces_changees?: string[];
+}
+
+
+export interface TypePlante {
+  nom: 'Vetiver' | 'Typha' | 'Mélange' | 'Autre' | 'Non_Applicable';
+  description?: string;
 }
 
 export type TypeIntervention =
@@ -192,195 +198,691 @@ private async handleConnectionError(error: any) {
     }
   }
 
+async getWaterQualityData(stationId?: string): Promise<any[]> {
+  try {
+    await this.ensureConnection();
 
-  async getWaterQualityData(stationId?: string): Promise<any[]> {
+    let allHits: any[] = [];
+    const pageSize = 100;
+
+    console.log('🔍 Recherche TOUTES les données water_quality...');
+
+    // 🔥 CONSTRUIRE LA REQUÊTE
+    const searchBody: any = {
+      query: stationId ? {
+        bool: {
+          should: [
+            { term: { 'id_station': stationId } },
+            { term: { 'stationId': stationId } }
+          ],
+          minimum_should_match: 1
+        }
+      } : { match_all: {} }
+    };
+
+    console.log('🔍 Requête avec stationId:', stationId);
+
+    // 🔥 UTILISER searchAll QUI GÈRE AUTOMATIQUEMENT LA PAGINATION
     try {
-      await this.ensureConnection();
-
-      let allHits: any[] = [];
-      const pageSize = 100;
+      // Récupérer tous les documents avec searchAll (gère le scroll automatiquement)
       let from = 0;
+      let totalFetched = 0;
       let totalDocuments = 0;
 
-      console.log('🔍 Recherche TOUTES les données water_quality avec pagination complète...');
+      // Première requête pour connaître le total
+      const firstResponse = await this.kuzzle.document.search(
+        'iot',
+        'water_quality',
+        searchBody,
+        { size: pageSize, from: 0 }
+      );
 
-      // PREMIÈRE REQUÊTE
-      const searchBody: any = {
-        size: pageSize,
-        from: 0
-      };
-
-      if (stationId) {
-        searchBody.query = {
-          term: {
-            'id_station': stationId
-          }
-        };
-      }
-
-      const firstResponse = await this.kuzzle.document.search('iot', 'water_quality', searchBody);
       totalDocuments = firstResponse.total;
       allHits = [...firstResponse.hits];
+      totalFetched = firstResponse.hits.length;
 
-      console.log(`📄 Page 1: ${firstResponse.hits.length}/${totalDocuments} documents`);
+      console.log(`📄 Premier batch: ${totalFetched}/${totalDocuments} documents`);
 
-      // PAGINATION
-      from = pageSize;
-      while (allHits.length < totalDocuments) {
-        const nextSearchBody: any = {
-          size: pageSize,
-          from: from
-        };
+      // Continuer à récupérer par batch de 100
+      while (totalFetched < totalDocuments) {
+        from += pageSize;
 
-        if (stationId) {
-          nextSearchBody.query = {
-            term: {
-              'id_station': stationId
-            }
-          };
-        }
+        const response = await this.kuzzle.document.search(
+          'iot',
+          'water_quality',
+          searchBody,
+          { size: pageSize, from: from }
+        );
 
-        const response = await this.kuzzle.document.search('iot', 'water_quality', nextSearchBody);
         if (response.hits.length === 0) break;
 
         allHits = [...allHits, ...response.hits];
-        from += pageSize;
-        console.log(`📄 Progression: ${allHits.length}/${totalDocuments}`);
+        totalFetched += response.hits.length;
+
+        console.log(`📄 Progression: ${totalFetched}/${totalDocuments}`);
+
+        // Sécurité : éviter boucle infinie
+        if (from > 10000) {
+          console.warn('⚠️ Limite de 10000 documents atteinte');
+          break;
+        }
       }
 
       console.log(`✅ TOTAL récupéré: ${allHits.length}/${totalDocuments} documents`);
 
-      const formattedData = allHits.map((hit: any) => {
-        const source = hit._source || hit.body || hit;
+    } catch (scrollError) {
+      console.error('❌ Erreur lors de la récupération avec pagination:', scrollError);
+      // Fallback : récupérer au moins les premiers résultats
+      const fallbackResponse = await this.kuzzle.document.search(
+        'iot',
+        'water_quality',
+        searchBody,
+        { size: 10000 }
+      );
+      allHits = fallbackResponse.hits;
+      console.log(`⚠️ Fallback: ${allHits.length} documents récupérés`);
+    }
 
-         const rawDate = source.Date || source.date;
-            let formattedDate = rawDate;
+    // 🔥 DÉDUPLIQUER PAR _id
+    const uniqueHits = Array.from(
+      new Map(allHits.map(hit => [hit._id, hit])).values()
+    );
 
-            if (rawDate) {
-              try {
-                // Si format "09/04/2019, 00:00:00"
-                if (rawDate.includes('/') && rawDate.includes(',')) {
-                  const [datePart] = rawDate.split(',');
-                  const [day, month, year] = datePart.split('/');
-                  formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                }
-                // Si format "09/04/2019" (sans heure)
-                else if (rawDate.includes('/') && !rawDate.includes(',')) {
-                  const [day, month, year] = rawDate.split('/');
-                  formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-                }
-                // Si déjà au format YYYY-MM-DD, garder tel quel
-                else if (rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                  formattedDate = rawDate;
-                }
-                console.log(`📅 Date: ${rawDate} → ${formattedDate}`);
-              } catch (error) {
-                console.warn(`❌ Erreur conversion date: ${rawDate}`, error);
-              }
-            }
+    if (uniqueHits.length !== allHits.length) {
+      console.warn(`⚠️ ${allHits.length - uniqueHits.length} doublons supprimés`);
+    }
 
-        //  Gérer les valeurs numériques avec virgules
-        const formatNumericValue = (value: any) => {
-          if (value == null || value === '') return null;
+    allHits = uniqueHits;
+    console.log(`✅ Données uniques: ${allHits.length} documents`);
 
-          // Si c'est une chaîne avec virgule, convertir en nombre
-          if (typeof value === 'string' && value.includes(',')) {
-            const numericValue = parseFloat(value.replace(',', '.'));
-            console.log(`🔢 Conversion: ${value} → ${numericValue}`);
-            return numericValue;
+    // 🔥 FONCTION POUR NORMALISER LES DATES (timestamp OU string)
+    const normalizeDate = (rawDate: any): string | null => {
+      if (!rawDate) return null;
+
+      // Si c'est un timestamp Unix (nombre > 1000000000000 = après 2001)
+      if (typeof rawDate === 'number' && rawDate > 1000000000000) {
+        const date = new Date(rawDate);
+        return date.toISOString().substring(0, 10); // YYYY-MM-DD
+      }
+
+      // Si c'est déjà une string au format YYYY-MM-DD
+      if (typeof rawDate === 'string') {
+        if (rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+          return rawDate.substring(0, 10);
+        }
+      }
+
+      console.warn('⚠️ Format de date non reconnu:', rawDate);
+      return null;
+    };
+
+    // 🔥 FONCTION POUR PARSER LES VALEURS NUMÉRIQUES
+    const parseValue = (value: any): number | null => {
+      if (value === null || value === undefined || value === '') return null;
+
+      if (typeof value === 'number') {
+        return isNaN(value) ? null : value;
+      }
+
+      if (typeof value === 'string') {
+        const cleaned = value.trim().replace(',', '.');
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? null : num;
+      }
+
+      return null;
+    };
+
+    // 🔥 FORMATAGE DES DONNÉES
+    const formattedData = allHits.map((hit: any) => {
+      const source = hit._source || hit;
+
+      // ✅ Normaliser la date (timestamp ou string)
+      const date = normalizeDate(source.date);
+
+      return {
+        _id: hit._id,
+        body: {
+          // Informations de base
+          id_station: source.id_station || 'unknown',
+          phase: source.phase || 'entrée',
+          type_filtre: source.type_filtre || 'Non_Applicable',
+          id_filtre: source.id_filtre || 'unknow',
+          date: date, // ✅ Date normalisée
+          mois: source.mois,
+
+          // Paramètres physico-chimiques
+          temperature_c: parseValue(source.temperature_c),
+          ph: parseValue(source.ph),
+          conductivite_us_cm: parseValue(source.conductivite_us_cm),
+          potentiel_redox_mv: parseValue(source.potentiel_redox_mv),
+
+          // Pollution organique
+          dbo5_mg_l: parseValue(source.dbo5_mg_l),
+          dco_mg_l: parseValue(source.dco_mg_l),
+          mes_mg_l: parseValue(source.mes_mg_l),
+          mvs_pct: parseValue(source.mvs_pct),
+
+          // Nutriments
+          nitrates_mg_l: parseValue(source.nitrates_mg_l),
+          ammonium_mg_l: parseValue(source.ammonium_mg_l),
+          azote_total_mg_l: parseValue(source.azote_total_mg_l),
+          phosphates_mg_l: parseValue(source.phosphates_mg_l),
+
+          // Microbiologie
+          coliformes_fecaux_cfu_100ml: parseValue(source.coliformes_fecaux_cfu_100ml),
+          oeufs_helminthes: source.oeufs_helminthes,
+          huiles_graisses: parseValue(source.huiles_graisses),
+
+          // Métadonnées
+          nom_feuille: source.nom_feuille,
+          contient_valeurs_estimees: source.contient_valeurs_estimees || false,
+          timestamp: date
+        }
+      };
+    });
+
+    // 📊 DEBUG ET STATISTIQUES
+    console.log('✅ DONNÉES FORMATÉES (10 premières):');
+    formattedData.slice(0, 10).forEach((item, index) => {
+      console.log(`   ${index + 1}. Date: ${item.body.date} | Phase: ${item.body.phase} | ` +
+                  `Filtre: ${item.body.id_filtre} | Type: ${item.body.type_filtre} | ` +
+                  `DBO5: ${item.body.dbo5_mg_l}`);
+    });
+
+    // Extraire les dates et filtres uniques
+    const uniqueDates = [...new Set(formattedData
+      .map(d => d.body.date)
+      .filter(d => d != null))].sort();
+
+    const uniqueFilters = [...new Set(formattedData
+      .map(d => d.body.id_filtre)
+      .filter(f => f && f !== 'unknown'))].sort();
+
+    console.log(`📅 DATES UNIQUES (${uniqueDates.length}):`, uniqueDates);
+    console.log(`🔧 FILTRES UNIQUES (${uniqueFilters.length}):`, uniqueFilters);
+
+    // 📊 DEBUG : Afficher toutes les dates brutes
+    const toutesLesDates = formattedData
+      .map(d => d.body.date)
+      .filter(d => d != null);
+    console.log(`📅 TOUTES LES DATES (${toutesLesDates.length} entrées):`, toutesLesDates);
+
+    // Compter par filtre et par date
+    const filterCounts = formattedData.reduce((acc: any, item) => {
+      const filter = item.body.id_filtre;
+      acc[filter] = (acc[filter] || 0) + 1;
+      return acc;
+    }, {});
+
+    const dateCounts = formattedData.reduce((acc: any, item) => {
+      const date = item.body.date;
+      if (date) {  // ✅ Vérifier que la date n'est pas null
+        acc[date] = (acc[date] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    console.log('📊 RÉPARTITION PAR FILTRE:', filterCounts);
+    console.log('📊 RÉPARTITION PAR DATE:', dateCounts);
+
+    // Vérifier s'il y a des données sans date
+    const withoutDate = formattedData.filter(d => !d.body.date).length;
+    if (withoutDate > 0) {
+      console.warn(`⚠️ ATTENTION: ${withoutDate} documents sans date!`);
+    }
+
+    return formattedData;
+  } catch (error: unknown) {
+    console.error('❌ Erreur getWaterQualityData:', this.getErrorMessage(error));
+    return [];
+  }
+}
+
+  /*async getWaterQualityData(stationId?: string): Promise<any[]> {
+  try {
+    await this.ensureConnection();
+
+    let allHits: any[] = [];
+    const pageSize = 100;
+    let from = 0;
+    let totalDocuments = 0;
+
+    console.log('🔍 Recherche données water_quality...');
+
+    // PREMIÈRE REQUÊTE
+    const searchBody: any = {
+      size: pageSize,
+      from: 0,
+      sort: [{ '_kuzzle_info.createdAt': { order: 'desc' } }]
+    };
+
+    // 🔥 CORRECTION : Rechercher par id_station OU stationId
+    if (stationId) {
+      searchBody.query = {
+        bool: {
+          should: [
+            { term: { 'id_station': stationId } },
+            { term: { 'stationId': stationId } }
+          ],
+          minimum_should_match: 1
+        }
+      };
+    }
+
+    const firstResponse = await this.kuzzle.document.search('iot', 'water_quality', searchBody);
+    totalDocuments = firstResponse.total;
+    allHits = [...firstResponse.hits];
+
+    console.log(`📄 Page 1: ${firstResponse.hits.length}/${totalDocuments} documents`);
+
+    // PAGINATION
+    from = pageSize;
+    while (allHits.length < totalDocuments) {
+      const nextSearchBody: any = {
+        size: pageSize,
+        from: from,
+        sort: [{ '_kuzzle_info.createdAt': { order: 'desc' } }]
+      };
+
+      if (stationId) {
+        nextSearchBody.query = {
+          bool: {
+            should: [
+              { term: { 'id_station': stationId } },
+              { term: { 'stationId': stationId } }
+            ],
+            minimum_should_match: 1
           }
-
-          // Si c'est déjà un nombre, le retourner
-          if (typeof value === 'number') return value;
-
-          // Si c'est une chaîne numérique, convertir
-          if (typeof value === 'string' && !isNaN(parseFloat(value))) {
-            return parseFloat(value);
-          }
-
-          return null;
         };
+      }
 
-        const formattedItem = {
-          _id: hit._id,
-          body: {
-            id_station: source.id_station,
-            phase: source.phase,
-            type_filtre: source.type_filtre,
-            id_filtre: source.id_filtre,
-            date: formattedDate, //  Date normalisée
-            mois: source.mois,
-            temperature_c: formatNumericValue(source.temperature_c),
-            ph: formatNumericValue(source.ph),
-            conductivite_us_cm: formatNumericValue(source.conductivite_us_cm),
-            potentiel_redox_mv: formatNumericValue(source.potentiel_redox_mv),
-            dbo5_mg_l: formatNumericValue(source.dbo5_mg_l),
-            dco_mg_l: formatNumericValue(source.dco_mg_l),
-            mes_mg_l: formatNumericValue(source.mes_mg_l),
-            mvs_pct: formatNumericValue(source.mvs_pct),
-            nitrates_mg_l: formatNumericValue(source.nitrates_mg_l),
-            ammonium_mg_l: formatNumericValue(source.ammonium_mg_l),
-            azote_total_mg_l: formatNumericValue(source.azote_total_mg_l),
-            phosphates_mg_l: formatNumericValue(source.phosphates_mg_l),
-            coliformes_fecaux_cfu_100ml: formatNumericValue(source.coliformes_fecaux_cfu_100ml),
-            oeufs_helminthes: source.oeufs_helminthes,
-            huiles_graisses: source.huiles_graisses,
-            nom_feuille: source.nom_feuille,
-            contient_valeurs_estimees: source.contient_valeurs_estimees,
-            timestamp: formattedDate
-          }
-        };
+      const response = await this.kuzzle.document.search('iot', 'water_quality', nextSearchBody);
+      if (response.hits.length === 0) break;
 
-        // Debug pour voir ce qui est formaté
-        if (formattedItem.body.date && formattedItem.body.dbo5_mg_l) {
-          console.log(`✅ Formaté: ${formattedItem.body.date} | ${formattedItem.body.phase} | DBO5: ${formattedItem.body.dbo5_mg_l}`);
+      allHits = [...allHits, ...response.hits];
+      from += pageSize;
+      console.log(`📄 Progression: ${allHits.length}/${totalDocuments}`);
+    }
+
+    console.log(`✅ TOTAL récupéré: ${allHits.length}/${totalDocuments} documents`);
+
+    // 🔍 DEBUG : Analyser la structure des documents
+    console.log('🔬 ANALYSE DES STRUCTURES:');
+    const structureTypes = new Set();
+
+    allHits.slice(0, 5).forEach((hit, index) => {
+      const source = hit._source || hit.body || hit;
+      const hasMesures = source.mesures && typeof source.mesures === 'object';
+      const hasFlatFields = source.dbo5_mg_l !== undefined || source.dbo5 !== undefined;
+
+      const type = hasMesures ? 'API_FORMAT' : hasFlatFields ? 'SEED_FORMAT' : 'UNKNOWN';
+      structureTypes.add(type);
+
+      console.log(`   Doc ${index + 1} (${type}):`, {
+        id: hit._id.substring(0, 8) + '...',
+        phase: source.phase,
+        hasTypeFiltre: source.type_filtre !== undefined,
+        hasIdFiltre: source.id_filtre !== undefined,
+        hasMesures: hasMesures,
+        stationId: source.id_station || source.stationId,
+        date: source.date || source.timestamp
+      });
+    });
+
+    // 🔥 NORMALISATION DES DONNÉES
+    const formattedData = allHits.map((hit: any) => {
+      const source = hit._source || hit.body || hit;
+      const kuzzleInfo = hit._kuzzle_info || {};
+
+      // 🔥 DÉTECTION DU FORMAT
+      const hasMesures = source.mesures && typeof source.mesures === 'object';
+      const hasFlatFields = source.dbo5_mg_l !== undefined || source.dbo5 !== undefined;
+
+      // 🔥 EXTRACTION DE LA DATE
+      const extractDate = () => {
+        // Priorité 1 : champ 'date'
+        if (source.date) {
+          return this.normalizeDate(source.date);
+        }
+        // Priorité 2 : champ 'timestamp'
+        if (source.timestamp) {
+          return this.normalizeDate(source.timestamp);
+        }
+        // Priorité 3 : champ 'Timestamp' (API)
+        if (source.Timestamp) {
+          return this.normalizeDate(source.Timestamp);
+        }
+        // Priorité 4 : createdAt de Kuzzle
+        if (kuzzleInfo.createdAt) {
+          return this.normalizeDate(kuzzleInfo.createdAt);
+        }
+        return null;
+      };
+
+      const formattedDate = extractDate();
+
+      // 🔥 EXTRACTION DE LA PHASE
+      const extractPhase = () => {
+        if (!source.phase) return 'Unknown';
+
+        const phaseLower = source.phase.toLowerCase().trim();
+        if (phaseLower.includes('entree') || phaseLower.includes('entrée') || phaseLower.includes('entree')) {
+          return 'Entree';
+        } else if (phaseLower.includes('sortie')) {
+          return 'Sortie';
+        }
+        return 'Unknown';
+      };
+
+      const phase = extractPhase();
+
+      // 🔥 EXTRACTION DU TYPE DE FILTRE
+      const extractFilterType = () => {
+        // Si le document a déjà un type_filtre (seed)
+        if (source.type_filtre) {
+          return source.type_filtre;
         }
 
-        return formattedItem;
-      });
+        // Pour l'API, déterminer en fonction de la phase
+        if (phase === 'Entree') {
+          return 'Non_Applicable';
+        } else if (phase === 'Sortie') {
+          // Essayer de déduire du id_filtre
+          if (source.id_filtre) {
+            if (source.id_filtre.includes('FV') || source.id_filtre.includes('Vertical')) {
+              return 'Filtre_Vertical';
+            } else if (source.id_filtre.includes('FH') || source.id_filtre.includes('Horizontal')) {
+              return 'Filtre_Horizontal';
+            }
+          }
+          // Par défaut pour les sorties sans info
+          return 'Filtre_Horizontal';
+        }
 
-      // DEBUG des données formatées
-      console.log('🔍 ÉCHANTILLON DONNÉES FORMATÉES (5 premiers):');
-      formattedData.slice(0, 5).forEach((item, index) => {
-        console.log(`   ${index + 1}.`, {
-          date: item.body.date,
-          phase: item.body.phase,
-          type_filtre: item.body.type_filtre,
-          dbo5: item.body.dbo5_mg_l,
-          temperature: item.body.temperature_c
-        });
-      });
+        return 'Non_Applicable';
+      };
 
-      // Extraire les dates uniques
-      const dates = formattedData
-        .map(d => d.body.date)
-        .filter(d => d != null && d !== 'undefined' && d !== '');
+      const type_filtre = extractFilterType();
+      const extractFilterId = () => {
+  // 1. Si déjà présent et valide
+  if (source.id_filtre && source.id_filtre !== 'unknown' && source.id_filtre !== '') {
+    return source.id_filtre;
+  }
 
-      const uniqueDates = [...new Set(dates)].sort();
+  // 2. Pour les données API (avec mesures), déduire depuis type_filtre et phase
+  if (hasMesures) {
+    // Si c'est une entrée, c'est toujours le filtre General
+    if (phase === 'Entree') {
+      return 'General';
+    }
 
-      console.log('🔍 DATES UNIQUES APRÈS FORMATAGE:', uniqueDates.length);
-      console.log('🔍 Liste dates:', uniqueDates);
-
-      // Compter les données par phase
-      const entreeCount = formattedData.filter(d => d.body.phase === 'Entrée').length;
-      const sortieFVCount = formattedData.filter(d =>
-        d.body.phase === 'Sortie' && d.body.type_filtre === 'Filtre_Vertical'
-      ).length;
-      const sortieFHCount = formattedData.filter(d =>
-        d.body.phase === 'Sortie' && d.body.type_filtre === 'Filtre_Horizontal'
-      ).length;
-
-      console.log('📊 RÉPARTITION DES DONNÉES:');
-      console.log(`   Entrée: ${entreeCount}`);
-      console.log(`   Sortie FV: ${sortieFVCount}`);
-      console.log(`   Sortie FH: ${sortieFHCount}`);
-
-      return formattedData;
-    } catch (error: unknown) {
-      console.error('❌ Erreur getWaterQualityData:', this.getErrorMessage(error));
-      return [];
+    // Si c'est une sortie, regarder le type_filtre
+    if (source.type_filtre) {
+      const typeStr = source.type_filtre.toLowerCase();
+      if (typeStr.includes('vertical')) {
+        // Alterner entre FV1 et FV2 (ou choisir selon d'autres critères)
+        return 'FV1'; // Vous pouvez ajuster cette logique
+      }
+      if (typeStr.includes('horizontal')) {
+        return 'FH';
+      }
     }
   }
+
+  // 3. Fallback: essayer depuis le nom de feuille (pour données SEED)
+  if (source.nom_feuille) {
+    const nomStr = source.nom_feuille.toLowerCase();
+    if (nomStr.includes('general') || nomStr.includes('gene') || nomStr === 'e') {
+      return 'General';
+    }
+    if (nomStr.includes('sfv1') || nomStr === 'sfv1a' || nomStr === 'sfv1b') {
+      return 'FV1';
+    }
+    if (nomStr.includes('sfv2') || nomStr === 'sfv2a' || nomStr === 'sfv2b') {
+      return 'FV2';
+    }
+    if (nomStr.includes('sfh') || nomStr === 'sfha' || nomStr === 'sfhb') {
+      return 'FH';
+    }
+  }
+
+  // 4. Dernier recours basé sur la phase et type_filtre
+  if (phase === 'Entree') {
+    return 'General';
+  }
+
+  if (phase === 'Sortie') {
+    // Essayer de déduire du type_filtre
+    if (type_filtre.toLowerCase().includes('vertical')) {
+      return 'FV1';
+    }
+    if (type_filtre.toLowerCase().includes('horizontal')) {
+      return 'FH';
+    }
+    // Par défaut pour les sorties
+    return 'FH';
+  }
+
+  console.warn('⚠️ Impossible de déterminer id_filtre pour:', {
+    nom_feuille: source.nom_feuille,
+    phase: source.phase,
+    type_filtre: source.type_filtre
+  });
+
+  return 'unknown';
+};
+
+const id_filtre = extractFilterId();
+
+      // 🔥 EXTRACTION DES VALEURS NUMÉRIQUES
+      const parseValue = (value: any): number | null => {
+        if (value === null || value === undefined || value === '') return null;
+
+        if (typeof value === 'number') {
+          return isNaN(value) ? null : value;
+        }
+
+        if (typeof value === 'string') {
+          const cleaned = value.trim().replace(',', '.');
+          const num = parseFloat(cleaned);
+          return isNaN(num) ? null : num;
+        }
+
+        return null;
+      };
+
+      // 🔥 STRUCTURE UNIFIÉE
+      const normalizedItem = {
+        _id: hit._id,
+        body: {
+          // Informations de base
+          id_station: source.id_station || source.stationId || 'unknown',
+          phase: phase,
+          type_filtre: type_filtre,
+          id_filtre: id_filtre,
+          date: formattedDate,
+          mois: source.mois || this.extractMonth(formattedDate),
+
+          // Paramètres physico-chimiques (API + SEED)
+          temperature_c: hasMesures
+            ? parseValue(source.mesures?.temperature)
+            : parseValue(source.temperature_c),
+
+          ph: hasMesures
+            ? parseValue(source.mesures?.ph || source.mesures?.pH)
+            : parseValue(source.ph),
+
+          conductivite_us_cm: hasMesures
+            ? parseValue(source.mesures?.conductivite)
+            : parseValue(source.conductivite_us_cm),
+
+          potentiel_redox_mv: parseValue(source.potentiel_redox_mv),
+
+          // Pollution organique (API + SEED)
+          dbo5_mg_l: hasMesures
+            ? parseValue(source.mesures?.dbo5 || source.mesures?.DBO5)
+            : parseValue(source.dbo5_mg_l || source.dbo5),
+
+          dco_mg_l: hasMesures
+            ? parseValue(source.mesures?.dco || source.mesures?.DCO)
+            : parseValue(source.dco_mg_l || source.dco),
+
+          mes_mg_l: hasMesures
+            ? parseValue(source.mesures?.mes)
+            : parseValue(source.mes_mg_l || source.mes),
+
+          mvs_pct: parseValue(source.mvs_pct),
+
+          // Nutriments (API + SEED)
+          nitrates_mg_l: hasMesures
+            ? parseValue(source.mesures?.nitrates)
+            : parseValue(source.nitrates_mg_l || source.nitrates),
+
+          ammonium_mg_l: hasMesures
+            ? parseValue(source.mesures?.ammonium)
+            : parseValue(source.ammonium_mg_l || source.ammonium),
+
+          azote_total_mg_l: parseValue(source.azote_total_mg_l),
+
+          phosphates_mg_l: hasMesures
+            ? parseValue(source.mesures?.phosphates)
+            : parseValue(source.phosphates_mg_l || source.phosphates),
+
+          // Microbiologie (API + SEED)
+          coliformes_fecaux_cfu_100ml: hasMesures
+            ? parseValue(source.mesures?.coliformes)
+            : parseValue(source.coliformes_fecaux_cfu_100ml || source.coliformes),
+
+          oeufs_helminthes: parseValue(source.oeufs_helminthes),
+          huiles_graisses: parseValue(source.huiles_graisses),
+
+          // Métadonnées
+          nom_feuille: source.nom_feuille || (hasMesures ? 'API_Import' : 'Seed_Data'),
+          contient_valeurs_estimees: source.contient_valeurs_estimees || false,
+          timestamp: formattedDate,
+
+          // Pour débogage
+          _source_format: hasMesures ? 'API' : 'SEED',
+          _raw_phase: source.phase,
+          _has_type_filtre: source.type_filtre !== undefined,
+          _original_date: source.date || source.timestamp || source.Timestamp
+        }
+      };
+
+      return normalizedItem;
+    });
+
+    // 🔍 DEBUG : Afficher des échantillons
+    console.log('✅ DONNÉES NORMALISÉES (5 premières):');
+    formattedData.slice(0, 5).forEach((item, index) => {
+      console.log(`   ${index + 1}. ${item.body.date} | ${item.body.phase} | ${item.body.type_filtre} | ` +
+                  `DBO5: ${item.body.dbo5_mg_l} | Format: ${item.body._source_format}`);
+    });
+
+    // 📊 STATISTIQUES
+    const stats = {
+      total: formattedData.length,
+      withDate: formattedData.filter(d => d.body.date).length,
+      byFormat: formattedData.reduce((acc: any, item) => {
+        const format = item.body._source_format;
+        acc[format] = (acc[format] || 0) + 1;
+        return acc;
+      }, {}),
+      byPhase: formattedData.reduce((acc: any, item) => {
+        const phase = item.body.phase;
+        acc[phase] = (acc[phase] || 0) + 1;
+        return acc;
+      }, {}),
+      byFilterType: formattedData.reduce((acc: any, item) => {
+        const filter = item.body.type_filtre;
+        acc[filter] = (acc[filter] || 0) + 1;
+        return acc;
+      }, {})
+    };
+
+    console.log('📊 STATISTIQUES FINALES:');
+    console.log('   Total:', stats.total);
+    console.log('   Avec date:', stats.withDate);
+    console.log('   Par format:', stats.byFormat);
+    console.log('   Par phase:', stats.byPhase);
+    console.log('   Par type filtre:', stats.byFilterType);
+
+    return formattedData;
+  } catch (error: unknown) {
+    console.error('❌ Erreur getWaterQualityData:', this.getErrorMessage(error));
+    return [];
+  }
+}
+ */
+
+// 🔥 AJOUTER CES MÉTHODES UTILITAIRES
+
+/**
+ * Normalise une date au format YYYY-MM-DD
+ */
+private normalizeDate(dateStr: any): string | null {
+  if (!dateStr) return null;
+
+  try {
+    // Si c'est un timestamp numérique
+    if (typeof dateStr === 'number') {
+      const date = new Date(dateStr);
+      return date.toISOString().split('T')[0];
+    }
+
+    // Si c'est une chaîne
+    if (typeof dateStr === 'string') {
+      // Format "2019-04-09"
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateStr;
+      }
+
+      // Format "09/04/2019, 00:00:00"
+      if (dateStr.includes('/')) {
+        const [datePart] = dateStr.split(',');
+        const [day, month, year] = datePart.trim().split('/');
+
+        if (day && month && year) {
+          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+      }
+
+      // Format ISO
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.warn('❌ Erreur normalisation date:', dateStr, error);
+    return null;
+  }
+}
+
+/**
+ * Extrait le mois d'une date
+ */
+private extractMonth(dateStr: string | null): string | null {
+  if (!dateStr) return null;
+
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+
+    const months = [
+      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    ];
+
+    return months[date.getMonth()];
+  } catch {
+    return null;
+  }
+}
+
 
 // 🔧 ALTERNATIVE : Si scroll ne fonctionne pas, utiliser from/size
 async getWaterQualityDataAlternative(): Promise<any[]> {
@@ -388,7 +890,7 @@ async getWaterQualityDataAlternative(): Promise<any[]> {
     console.log('🔍 Recherche avec pagination from/size...');
 
     const allDocuments: any[] = [];
-    const size = 100;
+    const size = 1000;
     let from = 0;
     let total = 0;
 
@@ -1128,7 +1630,7 @@ async getAllAlertsByStation(stationId: string): Promise<any[]> {
         match: { 'stationId': stationId }
       },
       sort: { 'timestamp': 'desc' },
-      size: 100
+      size: 1000
     });
 
     return response.hits;

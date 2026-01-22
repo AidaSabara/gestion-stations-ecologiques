@@ -12,15 +12,102 @@ activityLogService.connect().catch((err: any) => {
 });
 
 /**
+ * 🔍 ROUTE DE DEBUG
+ * GET /api/activity-logs/debug
+ * Affiche les informations de debug pour comprendre le problème
+ */
+router.get(
+  '/debug',
+  jwtMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      console.log('🔍 ========== DEBUG ACTIVITY LOGS ==========');
+      console.log('📋 req.user:', JSON.stringify(req.user, null, 2));
+      
+      const currentUser = {
+        userId: req.user!.userId,
+        role: req.user!.role,
+        email: req.user!.email,
+        stationId: req.user!.stationId || 'ALL'
+      };
+      
+      console.log('👤 currentUser:', JSON.stringify(currentUser, null, 2));
+
+      // Récupérer TOUS les logs sans filtre
+      const allLogsResult = await activityLogService.getActivityLogs(
+        {},
+        { page: 1, limit: 10 },
+        undefined // Pas de filtre - voir tout
+      );
+
+      console.log('📊 Total logs dans Kuzzle:', allLogsResult.total);
+      allLogsResult.logs.forEach((log, i) => {
+        console.log(`  ${i + 1}. userId="${log.userId}" | email="${log.userEmail}" | action=${log.action}`);
+      });
+      
+      // Récupérer les logs filtrés pour l'utilisateur actuel
+      const filteredResult = await activityLogService.getActivityLogs(
+        {},
+        { page: 1, limit: 10 },
+        currentUser
+      );
+
+      console.log(`📊 Logs filtrés pour userId="${currentUser.userId}": ${filteredResult.total}`);
+      console.log('🔍 ==========================================');
+
+      res.status(200).json({
+        success: true,
+        debug: {
+          currentUser: currentUser,
+          allLogsCount: allLogsResult.total,
+          allLogsSample: allLogsResult.logs.map(log => ({
+            _id: log._id,
+            userId: log.userId,
+            userEmail: log.userEmail,
+            userName: log.userName,
+            userRole: log.userRole,
+            action: log.action,
+            timestamp: log.timestamp
+          })),
+          filteredLogsCount: filteredResult.total,
+          filteredLogsSample: filteredResult.logs.map(log => ({
+            _id: log._id,
+            userId: log.userId,
+            userEmail: log.userEmail,
+            action: log.action
+          })),
+          comparison: {
+            searchingForUserId: currentUser.userId,
+            userIdsFoundInDB: [...new Set(allLogsResult.logs.map(l => l.userId))]
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error('❌ Erreur debug:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message,
+        stack: error.stack
+      });
+    }
+  }
+);
+
+/**
  * GET /api/activity-logs
  * Récupère l'historique des activités
- * Permissions: Agent (ses logs), Supervisor (sa station), Admin (tout)
+ * Permissions: Agent (ses logs), Supervisor (ses logs), Admin (tout)
  */
 router.get(
   '/',
   jwtMiddleware,
   async (req: Request, res: Response) => {
     try {
+      // 🔍 DEBUG
+      console.log('🔍 GET /activity-logs - req.user.userId:', req.user!.userId);
+      console.log('🔍 GET /activity-logs - req.user.role:', req.user!.role);
+
       const filters = {
         userId: req.query.userId as string,
         action: req.query.action as any,
@@ -44,11 +131,15 @@ router.get(
         stationId: req.user!.stationId || (req.user as any).station_id || 'ALL'
       };
 
+      console.log('🔍 Recherche avec currentUser:', currentUser);
+
       const result = await activityLogService.getActivityLogs(
         filters,
         pagination,
         currentUser
       );
+
+      console.log(`✅ ${result.logs.length} logs récupérés sur ${result.total} total`);
 
       res.status(200).json({
         success: true,
@@ -110,7 +201,7 @@ router.get(
   jwtMiddleware,
   async (req: Request, res: Response) => {
     try {
-      const { userId } = req.params;
+      const userId = req.params.userId as string;
 
       const isAdminOrSupervisor = ['admin', 'supervisor'].includes(req.user!.role);
       const isSelf = req.user!.userId === userId;

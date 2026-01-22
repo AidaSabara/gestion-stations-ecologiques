@@ -1,8 +1,8 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { KuzzleService } from '../../kuzzle.service';
-import { Chart, registerables } from 'chart.js';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 
 Chart.register(...registerables);
@@ -12,41 +12,28 @@ interface WaterQualityData {
   body: {
     id_station: string;
     phase: string;
-    ph: number;
-    dbo5_mg_l: number;
-    dco_mg_l: number;
-    nitrates_mg_l: number;
-    coliformes_fecaux_cfu_100ml: number;
-    nom_feuille?: string;
-    timestamp?: string | null;
-    date?: string;
     type_filtre?: string;
     id_filtre?: string;
+    date?: string;
+    mois?: string;
     temperature_c?: number;
+    ph?: number;
     conductivite_us_cm?: number;
     potentiel_redox_mv?: number;
+    dbo5_mg_l?: number;
+    dco_mg_l?: number;
     mes_mg_l?: number;
-    mvs_pct?: number;
+    nitrates_mg_l?: number;
     ammonium_mg_l?: number;
-    azote_total_mg_l?: number;
-    phosphates_mg_l?: number;
-    oeufs_helminthes?: number;
-    huiles_graisses?: number;
-    contient_valeurs_estimees?: boolean;
+    coliformes_fecaux_cfu_100ml?: number;
     [key: string]: any;
   };
 }
 
-interface TreatmentFlowData {
-  date: string;
-  entree: any;
-  sortieFiltresVerticaux: any;
-  sortieFiltresHorizontaux: any;
-  efficacite: {
-    filtresVerticaux: number;
-    filtresHorizontaux: number;
-    totale: number;
-  };
+interface Station {
+  _id: string;
+  _source?: { name: string; [key: string]: any; };
+  body?: { name: string; [key: string]: any; };
 }
 
 @Component({
@@ -59,18 +46,49 @@ interface TreatmentFlowData {
 export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading = true;
   waterData: WaterQualityData[] = [];
-  treatmentStats: any = null;
 
-  private tempChartInstance: Chart | null = null;
-  private coliformesChartInstance: Chart | null = null;
-  private multiParamChartInstance: Chart | null = null;
-  private treatmentFlowChartInstance: Chart | null = null;
-  private dbo5FlowChartInstance: Chart | null = null;
-  private dcoFlowChartInstance: Chart | null = null;
+  // 👇 NOUVELLES PROPRIÉTÉS POUR LA GESTION DE LA STATION
+  stationId: string | null = null;
+  stationName: string = '';
+  isStationSpecific: boolean = false;
+  private stations: Map<string, string> = new Map();
 
-  constructor(private kuzzleService: KuzzleService) {}
+  // KPIs
+  kpis = {
+    efficaciteGlobale: 0,
+    reductionDBO5: 0,
+    qualiteEauSortie: 'Bonne',
+    alertesActives: 0
+  };
+
+  // Charts
+  private comparisonChart: Chart | null = null;
+  private evolutionChart: Chart | null = null;
+  private efficiencyChart: Chart | null = null;
+  private radarChart: Chart | null = null;
+  private filterChart: Chart | null = null;
+
+  constructor(
+    private kuzzleService: KuzzleService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   async ngOnInit() {
+    // 👇 RÉCUPÉRATION DE L'ID DE LA STATION DEPUIS L'URL
+    this.stationId = this.route.snapshot.paramMap.get('id');
+    this.isStationSpecific = !!this.stationId;
+
+    console.log('📍 Station ID depuis URL:', this.stationId);
+
+    // Charger les stations pour obtenir le nom
+    await this.loadStations();
+
+    if (this.stationId) {
+      this.stationName = this.stations.get(this.stationId) || 'Station';
+      console.log('📍 Nom de la station:', this.stationName);
+    }
+
     await this.loadChartData();
   }
 
@@ -80,54 +98,61 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyAllCharts();
   }
 
+  // 👇 NOUVELLE MÉTHODE POUR CHARGER LES STATIONS
+  private async loadStations() {
+    try {
+      const stationsData = await this.kuzzleService.getStations();
+      stationsData.forEach((station: Station) => {
+        const source: { name?: string } = station._source || station.body || {};
+        this.stations.set(station._id, source.name || station._id);
+      });
+      console.log('✅ Stations chargées:', this.stations.size);
+    } catch (error) {
+      console.error('❌ Erreur chargement stations:', error);
+    }
+  }
+
+  // 👇 NOUVELLE MÉTHODE POUR VÉRIFIER SI UNE DONNÉE APPARTIENT À LA STATION
+  private belongsToStation(dataStationId: string): boolean {
+    if (!this.stationId) return true; // Si pas de station spécifiée, afficher toutes
+    return dataStationId === this.stationId;
+  }
+
+  // 👇 BOUTON RETOUR
+  goBack() {
+    if (this.stationId) {
+      this.router.navigate(['/station', this.stationId]);
+    } else {
+      this.router.navigate(['/map']);
+    }
+  }
+
   private destroyAllCharts() {
-    if (this.tempChartInstance) this.tempChartInstance.destroy();
-    if (this.coliformesChartInstance) this.coliformesChartInstance.destroy();
-    if (this.multiParamChartInstance) this.multiParamChartInstance.destroy();
-    if (this.treatmentFlowChartInstance) this.treatmentFlowChartInstance.destroy();
-    if (this.dbo5FlowChartInstance) this.dbo5FlowChartInstance.destroy();
-    if (this.dcoFlowChartInstance) this.dcoFlowChartInstance.destroy();
+    if (this.comparisonChart) this.comparisonChart.destroy();
+    if (this.evolutionChart) this.evolutionChart.destroy();
+    if (this.efficiencyChart) this.efficiencyChart.destroy();
+    if (this.radarChart) this.radarChart.destroy();
+    if (this.filterChart) this.filterChart.destroy();
   }
 
   async loadChartData() {
     try {
       this.isLoading = true;
-      console.log('📊 Chargement des données pour les graphiques...');
+      console.log('📊 Chargement des données...');
 
       const waterResults = await this.kuzzleService.getWaterQualityData();
 
-      // 🔥 LOG DES DONNÉES BRUTES POUR DÉBOGAGE
-      console.log('📦 Données brutes reçues:', waterResults.length);
+      // 👇 FILTRAGE PAR STATION
+      const filteredResults = waterResults.filter((hit: any) => {
+        const source = hit._source || hit.body || {};
+        const dataStationId = source.id_station;
+        return this.belongsToStation(dataStationId);
+      });
 
-      // Analyse des types de données disponibles
-      const stats = {
-        total: waterResults.length,
-        avecDates: waterResults.filter(d => d.body.date).length,
-        entree: waterResults.filter(d => d.body.phase === "Entree" && d.body.type_filtre === "Non_Applicable").length,
-        sortieFV: waterResults.filter(d => d.body.phase === "Sortie" && d.body.type_filtre === "Filtre_Vertical").length,
-        sortieFH: waterResults.filter(d => d.body.phase === "Sortie" && d.body.type_filtre === "Filtre_Horizontal").length,
-        avecDBO5: waterResults.filter(d => d.body.dbo5_mg_l != null).length,
-        avecDCO: waterResults.filter(d => d.body.dco_mg_l != null).length
-      };
+      console.log(`📊 Données après filtrage station: ${filteredResults.length}/${waterResults.length}`);
 
-      console.log('📊 Statistiques données:', stats);
-
-      // Afficher un échantillon des données
-      const echantillon = waterResults.slice(0, 5).map(d => ({
-        date: d.body.date,
-        phase: d.body.phase,
-        type_filtre: d.body.type_filtre,
-        id_filtre: d.body.id_filtre,
-        dbo5: d.body.dbo5_mg_l,
-        dco: d.body.dco_mg_l
-      }));
-
-      console.log('🔍 Échantillon données:', echantillon);
-
-      this.waterData = waterResults.map((hit: any) => {
+      this.waterData = filteredResults.map((hit: any) => {
         const source = hit._source || hit.body || hit;
-        const dateValue = source.date || source._kuzzle_info?.createdAt;
-
         return {
           _id: hit._id,
           body: {
@@ -135,7 +160,7 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
             phase: source.phase,
             type_filtre: source.type_filtre,
             id_filtre: source.id_filtre,
-            date: dateValue,
+            date: source.date,
             mois: source.mois,
             temperature_c: source.temperature_c,
             ph: source.ph,
@@ -144,1020 +169,733 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnDestroy {
             dbo5_mg_l: source.dbo5_mg_l,
             dco_mg_l: source.dco_mg_l,
             mes_mg_l: source.mes_mg_l,
-            mvs_pct: source.mvs_pct,
             nitrates_mg_l: source.nitrates_mg_l,
             ammonium_mg_l: source.ammonium_mg_l,
-            azote_total_mg_l: source.azote_total_mg_l,
-            phosphates_mg_l: source.phosphates_mg_l,
-            coliformes_fecaux_cfu_100ml: source.coliformes_fecaux_cfu_100ml,
-            oeufs_helminthes: source.oeufs_helminthes,
-            huiles_graisses: source.huiles_graisses,
-            nom_feuille: source.nom_feuille,
-            contient_valeurs_estimees: source.contient_valeurs_estimees,
-            timestamp: dateValue
+            coliformes_fecaux_cfu_100ml: source.coliformes_fecaux_cfu_100ml
           }
         };
       });
 
-      console.log('✅ Données chargées:', {
-        total: this.waterData.length,
-        avecDates: this.waterData.filter(d => d.body.date).length,
-        avecTemp: this.waterData.filter(d => d.body.temperature_c != null).length,
-        avecColiformes: this.waterData.filter(d => d.body.coliformes_fecaux_cfu_100ml != null).length,
-        sampleDates: this.waterData.slice(0, 3).map(d => d.body.date)
-      });
+      console.log('✅ Données chargées pour la station:', this.waterData.length);
 
-      // Calculer les statistiques de traitement
-      this.treatmentStats = this.getTreatmentStats();
-      console.log('📈 Statistiques traitement:', this.treatmentStats);
+      this.calculateKPIs();
 
       setTimeout(() => {
         this.initializeCharts();
       }, 500);
 
     } catch (error) {
-      console.error('❌ Erreur chargement données graphiques:', error);
+      console.error('❌ Erreur chargement:', error);
     } finally {
       this.isLoading = false;
     }
   }
 
-  private parseDateString(dateStr: string | null | undefined): Date | null {
-    if (!dateStr || typeof dateStr !== 'string') {
-      return null;
-    }
+  private calculateKPIs() {
+    const entreeData = this.waterData.filter(d => d.body.phase === 'Entree');
+    const sortieData = this.waterData.filter(d => d.body.phase === 'Sortie');
 
-    const trimmed = dateStr.trim();
-    if (trimmed === '') {
-      return null;
-    }
+    if (entreeData.length > 0 && sortieData.length > 0) {
+      const avgEntreeDBO5 = this.getAverage(entreeData, 'dbo5_mg_l');
+      const avgSortieDBO5 = this.getAverage(sortieData, 'dbo5_mg_l');
 
-    try {
-      // Format: "09/04/2019, 00:00:00"
-      if (trimmed.includes('/')) {
-        const [datePart, timePart] = trimmed.split(', ');
-        const [day, month, year] = datePart.split('/');
-
-        if (!day || !month || !year) return null;
-
-        const dayNum = parseInt(day, 10);
-        const monthNum = parseInt(month, 10) - 1;
-        const yearNum = parseInt(year, 10);
-
-        if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) {
-          console.warn('❌ Composants de date invalides:', { day, month, year });
-          return null;
-        }
-
-        let hours = 0, minutes = 0, seconds = 0;
-        if (timePart) {
-          const [h, m, s] = timePart.split(':');
-          hours = parseInt(h || '0', 10);
-          minutes = parseInt(m || '0', 10);
-          seconds = parseInt(s || '0', 10);
-        }
-
-        const date = new Date(yearNum, monthNum, dayNum, hours, minutes, seconds);
-
-        if (isNaN(date.getTime())) {
-          console.warn('❌ Date invalide après création:', dateStr);
-          return null;
-        }
-
-        return date;
-      } else {
-        // Format ISO: "2019-04-09"
-        const date = new Date(trimmed);
-        return isNaN(date.getTime()) ? null : date;
+      if (avgEntreeDBO5 > 0) {
+        this.kpis.reductionDBO5 = ((avgEntreeDBO5 - avgSortieDBO5) / avgEntreeDBO5) * 100;
+        this.kpis.efficaciteGlobale = this.kpis.reductionDBO5;
       }
-    } catch (error) {
-      console.error('💥 Erreur parsing date:', error, 'Date string:', dateStr);
-      return null;
     }
+
+    const recentData = this.waterData.slice(-10);
+    this.kpis.alertesActives = recentData.filter(d =>
+      (d.body.ph && (d.body.ph < 6.5 || d.body.ph > 8.5)) ||
+      (d.body.dbo5_mg_l && d.body.dbo5_mg_l > 25)
+    ).length;
+
+    this.kpis.qualiteEauSortie = this.kpis.reductionDBO5 > 80 ? 'Excellente' :
+                                  this.kpis.reductionDBO5 > 60 ? 'Bonne' : 'Moyenne';
   }
 
-  private generateTimeLabels(data: WaterQualityData[]): string[] {
-    return data.map(item => {
-      const dateStr = item.body.date;
-      if (!dateStr) return 'Date inconnue';
+  private getAverage(data: WaterQualityData[], param: string): number {
+    const values = data
+      .map(d => d.body[param])
+      .filter(v => v != null && !isNaN(v)) as number[];
 
-      const parsedDate = this.parseDateString(dateStr);
-      return parsedDate
-        ? parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : 'Date inconnue';
-    });
-  }
-
-  private sortDataByDate(data: WaterQualityData[]): WaterQualityData[] {
-    return data.sort((a, b) => {
-      const dateA = this.parseDateString(a.body.date);
-      const dateB = this.parseDateString(b.body.date);
-
-      if (!dateA && !dateB) return 0;
-      if (!dateA) return 1;
-      if (!dateB) return -1;
-
-      return dateA.getTime() - dateB.getTime();
-    });
+    return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
   }
 
   private initializeCharts() {
     console.log('📊 Initialisation des graphiques...');
-    this.createTemperatureChart();
-    this.createColiformesTimeChart();
-    this.createMultiParameterChart();
-    this.createTreatmentFlowChart();
-    this.createDBO5FlowChart();
-    this.createDCOFlowChart();
+    this.createComparisonChart();
+    this.createEvolutionChart();
+    this.createEfficiencyChart();
+    this.createRadarChart();
+    this.createFilterPerformanceChart();
   }
 
-  // 1. Graphique Température
-  private createTemperatureChart() {
-    const canvas = document.getElementById('temperatureChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn('❌ Canvas temperatureChart non trouvé');
-      return;
+  // 1. 📊 Comparaison Entrée vs Sortie
+
+private createComparisonChart() {
+  const canvas = document.getElementById('comparisonChart') as HTMLCanvasElement;
+  if (!canvas) return;
+
+  if (this.comparisonChart) this.comparisonChart.destroy();
+
+  // ✅ Gérer les variations de casse
+  const entreeData = this.waterData.filter(d =>
+    d.body.phase?.toUpperCase() === 'ENTREE'
+  );
+  const sortieData = this.waterData.filter(d =>
+    d.body.phase?.toUpperCase() === 'SORTIE'
+  );
+
+  console.log(`📊 Comparaison: ${entreeData.length} entrées, ${sortieData.length} sorties`);
+
+  const params = ['ph', 'temperature_c', 'conductivite_us_cm', 'dbo5_mg_l', 'dco_mg_l'];
+  const labels = ['pH', 'Température (°C)', 'Conductivité (µS/cm)', 'DBO5 (mg/L)', 'DCO (mg/L)'];
+
+  const entreeAvg = params.map(p => this.getAverage(entreeData, p));
+  const sortieAvg = params.map(p => this.getAverage(sortieData, p));
+
+  console.log('📊 Moyennes Entrée:', entreeAvg);
+  console.log('📊 Moyennes Sortie:', sortieAvg);
+
+  const datasets = [
+    {
+      label: '📥 Entrée (Eaux brutes)',
+      data: entreeAvg,
+      backgroundColor: 'rgba(255, 99, 132, 0.7)',
+      borderColor: 'rgb(255, 99, 132)',
+      borderWidth: 2
     }
+  ];
 
-    if (this.tempChartInstance) this.tempChartInstance.destroy();
-
-    const validData = this.waterData
-      .filter(d => d.body.temperature_c != null && d.body.date)
-      .slice(-10);
-
-    if (validData.length === 0) {
-      console.warn('❌ Aucune donnée température valide');
-      return;
-    }
-
-    const labels = validData.map(d => {
-      const dateStr = d.body.date;
-      return dateStr ? dateStr.split('T')[0] : 'Date inconnue';
+  if (sortieData.length > 0) {
+    datasets.push({
+      label: '✅ Sortie (Eaux traitées)',
+      data: sortieAvg,
+      backgroundColor: 'rgba(75, 192, 192, 0.7)',
+      borderColor: 'rgb(75, 192, 192)',
+      borderWidth: 2
     });
+  }
 
-    const temperatures = validData.map(d => d.body.temperature_c!);
-
-    this.tempChartInstance = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Température (°C)',
-          data: temperatures,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 6,
-          borderWidth: 3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            title: { display: true, text: 'Date' },
-            ticks: { maxRotation: 45, minRotation: 45 }
-          },
-          y: {
-            beginAtZero: false,
-            title: { display: true, text: 'Température (°C)' }
-          }
+  this.comparisonChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: sortieData.length > 0
+            ? `📊 ${this.stationName} - Comparaison Entrée vs Sortie`
+            : `📊 ${this.stationName} - Paramètres Entrée`,
+          font: { size: 16, weight: 'bold' }
         },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { font: { size: 14 } }
-          },
+        legend: {
+          position: 'top',
+          labels: { font: { size: 12 }, padding: 15 }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const value = context.parsed.y;
+              if (value === 0) return `${label}: Pas de données`;
+              return `${label}: ${value.toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          type: 'logarithmic',
           title: {
             display: true,
-            text: `🌡️ Température - ${validData.length} mesures`,
-            font: { size: 16, weight: 'bold' }
+            text: 'Valeur (échelle logarithmique)',
+            font: { weight: 'bold' }
+          },
+          ticks: {
+            callback: function(value: number | string) {
+              const numValue = typeof value === 'number' ? value : parseFloat(value);
+              if (numValue === 1 || numValue === 10 || numValue === 100 ||
+                  numValue === 1000 || numValue === 10000) {
+                return numValue;
+              }
+              return '';
+            }
+          }
+        },
+        x: {
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45,
+            font: { size: 11 }
           }
         }
       }
-    });
+    }
+  });
 
-    console.log('✅ Graphique température créé');
+  console.log('✅ Graphique comparaison créé');
+}
+
+  // 2. 📈 Évolution Temporelle
+
+private createEvolutionChart() {
+  const canvas = document.getElementById('evolutionChart') as HTMLCanvasElement;
+  if (!canvas) return;
+
+  if (this.evolutionChart) this.evolutionChart.destroy();
+
+  console.log(`🔍 Station filtrée: ${this.stationName} (ID: ${this.stationId})`);
+  console.log(`📊 Données reçues: ${this.waterData.length} mesures`);
+
+  // ✅ ÉTAPE 1: Extraire et valider les données
+  const allDataPoints: Array<{
+    date: Date;
+    dateKey: string;
+    ph: number;
+    temperature: number;
+    dbo5: number;
+  }> = [];
+
+  this.waterData.forEach((d, index) => {
+    // Récupérer la date
+    const dateStr = d.body.date || (d.body as any).timestamp;
+
+    if (!dateStr) {
+      console.warn(`⚠️ Index ${index} ignoré (pas de date): Filtre=${d.body.id_filtre}, Phase=${d.body.phase}`);
+      return;
+    }
+
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        console.warn(`⚠️ Date invalide index ${index}:`, dateStr);
+        return;
+      }
+
+      // Récupérer les valeurs
+      const ph = d.body.ph ?? (d.body as any).mesures?.ph;
+      const temperature = d.body.temperature_c ?? (d.body as any).mesures?.temperature;
+      const dbo5 = d.body.dbo5_mg_l ?? (d.body as any).mesures?.dbo5;
+
+      // Ne garder que les valeurs valides (> 0)
+      if (ph != null && ph > 0 && temperature != null && temperature > 0) {
+        allDataPoints.push({
+          date: date,
+          dateKey: date.toISOString().split('T')[0],
+          ph: ph,
+          temperature: temperature,
+          dbo5: (dbo5 != null && dbo5 > 0) ? dbo5 : 0
+        });
+      }
+    } catch (error) {
+      console.error(`❌ Erreur index ${index}:`, error);
+    }
+  });
+
+  console.log(`✅ Points valides extraits: ${allDataPoints.length}/${this.waterData.length}`);
+
+  if (allDataPoints.length === 0) {
+    console.error('❌ Aucune donnée valide à afficher!');
+    return;
   }
 
-  // 2. Graphique Coliformes
-  private createColiformesTimeChart() {
-    const canvas = document.getElementById('coliformesChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn('❌ Canvas coliformesChart non trouvé');
-      return;
+  // ✅ ÉTAPE 2: Grouper par date et calculer les moyennes
+  const dateGroups = new Map<string, {
+    date: Date;
+    phSum: number;
+    tempSum: number;
+    dbo5Sum: number;
+    count: number;
+  }>();
+
+  allDataPoints.forEach(point => {
+    if (!dateGroups.has(point.dateKey)) {
+      dateGroups.set(point.dateKey, {
+        date: point.date,
+        phSum: 0,
+        tempSum: 0,
+        dbo5Sum: 0,
+        count: 0
+      });
     }
 
-    if (this.coliformesChartInstance) this.coliformesChartInstance.destroy();
+    const group = dateGroups.get(point.dateKey)!;
+    group.phSum += point.ph;
+    group.tempSum += point.temperature;
+    group.dbo5Sum += point.dbo5;
+    group.count++;
+  });
 
-    const validData = this.waterData
-      .filter(d => d.body.coliformes_fecaux_cfu_100ml != null && d.body.date)
-      .slice();
+  console.log(`📅 ${dateGroups.size} dates uniques`);
 
-    const sortedData = this.sortDataByDate(validData).slice(-20);
-    if (sortedData.length === 0) {
-      console.warn('❌ Aucune donnée coliformes valide');
-      return;
+  // ✅ ÉTAPE 3: Calculer moyennes et trier
+  const aggregatedData = Array.from(dateGroups.entries())
+    .map(([dateKey, group]) => ({
+      date: group.date,
+      dateKey: dateKey,
+      ph: group.phSum / group.count,
+      temperature: group.tempSum / group.count,
+      dbo5: group.dbo5Sum / group.count,
+      count: group.count
+    }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  console.log('📊 Données agrégées par date:');
+  aggregatedData.forEach(d => {
+    console.log(`   ${d.dateKey}: pH=${d.ph.toFixed(2)}, Temp=${d.temperature.toFixed(1)}°C, DBO5=${d.dbo5.toFixed(1)} (${d.count} mesures)`);
+  });
+
+  // ✅ ÉTAPE 4: Préparer données Chart.js
+  const labels = aggregatedData.map(d =>
+    d.date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit'
+    })
+  );
+
+  const phData = aggregatedData.map(d => d.ph);
+  const tempData = aggregatedData.map(d => d.temperature);
+  const dbo5Data = aggregatedData.map(d => d.dbo5 > 0 ? d.dbo5 : null);
+
+  // Échelles dynamiques
+  const minTemp = Math.floor(Math.min(...tempData)) - 1;
+  const maxTemp = Math.ceil(Math.max(...tempData)) + 1;
+  const minPH = Math.floor(Math.min(...phData) * 10) / 10 - 0.2;
+  const maxPH = Math.ceil(Math.max(...phData) * 10) / 10 + 0.2;
+
+  const validDBO5 = dbo5Data.filter(d => d !== null) as number[];
+  const maxDBO5 = validDBO5.length > 0 ? Math.ceil(Math.max(...validDBO5) * 1.2) : 50;
+
+  console.log(`📊 Échelles: pH[${minPH.toFixed(1)}-${maxPH.toFixed(1)}], Temp[${minTemp}-${maxTemp}°C], DBO5[0-${maxDBO5}]`);
+
+  // ✅ ÉTAPE 5: Créer graphique
+  this.evolutionChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'pH (moyenne)',
+          data: phData,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.1)',
+          yAxisID: 'y-ph',
+          tension: 0.4,
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: true
+        },
+        {
+          label: 'Température (°C)',
+          data: tempData,
+          borderColor: 'rgb(255, 159, 64)',
+          backgroundColor: 'rgba(255, 159, 64, 0.1)',
+          yAxisID: 'y-temp',
+          tension: 0.4,
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: true
+        },
+        {
+          label: 'DBO5 (mg/L)',
+          data: dbo5Data,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.1)',
+          yAxisID: 'y-dbo5',
+          tension: 0.4,
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          fill: true,
+          hidden: validDBO5.length === 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: `📈 ${this.stationName} - Évolution (${aggregatedData.length} dates, ${allDataPoints.length} mesures)`,
+          font: { size: 16, weight: 'bold' }
+        },
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: { size: 13, weight: 'bold' }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          padding: 15,
+          titleFont: { size: 14, weight: 'bold' },
+          bodyFont: { size: 13 },
+          callbacks: {
+            title: function(context) {
+              const index = context[0].dataIndex;
+              const data = aggregatedData[index];
+              return `${data.date.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              })} (${data.count} mesures)`;
+            },
+            label: function(context) {
+              const value = context.parsed.y;
+              if (value === null) return `${context.dataset.label}: Pas de données`;
+              return `${context.dataset.label}: ${value.toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        'y-ph': {
+          type: 'linear',
+          position: 'left',
+          title: {
+            display: true,
+            text: 'pH (moyenne)',
+            font: { weight: 'bold', size: 14 },
+            color: 'rgb(75, 192, 192)'
+          },
+          min: minPH,
+          max: maxPH,
+          grid: {
+            color: 'rgba(75, 192, 192, 0.15)',
+            lineWidth: 1
+          },
+          ticks: {
+            color: 'rgb(75, 192, 192)',
+            font: { size: 12, weight: 'bold' },
+            callback: function(value: number | string) {
+              return typeof value === 'number' ? value.toFixed(1) : value;
+            }
+          }
+        },
+        'y-temp': {
+          type: 'linear',
+          position: 'right',
+          title: {
+            display: true,
+            text: 'Température (°C)',
+            font: { weight: 'bold', size: 14 },
+            color: 'rgb(255, 159, 64)'
+          },
+          min: minTemp,
+          max: maxTemp,
+          grid: { drawOnChartArea: false },
+          ticks: {
+            color: 'rgb(255, 159, 64)',
+            font: { size: 12, weight: 'bold' }
+          }
+        },
+        'y-dbo5': {
+          type: 'linear',
+          position: 'right',
+          title: {
+            display: true,
+            text: 'DBO5 (mg/L)',
+            font: { weight: 'bold', size: 14 },
+            color: 'rgb(255, 99, 132)'
+          },
+          min: 0,
+          max: maxDBO5,
+          grid: { drawOnChartArea: false },
+          display: validDBO5.length > 0,
+          ticks: {
+            color: 'rgb(255, 99, 132)',
+            font: { size: 12, weight: 'bold' }
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45,
+            font: { size: 11 }
+          }
+        }
+      }
     }
+  });
 
-    const coliformesData = sortedData.map(d => d.body.coliformes_fecaux_cfu_100ml ?? null);
-    const labels = this.generateTimeLabels(sortedData);
+  console.log(`✅ Graphique créé avec succès!`);
+}
+  // 3. 🎯 Efficacité de Traitement
+  private createEfficiencyChart() {
+    const canvas = document.getElementById('efficiencyChart') as HTMLCanvasElement;
+    if (!canvas) return;
 
-    this.coliformesChartInstance = new Chart(canvas, {
-      type: 'line',
+    if (this.efficiencyChart) this.efficiencyChart.destroy();
+
+    const entreeData = this.waterData.filter(d => d.body.phase === 'Entree');
+    const sortieData = this.waterData.filter(d => d.body.phase === 'Sortie');
+
+    const params = ['dbo5_mg_l', 'dco_mg_l', 'mes_mg_l', 'nitrates_mg_l'];
+    const labels = ['DBO5', 'DCO', 'MES', 'Nitrates'];
+
+    const efficiencies = params.map(param => {
+      const entreeAvg = this.getAverage(entreeData, param);
+      const sortieAvg = this.getAverage(sortieData, param);
+      return entreeAvg > 0 ? ((entreeAvg - sortieAvg) / entreeAvg) * 100 : 0;
+    });
+
+    this.efficiencyChart = new Chart(canvas, {
+      type: 'bar',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Coliformes Fécaux (CFU/100ml)',
-          data: coliformesData,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.3,
-          fill: true,
-          pointRadius: 5,
+          label: 'Taux d\'Abattement (%)',
+          data: efficiencies,
+          backgroundColor: efficiencies.map(e =>
+            e > 80 ? 'rgba(75, 192, 192, 0.7)' :
+            e > 60 ? 'rgba(255, 206, 86, 0.7)' :
+            'rgba(255, 99, 132, 0.7)'
+          ),
+          borderColor: efficiencies.map(e =>
+            e > 80 ? 'rgb(75, 192, 192)' :
+            e > 60 ? 'rgb(255, 206, 86)' :
+            'rgb(255, 99, 132)'
+          ),
           borderWidth: 2
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `🎯 ${this.stationName} - Efficacité de Traitement`,
+            font: { size: 16, weight: 'bold' }
+          },
+          legend: { display: false }
+        },
         scales: {
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Concentration (CFU/100ml)' }
-          },
-          x: {
-            title: { display: true, text: 'Date de Prélèvement' },
-            ticks: { maxRotation: 45, minRotation: 45 }
-          }
-        },
-        plugins: {
-          title: {
-            display: true,
-            text: `Évolution des Coliformes Fécaux (${sortedData.length} mesures)`,
-            font: { size: 14, weight: 'bold' }
-          }
-        }
-      }
-    });
-
-    console.log('✅ Graphique coliformes créé');
-  }
-
-  // 3. Graphique Multi-paramètres
- private createMultiParameterChart() {
-    const canvas = document.getElementById('multiParamChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn('❌ Canvas multiParamChart non trouvé');
-      return;
-    }
-
-    if (this.multiParamChartInstance) this.multiParamChartInstance.destroy();
-
-    const validData = this.waterData
-      .filter(d => d.body.date && (d.body.ph != null || d.body.dbo5_mg_l != null || d.body.dco_mg_l != null || d.body.nitrates_mg_l != null))
-      .slice();
-
-    const sortedData = this.sortDataByDate(validData).slice(-20);
-    if (sortedData.length === 0) {
-      console.warn('❌ Aucune donnée multi-paramètres valide');
-      return;
-    }
-
-    const labels = this.generateTimeLabels(sortedData);
-
-    // CORRECTION 1: Utiliser 'undefined' au lieu de 'null' pour connecter la ligne sur les données manquantes.
-    const phData = sortedData.map(d => d.body.ph ?? undefined);
-    const dbo5Data = sortedData.map(d => d.body.dbo5_mg_l ?? undefined);
-    const dcoData = sortedData.map(d => d.body.dco_mg_l ?? undefined);
-    const nitratesData = sortedData.map(d => d.body.nitrates_mg_l ?? undefined);
-
-    this.multiParamChartInstance = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'pH',
-            data: phData,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            yAxisID: 'y-ph',
-            tension: 0.3,
-            borderWidth: 2,
-            pointRadius: 2, // CORRECTION 2: Réduction de la taille du point (était 4)
-            spanGaps: true,
-            pointHitRadius: 8 // Ajout pour faciliter l'interaction
-          },
-          {
-            label: 'DBO5 (mg/L)',
-            data: dbo5Data,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-            yAxisID: 'y-concentration',
-            tension: 0.3,
-            borderWidth: 2,
-            pointRadius: 2, // CORRECTION 2: Réduction de la taille du point
-            spanGaps: true,
-            pointHitRadius: 8
-          },
-          {
-            label: 'DCO (mg/L)',
-            data: dcoData,
-            borderColor: 'rgb(255, 159, 64)',
-            backgroundColor: 'rgba(255, 159, 64, 0.1)',
-            yAxisID: 'y-concentration',
-            tension: 0.3,
-            borderWidth: 2,
-            pointRadius: 2, // CORRECTION 2: Réduction de la taille du point
-            spanGaps: true,
-            pointHitRadius: 8
-          },
-          {
-            label: 'Nitrates (mg/L)',
-            data: nitratesData,
-            borderColor: 'rgb(153, 102, 255)',
-            backgroundColor: 'rgba(153, 102, 255, 0.1)',
-            yAxisID: 'y-concentration',
-            tension: 0.3,
-            borderWidth: 2,
-            pointRadius: 2, // CORRECTION 2: Réduction de la taille du point
-            pointHitRadius: 8
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          'y-ph': {
-            type: 'linear',
-            display: true,
-            position: 'left',
-            title: { display: true, text: 'pH' }
-          },
-          'y-concentration': {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            title: { display: true, text: 'Concentration (mg/L)' },
-            grid: { drawOnChartArea: false }
-          },
-          x: {
-            title: { display: true, text: 'Date de Mesure' },
-            ticks: { maxRotation: 45, minRotation: 45 }
-          }
-        },
-        plugins: {
-          title: {
-            display: true,
-            text: `Évolution Multi-Paramètres (${sortedData.length} mesures)`,
-            font: { size: 14, weight: 'bold' }
-          }
-        }
-      }
-    });
-
-    console.log('✅ Graphique multi-paramètres créé');
-}
-  // 4. 🆕 Analyse du flux de traitement
-private analyzeTreatmentFlow(): TreatmentFlowData[] {
-  const dataByDate: { [date: string]: any } = {};
-
-  console.log('🔍 Analyse du flux de traitement...');
-  console.log('📊 Données disponibles:', this.waterData.length);
-
-  this.waterData.forEach(item => {
-    const date = item.body.date;
-    if (!date) return;
-
-    if (!dataByDate[date]) {
-      dataByDate[date] = {
-        entree: null,
-        sortieFV: [],
-        sortieFH: [],
-        date: date
-      };
-    }
-
-    const record = item.body;
-
-    // Classification des données
-    if (record.phase === "Entree" && record.type_filtre === "Non_Applicable") {
-      dataByDate[date].entree = record;
-    } else if (record.phase === "Sortie" && record.type_filtre === "Filtre_Vertical") {
-      dataByDate[date].sortieFV.push(record);
-    } else if (record.phase === "Sortie" && record.type_filtre === "Filtre_Horizontal") {
-      dataByDate[date].sortieFH.push(record);
-    }
-  });
-
-  const analysisResults: TreatmentFlowData[] = [];
-
-  for (const [date, dayData] of Object.entries(dataByDate)) {
-    console.log(`📅 Analyse date ${date}:`, {
-      entree: !!dayData.entree,
-      sortieFV: dayData.sortieFV.length,
-      sortieFH: dayData.sortieFH.length
-    });
-
-    // 🔥 CORRECTION : Accepter les données même si incomplètes
-    // Au lieu de : if (dayData.entree && dayData.sortieFV.length > 0 && dayData.sortieFH.length > 0)
-    if (dayData.entree || dayData.sortieFV.length > 0 || dayData.sortieFH.length > 0) {
-
-      // Calculer les moyennes (ou null si pas de données)
-      const sortieFVMoyenne = dayData.sortieFV.length > 0
-        ? this.calculateAverage(dayData.sortieFV)
-        : null;
-
-      const sortieFHMoyenne = dayData.sortieFH.length > 0
-        ? this.calculateAverage(dayData.sortieFH)
-        : null;
-
-      // Calculer les efficacités seulement si les données existent
-      let efficaciteFV = 0;
-      let efficaciteFH = 0;
-      let efficaciteTotale = 0;
-
-      if (dayData.entree && sortieFVMoyenne) {
-        efficaciteFV = this.calculateEfficiency(dayData.entree, sortieFVMoyenne);
-      }
-
-      if (sortieFVMoyenne && sortieFHMoyenne) {
-        efficaciteFH = this.calculateEfficiency(sortieFVMoyenne, sortieFHMoyenne);
-      }
-
-      if (dayData.entree && sortieFHMoyenne) {
-        efficaciteTotale = this.calculateEfficiency(dayData.entree, sortieFHMoyenne);
-      }
-
-      analysisResults.push({
-        date,
-        entree: dayData.entree,
-        sortieFiltresVerticaux: sortieFVMoyenne,
-        sortieFiltresHorizontaux: sortieFHMoyenne,
-        efficacite: {
-          filtresVerticaux: efficaciteFV,
-          filtresHorizontaux: efficaciteFH,
-          totale: efficaciteTotale
-        }
-      });
-    }
-  }
-
-  // Trier par date
-  const sortedResults = analysisResults.sort((a, b) => {
-    const dateA = this.parseDateString(a.date);
-    const dateB = this.parseDateString(b.date);
-    if (!dateA || !dateB) return 0;
-    return dateA.getTime() - dateB.getTime();
-  });
-
-  console.log('✅ Résultats analyse flux:', sortedResults.length, 'dates');
-  sortedResults.forEach(result => {
-    console.log(`📊 ${result.date}:`, {
-      entree: result.entree?.dbo5_mg_l || 'N/A',
-      sortieFV: result.sortieFiltresVerticaux?.dbo5_mg_l || 'N/A',
-      sortieFH: result.sortieFiltresHorizontaux?.dbo5_mg_l || 'N/A'
-    });
-  });
-
-  return sortedResults;
-}
-
-  private calculateAverage(records: any[]): any {
-    const average: any = {};
-    const params = ['ph', 'dbo5_mg_l', 'dco_mg_l', 'mes_mg_l', 'nitrates_mg_l', 'ammonium_mg_l', 'azote_total_mg_l', 'phosphates_mg_l', 'coliformes_fecaux_cfu_100ml'];
-
-    params.forEach(param => {
-      const values = records.map(r => r[param]).filter(v => v !== null && v !== undefined);
-      if (values.length > 0) {
-        average[param] = values.reduce((a, b) => a + b, 0) / values.length;
-      } else {
-        average[param] = null;
-      }
-    });
-
-    return average;
-  }
-
-  private calculateEfficiency(entree: any, sortie: any): number {
-    const params = ['dbo5_mg_l', 'dco_mg_l', 'mes_mg_l'];
-    let totalEfficiency = 0;
-    let count = 0;
-
-    params.forEach(param => {
-      if (entree[param] && sortie[param] && entree[param] > 0) {
-        const efficiency = ((entree[param] - sortie[param]) / entree[param]) * 100;
-        totalEfficiency += Math.max(0, efficiency);
-        count++;
-      }
-    });
-
-    return count > 0 ? totalEfficiency / count : 0;
-  }
-
-  // 5. 🆕 Graphique Flux de Traitement DBO5
-  private createTreatmentFlowChart() {
-  const canvas = document.getElementById('treatmentFlowChart') as HTMLCanvasElement;
-  if (!canvas) {
-    console.warn('❌ Canvas treatmentFlowChart non trouvé');
-    return;
-  }
-
-  if (this.treatmentFlowChartInstance) {
-    this.treatmentFlowChartInstance.destroy();
-  }
-
-  const treatmentData = this.analyzeTreatmentFlow();
-
-  if (treatmentData.length === 0) {
-    console.warn('❌ Aucune donnée de traitement complète disponible');
-
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = '#f8f9fa';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#6c757d';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Aucune donnée complète disponible', canvas.width / 2, canvas.height / 2);
-    }
-    return;
-  }
-
-  console.log('📊 Création graphique avec', treatmentData.length, 'dates complètes');
-
-  const labels = treatmentData.map(d => {
-    const parsedDate = this.parseDateString(d.date);
-    return parsedDate ?
-      parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      : d.date;
-  });
-
-  // 🔥 CORRECTION CRITIQUE : Gérer les valeurs null correctement
-  const entreeDBO = treatmentData.map(d => {
-    const value = d.entree?.dbo5_mg_l;
-    return (value !== null && value !== undefined) ? value : undefined;
-  });
-
-  const sortieFVDBO = treatmentData.map(d => {
-    const value = d.sortieFiltresVerticaux?.dbo5_mg_l;
-    return (value !== null && value !== undefined) ? value : undefined;
-  });
-
-  const sortieFHDBO = treatmentData.map(d => {
-    const value = d.sortieFiltresHorizontaux?.dbo5_mg_l;
-    return (value !== null && value !== undefined) ? value : undefined;
-  });
-
-  console.log('📈 Données graphique:', {
-    labels: labels,
-    entree: entreeDBO,
-    sortieFV: sortieFVDBO,
-    sortieFH: sortieFHDBO
-  });
-
-  this.treatmentFlowChartInstance = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: '📥 Entrée (Eaux brutes)',
-          data: entreeDBO,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: false,
-          spanGaps: false // 🔥 Pas de connexion entre les gaps
-        },
-        {
-          label: '⬇️ Sortie Filtres Verticaux',
-          data: sortieFVDBO,
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: false,
-          spanGaps: false
-        },
-        {
-          label: '✅ Sortie Filtres Horizontaux',
-          data: sortieFHDBO,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: false,
-          spanGaps: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-        mode: 'index'
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'DBO5 (mg/L)',
-            font: { size: 14 }
-          },
-          grid: {
-            color: 'rgba(0, 0, 0, 0.1)'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Date de prélèvement',
-            font: { size: 14 }
-          },
-          grid: {
-            color: 'rgba(0, 0, 0, 0.1)'
-          },
-          ticks: {
-            maxRotation: 45,
-            minRotation: 45
-          }
-        }
-      },
-      plugins: {
-        title: {
-          display: true,
-          text: `🔄 Flux de Traitement - DBO5 (${treatmentData.length} dates)`,
-          font: { size: 16, weight: 'bold' }
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const label = context.dataset.label || '';
-              const value = context.parsed.y;
-              return value !== undefined && value !== null
-                ? `${label}: ${value.toFixed(1)} mg/L`
-                : `${label}: Pas de données`;
+            max: 100,
+            title: { display: true, text: 'Efficacité (%)' },
+            ticks: {
+              callback: function(value) {
+                return value + '%';
+              }
             }
           }
-        },
-        legend: {
-          display: true,
-          position: 'top',
-          labels: {
-            usePointStyle: true,
-            padding: 20,
-            font: { size: 12 }
-          }
         }
       }
-    }
-  });
-
-  console.log('✅ Graphique flux traitement créé');
-}
-
-  // 6. 🆕 Graphique DBO5 Détail avec Efficacité
-  private createDBO5FlowChart() {
-    const canvas = document.getElementById('dbo5FlowChart') as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn('❌ Canvas dbo5FlowChart non trouvé');
-      return;
-    }
-
-    if (this.dbo5FlowChartInstance) {
-      this.dbo5FlowChartInstance.destroy();
-    }
-
-    const treatmentData = this.analyzeTreatmentFlow();
-    if (treatmentData.length === 0) {
-      console.warn('❌ Aucune donnée pour le graphique DBO5');
-      return;
-    }
-
-    const labels = treatmentData.map(d => {
-      const parsedDate = this.parseDateString(d.date);
-      return parsedDate ?
-        parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : d.date;
     });
 
-    const entreeDBO = treatmentData.map(d => d.entree?.dbo5_mg_l || null);
-    const sortieFVDBO = treatmentData.map(d => d.sortieFiltresVerticaux?.dbo5_mg_l || null);
-    const sortieFHDBO = treatmentData.map(d => d.sortieFiltresHorizontaux?.dbo5_mg_l || null);
-    const efficaciteFV = treatmentData.map(d => d.efficacite.filtresVerticaux);
-    const efficaciteFH = treatmentData.map(d => d.efficacite.filtresHorizontaux);
+    console.log('✅ Graphique efficacité créé');
+  }
 
-    this.dbo5FlowChartInstance = new Chart(canvas, {
-      type: 'line',
+  // 4. 🕸️ Radar Chart
+  private createRadarChart() {
+    const canvas = document.getElementById('radarChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    if (this.radarChart) this.radarChart.destroy();
+
+    const entreeData = this.waterData.filter(d => d.body.phase === 'Entree');
+    const sortieData = this.waterData.filter(d => d.body.phase === 'Sortie');
+
+    const normalize = (value: number, max: number) => Math.min((value / max) * 100, 100);
+
+    const entreeNormalized = [
+      100 - normalize(this.getAverage(entreeData, 'dbo5_mg_l'), 100),
+      100 - normalize(this.getAverage(entreeData, 'dco_mg_l'), 200),
+      normalize(this.getAverage(entreeData, 'ph'), 14) * 7.14,
+      100 - normalize(this.getAverage(entreeData, 'mes_mg_l'), 100),
+      100 - normalize(this.getAverage(entreeData, 'nitrates_mg_l'), 50)
+    ];
+
+    const sortieNormalized = [
+      100 - normalize(this.getAverage(sortieData, 'dbo5_mg_l'), 100),
+      100 - normalize(this.getAverage(sortieData, 'dco_mg_l'), 200),
+      normalize(this.getAverage(sortieData, 'ph'), 14) * 7.14,
+      100 - normalize(this.getAverage(sortieData, 'mes_mg_l'), 100),
+      100 - normalize(this.getAverage(sortieData, 'nitrates_mg_l'), 50)
+    ];
+
+    this.radarChart = new Chart(canvas, {
+      type: 'radar',
       data: {
-        labels: labels,
+        labels: ['DBO5', 'DCO', 'pH', 'MES', 'Nitrates'],
         datasets: [
           {
-            label: '📥 Entrée DBO5',
-            data: entreeDBO,
-            borderColor: '#e74c3c',
-            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-            borderWidth: 4,
-            yAxisID: 'y',
-            tension: 0.4,
-            pointRadius: 5
+            label: 'Entrée',
+            data: entreeNormalized,
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderWidth: 2
           },
           {
-            label: '🔄 Après Filtres Verticaux',
-            data: sortieFVDBO,
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-            borderWidth: 4,
-            yAxisID: 'y',
-            tension: 0.4,
-            pointRadius: 5
-          },
-          {
-            label: '✅ Après Filtres Horizontaux',
-            data: sortieFHDBO,
-            borderColor: '#27ae60',
-            backgroundColor: 'rgba(39, 174, 96, 0.1)',
-            borderWidth: 4,
-            yAxisID: 'y',
-            tension: 0.4,
-            pointRadius: 5
-          },
-          {
-            label: '📈 Efficacité FV (%)',
-            data: efficaciteFV,
-            borderColor: '#9b59b6',
-            borderDash: [5, 5],
-            borderWidth: 2,
-            yAxisID: 'y1',
-            pointRadius: 3,
-            tension: 0.3
-          },
-          {
-            label: '📈 Efficacité FH (%)',
-            data: efficaciteFH,
-            borderColor: '#f39c12',
-            borderDash: [5, 5],
-            borderWidth: 2,
-            yAxisID: 'y1',
-            pointRadius: 3,
-            tension: 0.3
+            label: 'Sortie',
+            data: sortieNormalized,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index'
+        plugins: {
+          title: {
+            display: true,
+            text: `🕸️ ${this.stationName} - Qualité Globale`,
+            font: { size: 16, weight: 'bold' }
+          },
+          legend: {
+            position: 'top',
+            labels: { padding: 15 }
+          }
+        },
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              stepSize: 20
+            }
+          }
+        }
+      }
+    });
+
+    console.log('✅ Graphique radar créé');
+  }
+
+  // 5. 🔧 Performance par Filtre
+  private createFilterPerformanceChart() {
+    const canvas = document.getElementById('filterChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    if (this.filterChart) this.filterChart.destroy();
+
+    const fv1Data = this.waterData.filter(d => d.body.id_filtre === 'FV1' && d.body.phase === 'Sortie');
+    const fv2Data = this.waterData.filter(d => d.body.id_filtre === 'FV2' && d.body.phase === 'Sortie');
+    const fhData = this.waterData.filter(d => d.body.id_filtre === 'FH' && d.body.phase === 'Sortie');
+
+    console.log('🔧 Données filtres pour', this.stationName, ':');
+    console.log('  FV1:', fv1Data.length, 'mesures');
+    console.log('  FV2:', fv2Data.length, 'mesures');
+    console.log('  FH:', fhData.length, 'mesures');
+
+    const avgDBO5 = [
+      this.getAverage(fv1Data, 'dbo5_mg_l'),
+      this.getAverage(fv2Data, 'dbo5_mg_l'),
+      this.getAverage(fhData, 'dbo5_mg_l')
+    ];
+
+    const avgPH = [
+      this.getAverage(fv1Data, 'ph'),
+      this.getAverage(fv2Data, 'ph'),
+      this.getAverage(fhData, 'ph')
+    ];
+
+    const allPH = [...fv1Data, ...fv2Data, ...fhData]
+      .map(d => d.body.ph)
+      .filter(v => v != null && !isNaN(v)) as number[];
+
+    const minPH = allPH.length > 0 ? Math.floor(Math.min(...allPH)) : 5;
+    const maxPH = allPH.length > 0 ? Math.ceil(Math.max(...allPH)) : 9;
+
+    this.filterChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['Filtre Vertical 1', 'Filtre Vertical 2', 'Filtre Horizontal'],
+        datasets: [
+          {
+            label: 'DBO5 Sortie (mg/L)',
+            data: avgDBO5,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 2,
+            yAxisID: 'y'
+          },
+          {
+            label: 'pH Sortie',
+            data: avgPH,
+            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+            borderColor: 'rgb(255, 206, 86)',
+            borderWidth: 2,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `🔧 ${this.stationName} - Performance par Filtre`,
+            font: { size: 16, weight: 'bold' }
+          },
+          legend: {
+            position: 'top',
+            labels: { padding: 15 }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.dataset.label || '';
+                const value = context.parsed.y;
+                if (value === 0 || value === null) {
+                  return `${label}: Pas de données`;
+                }
+                return `${label}: ${value.toFixed(2)}`;
+              }
+            }
+          }
         },
         scales: {
           y: {
             type: 'linear',
-            display: true,
             position: 'left',
             title: { display: true, text: 'DBO5 (mg/L)' },
             beginAtZero: true
           },
           y1: {
             type: 'linear',
-            display: true,
             position: 'right',
-            title: { display: true, text: 'Efficacité (%)' },
-            min: 0,
-            max: 100,
+            title: { display: true, text: 'pH' },
+            min: minPH - 0.5,
+            max: maxPH + 0.5,
             grid: { drawOnChartArea: false }
-          },
-          x: {
-            ticks: {
-              maxRotation: 45,
-              minRotation: 45
-            }
-          }
-        },
-        plugins: {
-          title: {
-            display: true,
-            text: '🔍 Détail DBO5 - Flux de Traitement avec Efficacité'
           }
         }
       }
     });
 
-    console.log('✅ Graphique DBO5 détail créé');
+    console.log('✅ Graphique filtres créé pour', this.stationName);
   }
 
-  // 7. 🆕 Graphique DCO Flux
-private createDCOFlowChart() {
-  const canvas = document.getElementById('dcoFlowChart') as HTMLCanvasElement;
-  if (!canvas) {
-    console.warn('❌ Canvas dcoFlowChart non trouvé');
-    return;
-  }
-
-  if (this.dcoFlowChartInstance) {
-    this.dcoFlowChartInstance.destroy();
-  }
-
-  const treatmentData = this.analyzeTreatmentFlow();
-
-  if (treatmentData.length === 0) {
-    console.warn('❌ Aucune donnée pour le graphique DCO');
-    return;
-  }
-
-  const labels = treatmentData.map(d => {
-    const parsedDate = this.parseDateString(d.date);
-    return parsedDate ?
-      parsedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      : d.date;
-  });
-
-  // 🔥 CORRECTION : Gérer null correctement
-  const entreeDCO = treatmentData.map(d => {
-    const value = d.entree?.dco_mg_l;
-    return (value !== null && value !== undefined) ? value : undefined;
-  });
-
-  const sortieFVDCO = treatmentData.map(d => {
-    const value = d.sortieFiltresVerticaux?.dco_mg_l;
-    return (value !== null && value !== undefined) ? value : undefined;
-  });
-
-  const sortieFHDCO = treatmentData.map(d => {
-    const value = d.sortieFiltresHorizontaux?.dco_mg_l;
-    return (value !== null && value !== undefined) ? value : undefined;
-  });
-
-  this.dcoFlowChartInstance = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: '📥 Entrée DCO',
-          data: entreeDCO,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: false,
-          spanGaps: false
-        },
-        {
-          label: '⬇️ Sortie Filtres Verticaux',
-          data: sortieFVDCO,
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: false,
-          spanGaps: false
-        },
-        {
-          label: '✅ Sortie Filtres Horizontaux',
-          data: sortieFHDCO,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: false,
-          spanGaps: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-        mode: 'index'
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: 'DCO (mg/L)', font: { size: 14 } },
-          grid: { color: 'rgba(0, 0, 0, 0.1)' }
-        },
-        x: {
-          title: { display: true, text: 'Date de prélèvement', font: { size: 14 } },
-          grid: { color: 'rgba(0, 0, 0, 0.1)' },
-          ticks: { maxRotation: 45, minRotation: 45 }
-        }
-      },
-      plugins: {
-        title: {
-          display: true,
-          text: `🔄 Flux de Traitement - DCO (${treatmentData.length} dates)`,
-          font: { size: 16, weight: 'bold' }
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const label = context.dataset.label || '';
-              const value = context.parsed.y;
-              return value !== undefined && value !== null
-                ? `${label}: ${value.toFixed(1)} mg/L`
-                : `${label}: Pas de données`;
-            }
-          }
-        },
-        legend: {
-          display: true,
-          position: 'top',
-          labels: { usePointStyle: true, padding: 20, font: { size: 12 } }
-        }
-      }
-    }
-  });
-
-  console.log('✅ Graphique DCO flux créé');
-}
-  // 🆕 Méthodes utilitaires
-getTreatmentStats() {
-  const treatmentData = this.analyzeTreatmentFlow();
-
-  if (treatmentData.length === 0) {
-    return {
-      totalDates: 0,
-      derniereDate: 'N/A',
-      efficaciteTotale: '0',
-      reductionDBO: '0',
-      reductionDCO: '0',
-      entreeDBO: '0',
-      sortieDBO: '0'
-    };
-  }
-
-  const lastData = treatmentData[treatmentData.length - 1];
-
-  // 🔥 CORRECTION : Vérifier que les données existent avant d'y accéder
-  if (!lastData.entree || !lastData.sortieFiltresHorizontaux) {
-    console.warn('⚠️ Données incomplètes pour les stats');
-    return {
-      totalDates: treatmentData.length,
-      derniereDate: lastData.date,
-      efficaciteTotale: lastData.efficacite.totale.toFixed(1),
-      reductionDBO: '0',
-      reductionDCO: '0',
-      entreeDBO: lastData.entree?.dbo5_mg_l?.toFixed(1) || '0',
-      sortieDBO: lastData.sortieFiltresHorizontaux?.dbo5_mg_l?.toFixed(1) || '0'
-    };
-  }
-
-  const entreeDBO = lastData.entree.dbo5_mg_l || 0;
-  const sortieDBO = lastData.sortieFiltresHorizontaux.dbo5_mg_l || 0;
-  const entreeDCO = lastData.entree.dco_mg_l || 0;
-  const sortieDCO = lastData.sortieFiltresHorizontaux.dco_mg_l || 0;
-
-  const reductionDBO = entreeDBO > 0
-    ? ((entreeDBO - sortieDBO) / entreeDBO * 100)
-    : 0;
-
-  const reductionDCO = entreeDCO > 0
-    ? ((entreeDCO - sortieDCO) / entreeDCO * 100)
-    : 0;
-
-  return {
-    totalDates: treatmentData.length,
-    derniereDate: lastData.date,
-    efficaciteTotale: lastData.efficacite.totale.toFixed(1),
-    reductionDBO: reductionDBO.toFixed(1),
-    reductionDCO: reductionDCO.toFixed(1),
-    entreeDBO: entreeDBO.toFixed(1),
-    sortieDBO: sortieDBO.toFixed(1)
-  };
-}
-  getActiveChartsCount(): number {
-    let count = 0;
-    if (this.tempChartInstance) count++;
-    if (this.coliformesChartInstance) count++;
-    if (this.multiParamChartInstance) count++;
-    if (this.treatmentFlowChartInstance) count++;
-    if (this.dbo5FlowChartInstance) count++;
-    if (this.dcoFlowChartInstance) count++;
-    return count;
+  async refreshData() {
+    await this.loadChartData();
   }
 
   getLastUpdateTime(): string {
@@ -1165,18 +903,5 @@ getTreatmentStats() {
       hour: '2-digit',
       minute: '2-digit'
     });
-  }
-
-  getTemperatureSamplesCount(): number {
-    return this.waterData.filter(d =>
-      d.body.temperature_c != null &&
-      !isNaN(d.body.temperature_c) &&
-      d.body.date
-    ).length;
-  }
-
-  // 🆕 Recharger les données
-  async refreshData() {
-    await this.loadChartData();
   }
 }

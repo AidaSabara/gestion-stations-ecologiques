@@ -21,12 +21,12 @@ from config_seuils import get_seuil, determiner_niveau_alerte, NIVEAUX_ALERTE
 # ==================================================
 
 RENDEMENTS_MOYENS = {
-    'FV1': {'dco': 75.0, 'dbo5': 85.0},  # Filtre vertical primaire
-    'FV2': {'dco': 65.0, 'dbo5': 95.0},  # Filtre vertical secondaire
-    'FH': {'dco': 90.0, 'dbo5': 98.0}    # Filtre horizontal (très efficace)
+    'FV1': {'dco': 75.0, 'dbo5': 85.0},
+    'FV2': {'dco': 65.0, 'dbo5': 95.0},
+    'FH': {'dco': 90.0, 'dbo5': 98.0}
 }
 
-SEUIL_R2_FIABLE = 0.5  # R² minimum pour considérer le modèle fiable
+SEUIL_R2_FIABLE = 0.5
 
 # ==================================================
 # CLASSE PRÉDICTEUR ROBUSTE
@@ -64,7 +64,6 @@ class PredicteurRobuste:
                 data = joblib.load(chemin)
                 self.modeles[nom_modele] = data
                 
-                # Évaluer fiabilité
                 r2 = data.get('metrics', {}).get('test_r2', -999)
                 
                 if pd.notna(r2) and r2 >= SEUIL_R2_FIABLE:
@@ -88,7 +87,6 @@ class PredicteurRobuste:
         
         nom_modele = f"{groupe_filtre}_{variable}"
         
-        # Stratégie 1: Modèle ML (si fiable)
         if nom_modele in self.modeles and self.modeles_fiables.get(nom_modele, False):
             try:
                 model_data = self.modeles[nom_modele]
@@ -115,7 +113,6 @@ class PredicteurRobuste:
             except Exception as e:
                 print(f"   ⚠️ Erreur ML pour {variable}: {e}")
         
-        # Stratégie 2: Fallback - Rendement moyen
         rendement_moyen = RENDEMENTS_MOYENS[groupe_filtre][variable]
         
         return {
@@ -190,8 +187,6 @@ class PredicteurRobuste:
         
         for param, pred in predictions.items():
             param_display = param.replace('_mg_l', '').upper()
-            
-            # Icône selon méthode
             icone_methode = "🤖" if pred['methode'] == 'ML' else "📊"
             
             print(f"{icone_methode} {param_display}:")
@@ -204,7 +199,6 @@ class PredicteurRobuste:
             if pred['r2'] is not None:
                 print(f"   R²:              {pred['r2']:.3f}")
             
-            # Statut conformité
             seuil = get_seuil(param, groupe_filtre)
             if seuil:
                 niveau = determiner_niveau_alerte(pred['sortie_predite'], seuil)
@@ -213,7 +207,6 @@ class PredicteurRobuste:
             
             print()
         
-        # Résumé
         print("-" * 70)
         if analyse['conforme']:
             print("✅ RÉSULTAT: Qualité prédite CONFORME")
@@ -247,7 +240,6 @@ def mode_interactif():
     while True:
         print("\n📋 Données d'ENTRÉE:")
         
-        # Choisir filtre
         print("\n1. FV1  2. FV2  3. FH")
         choix = input("Filtre (1-3): ").strip()
         groupe_map = {'1': 'FV1', '2': 'FV2', '3': 'FH'}
@@ -255,7 +247,6 @@ def mode_interactif():
         
         print(f"\n✅ Filtre: {groupe}")
         
-        # Saisir données
         donnees = {}
         params = [
             ('dco_mg_l', 'DCO (mg/L)', 1200),
@@ -268,13 +259,11 @@ def mode_interactif():
             val = input(f"{label} [{defaut}]: ").strip()
             donnees[param] = float(val) if val else defaut
         
-        # Prédire
         print("\n🔮 Prédiction...")
         predictions = predicteur.predire_sortie(donnees, groupe)
         analyse = predicteur.analyser_et_alerter(predictions, groupe)
         predicteur.afficher_predictions(predictions, analyse, groupe)
         
-        # Continuer ?
         if input("\n➡️  Autre prédiction ? (o/n): ").strip().lower() != 'o':
             break
     
@@ -282,8 +271,35 @@ def mode_interactif():
 
 
 # ==================================================
-# MODE KUZZLE
+# MODE KUZZLE (CORRIGÉ)
 # ==================================================
+
+def obtenir_station_valide(kuzzle_url, index):
+    """Obtenir un stationId valide depuis Kuzzle"""
+    import requests
+    
+    try:
+        response = requests.post(
+            f"{kuzzle_url}/{index}/stations/_search",
+            json={"size": 1},
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            hits = response.json().get('result', {}).get('hits', [])
+            if hits:
+                station = hits[0]
+                station_id = station['_id']
+                station_name = station.get('_source', {}).get('name', 'Inconnue')
+                print(f"✅ Station trouvée: {station_name}")
+                print(f"   ID: {station_id}\n")
+                return station_id
+    except Exception as e:
+        print(f"⚠️  Erreur récupération station: {e}")
+    
+    # Fallback
+    return 'station-saint-louis-1764092258261'
+
 
 def mode_kuzzle():
     """Mode Kuzzle avec prédictions robustes"""
@@ -317,6 +333,9 @@ def mode_kuzzle():
         print(f"❌ Erreur: {e}")
         return
     
+    # 🔴 CORRECTION 1: Obtenir un stationId valide
+    station_id = obtenir_station_valide(KUZZLE_URL, INDEX)
+    
     print("\n📊 Recherche données d'entrée récentes...")
     
     try:
@@ -349,7 +368,6 @@ def mode_kuzzle():
                 print(f"  📄 Document {i}/{len(hits)}: {id_filtre}")
                 print(f"{'='*70}")
                 
-                # Mapper vers groupe
                 if 'FV1' in id_filtre:
                     groupe = 'FV1'
                 elif 'FV2' in id_filtre:
@@ -357,7 +375,6 @@ def mode_kuzzle():
                 else:
                     groupe = 'FH'
                 
-                # Préparer données
                 donnees = {
                     'dco_mg_l': source.get('dco_mg_l') or 1000,
                     'dbo5_mg_l': source.get('dbo5_mg_l') or 500,
@@ -365,29 +382,32 @@ def mode_kuzzle():
                     'ph': source.get('ph') or 7.0
                 }
                 
-                # Vérifier données valides
                 if donnees['dco_mg_l'] < 10 or donnees['dbo5_mg_l'] < 10:
                     print("⚠️  Données trop faibles, skip")
                     continue
                 
-                # Prédire
                 predictions = predicteur.predire_sortie(donnees, groupe)
                 analyse = predicteur.analyser_et_alerter(predictions, groupe)
                 predicteur.afficher_predictions(predictions, analyse, groupe)
                 
                 predictions_ok += 1
                 
-                # Créer alerte si nécessaire
+                # 🔴 CORRECTION 2: Utiliser le stationId valide
                 if not analyse['conforme']:
-                    if creer_alerte_kuzzle(KUZZLE_URL, INDEX, source, predictions, analyse, groupe):
+                    if creer_alerte_kuzzle(KUZZLE_URL, INDEX, station_id, predictions, analyse, groupe, id_filtre):
                         alertes_creees += 1
             
-            # Résumé
             print(f"\n{'='*70}")
             print(f"  📊 RÉSUMÉ")
             print(f"{'='*70}")
             print(f"✅ Prédictions: {predictions_ok}")
             print(f"🚨 Alertes créées: {alertes_creees}")
+            
+            if alertes_creees > 0:
+                print(f"\n💡 Pour voir les alertes:")
+                print(f"   - Vue globale: http://localhost:4200/alerts")
+                print(f"   - Vue station: http://localhost:4200/alerts/{station_id}")
+            
             print()
             
         else:
@@ -397,32 +417,47 @@ def mode_kuzzle():
         print(f"❌ Erreur: {e}")
 
 
-def creer_alerte_kuzzle(url, index, source_data, predictions, analyse, groupe):
-    """Créer alerte dans Kuzzle"""
+def creer_alerte_kuzzle(url, index, station_id, predictions, analyse, groupe, id_filtre):
+    """Créer alerte dans Kuzzle avec le format correct"""
     
     import requests
     
     try:
-        params_alertes = [a['parametre'].upper() for a in analyse['alertes']]
-        message = f"🔮 ALERTE PRÉVENTIVE: {', '.join(params_alertes)}"
+        # Mapper les niveaux correctement
+        severity_mapping = {
+            'CONFORME': 'info',
+            'ATTENTION': 'warning',
+            'ALERTE': 'high',
+            'CRITIQUE': 'critical'
+        }
         
-        # Déterminer si méthode ML ou Fallback
+        params_alertes = [a['parametre'].replace('_mg_l', '').upper() for a in analyse['alertes']]
+        message = f"🔮 Prédiction ML: Risque de dépassement {', '.join(params_alertes)}"
+        
         methodes = [p['methode'] for p in predictions.values()]
         methode_globale = 'ML' if 'ML' in methodes else 'Fallback'
         
+        # Premier dépassement pour les champs principaux
+        premier_depassement = analyse['alertes'][0]
+        
+        # Format compatible avec votre curl qui fonctionne
         alerte = {
-            'stationId': source_data.get('id_station', 'Sanar_Station'),
-            'type': 'prédiction_dépassement',
-            'level': {'ATTENTION': 'warning', 'ALERTE': 'warning', 'CRITIQUE': 'critical'}.get(
-                analyse['niveau_global'], 'warning'
-            ),
+            'stationId': station_id,
+            'type': 'Alerte Préventive ML',
+            'severity': severity_mapping.get(analyse['niveau_global'], 'warning'),
             'message': message,
-            'timestamp': datetime.now().isoformat(),
-            'resolved': False,
+            'timestamp': int(datetime.now().timestamp() * 1000),  # ✅ Timestamp en millisecondes
+            'status': 'active',
+            'parameter': premier_depassement['parametre'],
+            'value': float(premier_depassement['valeur_predite']),
+            'threshold': float(premier_depassement['seuil']),
             'metadata': {
                 'predictive': True,
+                'source': 'ML_Prevention',
+                'methode': f'Prédiction {methode_globale}',
                 'groupe_filtre': groupe,
-                'methode_prediction': methode_globale,
+                'id_filtre': id_filtre,
+                'niveau_predit': analyse['niveau_global'],
                 'predictions': {
                     k: {
                         'entree': v['entree'],
@@ -432,25 +467,46 @@ def creer_alerte_kuzzle(url, index, source_data, predictions, analyse, groupe):
                     }
                     for k, v in predictions.items()
                 },
-                'alertes': analyse['alertes']
+                'tous_depassements': analyse['alertes']
             }
         }
         
-        response = requests.post(f"{url}/{index}/alerts/_create", json=alerte, timeout=5)
+        print(f"\n   📤 Envoi alerte à Kuzzle...")
+        print(f"   URL: {url}/{index}/alerts/_create")
+        
+        # ✅ CORRECTION : Utiliser _create comme dans votre curl
+        response = requests.post(
+            f"{url}/{index}/alerts/_create",
+            json=alerte,
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
+        
+        print(f"   Status code: {response.status_code}")
         
         if response.status_code in [200, 201]:
-            alert_id = response.json().get('result', {}).get('_id')
-            print(f"💾 Alerte créée (ID: {alert_id})")
-            return True
+            try:
+                result_data = response.json()
+                print(f"   Réponse: {result_data}")
+                
+                result = result_data.get('result', {})
+                alert_id = result.get('_id', 'unknown')
+                print(f"   ✅ Alerte créée dans Kuzzle (ID: {alert_id})")
+                return True
+            except Exception as e:
+                print(f"   ⚠️  Erreur parsing réponse: {e}")
+                print(f"   Texte brut: {response.text}")
+                return True  # On considère que c'est OK quand même
         else:
-            print(f"⚠️  Erreur création alerte: {response.status_code}")
+            print(f"   ⚠️  Erreur création alerte: {response.status_code}")
+            print(f"   Réponse: {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ Erreur: {e}")
+        print(f"   ❌ Exception: {e}")
+        import traceback
+        traceback.print_exc()
         return False
-
-
 # ==================================================
 # MAIN
 # ==================================================

@@ -1,3 +1,4 @@
+
 import { Component, OnInit, AfterViewInit, OnDestroy,HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -128,6 +129,7 @@ interface ComplianceStatus {
   gap: number;
   potentialPenalty?: string;
 }
+
 class RiskManagementService {
 
   /**
@@ -384,7 +386,7 @@ class RiskManagementService {
       threshold: 25,
       currentValue: dbo5Output,
       gap: Math.max(0, dbo5Output - 25),
-      potentialPenalty: dbo5Output > 25 ? 'Jusqu\'à 15 000 € d\'amende' : undefined
+      potentialPenalty: dbo5Output > 25 ? ' ' : undefined
     });
 
     // MES: Limite 35 mg/L
@@ -395,7 +397,7 @@ class RiskManagementService {
       threshold: 35,
       currentValue: mesOutput,
       gap: Math.max(0, mesOutput - 35),
-      potentialPenalty: mesOutput > 35 ? 'Jusqu\'à 15 000 € d\'amende' : undefined
+      potentialPenalty: mesOutput > 35 ? '  ' : undefined
     });
 
     // Coliformes: < 1000 CFU/100ml pour réutilisation
@@ -564,6 +566,72 @@ export class FiltresComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
   }
+  private readonly FILTER_MAPPING: { [key: string]: {
+  normalizedId: string;
+  type: string;
+  isActualFilter: boolean; // true = filtre réel, false = point de mesure
+  displayName: string;
+}} = {
+  // Points de mesure (à ignorer)
+  'BRUTE': {
+    normalizedId: 'BRUTE',
+    type: 'Point de mesure',
+    isActualFilter: false,
+    displayName: '💧 Eau Brute (Entrée)'
+  },
+  'DECANTEE': {
+    normalizedId: 'DECANTEE',
+    type: 'Point de mesure',
+    isActualFilter: false,
+    displayName: '🏗️ Eau Décantée'
+  },
+
+  // Station Gandiol - Filtres à normaliser
+  'VETIVER': {
+    normalizedId: 'FV',
+    type: 'Filtre_Vertical',
+    isActualFilter: true,
+    displayName: '🌱 Filtre Vertical (Vétiver)'
+  },
+  'TP-01': {
+    normalizedId: 'FH',
+    type: 'Filtre_Horizontal',
+    isActualFilter: true,
+    displayName: '🌿 Filtre Horizontal (Typha)'
+  },
+  'TYPHA': {
+    normalizedId: 'FH',
+    type: 'Filtre_Horizontal',
+    isActualFilter: true,
+    displayName: '🌿 Filtre Horizontal (Typha)'
+  },
+
+  // Station Sanar - Filtres standards (pas de normalisation)
+  'General': {
+    normalizedId: 'General',
+    type: 'Filtre_General',
+    isActualFilter: true,
+    displayName: '🌊 Filtre Général'
+  },
+  'FV1': {
+    normalizedId: 'FV1',
+    type: 'Filtre_Vertical',
+    isActualFilter: true,
+    displayName: '⬇️ Filtre Vertical 1'
+  },
+  'FV2': {
+    normalizedId: 'FV2',
+    type: 'Filtre_Vertical',
+    isActualFilter: true,
+    displayName: '⬇️ Filtre Vertical 2'
+  },
+  'FH': {
+    normalizedId: 'FH',
+    type: 'Filtre_Horizontal',
+    isActualFilter: true,
+    displayName: '↔️ Filtre Horizontal'
+  }
+};
   // ================================
   // GESTION DU MODAL
   // ================================
@@ -592,6 +660,79 @@ export class FiltresComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private router: Router
   ) {}
+/**
+ * 🧠 Fonction intelligente pour normaliser les id_filtre
+ * Règles :
+ * - BRUTE, DECANTEE → null (ignorer, ce sont des points de mesure)
+ * - VETIVER, TP-01 → "FV" (Filtre Vertical unique)
+ * - TYPHA → "FH" (Filtre Horizontal)
+ * - General, FV1, FV2, FH → garder tel quel
+ * - Toute variante (SFV1a, etc.) → null (ignorer)
+ */
+private normalizeFilterId(id_filtre: string): string | null {
+  // ❌ Ignorer les points de mesure
+  if (id_filtre === 'BRUTE' || id_filtre === 'DECANTEE') {
+    return null;
+  }
+
+  // ✅ Filtres standards (Sanar et similaires) - RESPECT DU CASING EXACT
+  if (id_filtre === 'General') return 'General';
+  if (id_filtre === 'FV1') return 'FV1';
+  if (id_filtre === 'FV2') return 'FV2';
+  if (id_filtre === 'FH') return 'FH';
+
+  // ✅ Mapping Gandiol et stations similaires - RESPECT DU CASING EXACT
+  if (id_filtre === 'VETIVER' || id_filtre === 'TP-01') return 'FV';
+  if (id_filtre === 'TYPHA') return 'FH';
+
+  // ❌ Tout le reste (SFV1a, etc.) est ignoré
+  console.warn(`⚠️ id_filtre "${id_filtre}" ignoré (non standard)`);
+  return null;
+}
+
+
+/**
+ * 📋 Obtenir le nom d'affichage pour un filtre normalisé
+ */
+private getFilterDisplayName(normalizedId: string): string {
+  const entry = Object.entries(this.FILTER_MAPPING).find(
+    ([_, value]) => value.normalizedId === normalizedId
+  );
+
+  if (entry) {
+    return entry[1].displayName;
+  }
+
+  const names: { [key: string]: string } = {
+    'General': '🌊 Filtre Général',
+    'FV1': '⬇️ Filtre Vertical 1',
+    'FV2': '⬇️ Filtre Vertical 2',
+    'FV': '🌱 Filtre Vertical',
+    'FH': '↔️ Filtre Horizontal'
+  };
+  return names[normalizedId] || normalizedId;
+}
+/**
+ * 📋 Obtenir le type de filtre pour un filtre normalisé
+ */
+private getFilterType(normalizedId: string): string {
+  const entry = Object.entries(this.FILTER_MAPPING).find(
+    ([_, value]) => value.normalizedId === normalizedId
+  );
+
+  if (entry) {
+    return entry[1].type;
+  }
+
+  const types: { [key: string]: string } = {
+    'General': 'Filtre général',
+    'FV1': 'Filtre vertical',
+    'FV2': 'Filtre vertical',
+    'FV': 'Filtre vertical',
+    'FH': 'Filtre horizontal'
+  };
+  return types[normalizedId] || 'Type inconnu';
+}
 
 async ngOnInit() {
     // 👇 RÉCUPÉRER LE STATION ID DEPUIS L'URL
@@ -601,6 +742,7 @@ async ngOnInit() {
     console.log('📍 Station ID depuis URL (filtres):', this.stationId);
 
     await this.loadStations();
+    console.log('🏢 Stations chargées:', Array.from(this.stations.entries()));
 
     // 👇 Récupérer le nom de la station si on est en mode spécifique
     if (this.stationId) {
@@ -761,137 +903,151 @@ async loadData() {
     }
   }
 
+
   calculateFilterPerformances() {
-  const performances: any[] = [];
-  const filterMap = new Map<string, WaterQualityData[]>();
+          const performances: any[] = [];
+          const filterMap = new Map<string, WaterQualityData[]>();
 
-  // Grouper les données par filtre
-  this.waterQualityData.forEach(data => {
-    const filterId = data.body.id_filtre;
-    if (!filterMap.has(filterId)) {
-      filterMap.set(filterId, []);
-    }
-    filterMap.get(filterId)!.push(data);
-  });
+          this.waterQualityData.forEach(data => {
+            const originalId = data.body.id_filtre;
+            const normalizedId = this.normalizeFilterId(originalId);
 
-  const basePosition = { lat: 14.7167, lng: -17.4677 };
-  const positionOffsets: { [key: string]: { lat: number, lng: number } } = {
-    'General': { lat: 0.001, lng: 0.001 },
-    'FV1': { lat: -0.001, lng: 0.001 },
-    'FV2': { lat: 0.001, lng: -0.001 },
-    'FH': { lat: -0.001, lng: -0.001 }
-  };
+            // Ignorer les points de mesure (BRUTE, DECANTEE)
+            if (!normalizedId) {
+              console.log(`⏭️ Ignoré: ${originalId} (point de mesure)`);
+              return;
+            }
 
-  filterMap.forEach((dataArray, filterId) => {
-    const entreeData = dataArray.filter(d => d.body.phase === 'Entree');
-    const sortieData = dataArray.filter(d => d.body.phase === 'Sortie');
+            console.log(`🔄 Mapping: ${originalId} → ${normalizedId}`);
 
-    if (entreeData.length > 0 && sortieData.length > 0) {
-      const performance = this.calculatePerformance(filterId, entreeData, sortieData);
-      const offset = positionOffsets[filterId] || { lat: 0, lng: 0 };
-      performance.latitude = basePosition.lat + offset.lat;
-      performance.longitude = basePosition.lng + offset.lng;
+            if (!filterMap.has(normalizedId)) {
+              filterMap.set(normalizedId, []);
+            }
+            filterMap.get(normalizedId)!.push(data);
+          });
 
-      // 👇 ASSIGNER LA STATION CORRECTE
-      if (this.stationId) {
-        performance.station = this.stationName || this.stationId;
-      } else {
-        // En mode toutes stations, utiliser la station des données
-        const source = entreeData[0]?.body || sortieData[0]?.body || {};
-        performance.station = source.id_station || 'Station Inconnue';
-      }
+          console.log(`📊 Filtres après normalisation:`, Array.from(filterMap.keys()));
 
-      performances.push(performance);
-    } else {
-      if (entreeData.length > 0 || sortieData.length > 0) {
-        const performance = this.createBasicPerformance(filterId, dataArray);
-        const offset = positionOffsets[filterId] || { lat: 0, lng: 0 };
-        performance.latitude = basePosition.lat + offset.lat;
-        performance.longitude = basePosition.lng + offset.lng;
+          const basePosition = { lat: 14.7167, lng: -17.4677 };
+          const positionOffsets: { [key: string]: { lat: number, lng: number } } = {
+            'General': { lat: 0.001, lng: 0.001 },
+            'FV1': { lat: -0.001, lng: 0.001 },
+            'FV2': { lat: 0.001, lng: -0.001 },
+            'FH': { lat: -0.001, lng: -0.001 }
+          };
 
-        // 👇 ASSIGNER LA STATION CORRECTE
-        if (this.stationId) {
-          performance.station = this.stationName || this.stationId;
-        } else {
-          const source = dataArray[0]?.body || {};
-          performance.station = source.id_station || 'Station Inconnue';
+          filterMap.forEach((dataArray, filterId) => {
+            const entreeData = dataArray.filter(d => d.body.phase === 'Entree');
+            const sortieData = dataArray.filter(d => d.body.phase === 'Sortie');
+
+            // 👇 RÉCUPÉRER LE STATION ID DEPUIS LES DONNÉES
+            const stationIdFromData = dataArray[0]?.body.id_station || '';
+
+            // 👇 OBTENIR LE NOM DE LA STATION DEPUIS LA MAP
+            const stationName = this.stations.get(stationIdFromData) || stationIdFromData;
+
+            console.log(`📍 Filtre ${filterId}: Station ID = ${stationIdFromData}, Nom = ${stationName}`);
+
+            if (entreeData.length > 0 && sortieData.length > 0) {
+              const performance = this.calculatePerformance(filterId, entreeData, sortieData);
+              const offset = positionOffsets[filterId] || { lat: 0, lng: 0 };
+              performance.latitude = basePosition.lat + offset.lat;
+              performance.longitude = basePosition.lng + offset.lng;
+
+              // ✅ ASSIGNER LE NOM DE LA STATION
+              performance.station = stationName;
+
+              performances.push(performance);
+            } else {
+              if (entreeData.length > 0 || sortieData.length > 0) {
+                const performance = this.createBasicPerformance(filterId, dataArray);
+                const offset = positionOffsets[filterId] || { lat: 0, lng: 0 };
+                performance.latitude = basePosition.lat + offset.lat;
+                performance.longitude = basePosition.lng + offset.lng;
+
+                // ✅ ASSIGNER LE NOM DE LA STATION
+                performance.station = stationName;
+
+                performances.push(performance);
+              }
+            }
+          });
+  this.filterPerformances = performances;
+
+console.log(`✅ ${this.filterPerformances.length} filtres affichés sur ${performances.length} calculés`);
+console.log('📋 Filtres:', this.filterPerformances.map(f => f.id_filtre).join(', '));
+          console.log(`📊 ${performances.length} performances de filtres calculées`);
+          console.log('🏢 Stations uniques:', [...new Set(performances.map(p => p.station))]);
         }
 
-        performances.push(performance);
-      }
-    }
-  });
 
-  this.filterPerformances = performances;
-  console.log(`📊 ${performances.length} performances de filtres calculées`);
+private calculatePerformance(
+  filterId: string,
+  entreeData: WaterQualityData[],
+  sortieData: WaterQualityData[]
+): FilterPerformance {
+  const avgEntree = this.calculateAverageValues(entreeData);
+  const avgSortie = this.calculateAverageValues(sortieData);
+
+  // ❌ NE PAS RÉCUPÉRER LA STATION ICI - Elle sera assignée dans calculateFilterPerformances()
+  // const stationId = this.stationId || entreeData[0]?.body.id_station || sortieData[0]?.body.id_station || 'Sanar_Station';
+  // const stationName = this.stations.get(stationId) || stationId;
+
+  const efficacite_dbo5 = this.calculateEfficiency(avgEntree.dbo5, avgSortie.dbo5);
+  const efficacite_dco = this.calculateEfficiency(avgEntree.dco, avgSortie.dco);
+  const efficacite_mes = this.calculateEfficiency(avgEntree.mes, avgSortie.mes);
+  const efficacite_nitrates = this.calculateEfficiency(avgEntree.nitrates, avgSortie.nitrates);
+  const efficacite_coliformes = this.calculateEfficiency(avgEntree.coliformes, avgSortie.coliformes);
+
+  const stabilityPH = this.calculatePHStability(sortieData);
+  const tauxValeursManquantes = this.calculateMissingValuesRate([...entreeData, ...sortieData]);
+
+  const scoreDetails = this.calculateKPIScore(
+    efficacite_dbo5,
+    efficacite_mes,
+    efficacite_nitrates,
+    efficacite_coliformes,
+    stabilityPH,
+    tauxValeursManquantes
+  );
+
+  const statut = this.determineStatusFromScore(scoreDetails.totalScore);
+
+  const toutesDonnees = [...entreeData, ...sortieData];
+  const dernierMesure = toutesDonnees
+    .sort((a, b) => new Date(b.body.date).getTime() - new Date(a.body.date).getTime())[0]
+    ?.body.date || 'N/A';
+
+  const type_filtre = entreeData[0]?.body.type_filtre || sortieData[0]?.body.type_filtre || this.determineFilterType(filterId);
+
+  return {
+    id_filtre: filterId,
+    type_filtre: type_filtre,
+    station: '', // ✅ Sera assignée dans calculateFilterPerformances()
+    donnees_entree: entreeData.length,
+    donnees_sortie: sortieData.length,
+    efficacite_dbo5,
+    efficacite_dco,
+    efficacite_mes,
+    efficacite_nitrates,
+    efficacite_coliformes,
+    dernier_mesure: dernierMesure,
+    statut,
+    scorePerformance: scoreDetails.totalScore,
+    detailsScore: {
+      pointsDBO5: scoreDetails.pointsDBO5,
+      pointsMES: scoreDetails.pointsMES,
+      pointsNitrates: scoreDetails.pointsNitrates,
+      pointsColiformes: scoreDetails.pointsColiformes,
+      pointsPH: scoreDetails.pointsPH,
+      pointsDonnees: scoreDetails.pointsDonnees,
+      stabilityPH: stabilityPH,
+      tauxValeursManquantes: tauxValeursManquantes
+    },
+    latitude: 0,
+    longitude: 0
+  };
 }
-
-  private calculatePerformance(
-    filterId: string,
-    entreeData: WaterQualityData[],
-    sortieData: WaterQualityData[]
-  ): FilterPerformance {
-    const avgEntree = this.calculateAverageValues(entreeData);
-    const avgSortie = this.calculateAverageValues(sortieData);
-    const stationId = this.stationId || entreeData[0]?.body.id_station || sortieData[0]?.body.id_station || 'Sanar_Station';
-    const stationName = this.stations.get(stationId) || stationId;
-
-    const efficacite_dbo5 = this.calculateEfficiency(avgEntree.dbo5, avgSortie.dbo5);
-    const efficacite_dco = this.calculateEfficiency(avgEntree.dco, avgSortie.dco);
-    const efficacite_mes = this.calculateEfficiency(avgEntree.mes, avgSortie.mes);
-    const efficacite_nitrates = this.calculateEfficiency(avgEntree.nitrates, avgSortie.nitrates);
-    const efficacite_coliformes = this.calculateEfficiency(avgEntree.coliformes, avgSortie.coliformes);
-
-    const stabilityPH = this.calculatePHStability(sortieData);
-    const tauxValeursManquantes = this.calculateMissingValuesRate([...entreeData, ...sortieData]);
-
-    const scoreDetails = this.calculateKPIScore(
-      efficacite_dbo5,
-      efficacite_mes,
-      efficacite_nitrates,
-      efficacite_coliformes,
-      stabilityPH,
-      tauxValeursManquantes
-    );
-
-    const statut = this.determineStatusFromScore(scoreDetails.totalScore);
-
-    const toutesDonnees = [...entreeData, ...sortieData];
-    const dernierMesure = toutesDonnees
-      .sort((a, b) => new Date(b.body.date).getTime() - new Date(a.body.date).getTime())[0]
-      ?.body.date || 'N/A';
-
-   const type_filtre = entreeData[0]?.body.type_filtre || sortieData[0]?.body.type_filtre || this.determineFilterType(filterId);
-
-    return {
-      id_filtre: filterId,
-      type_filtre: type_filtre,
-       station: stationName,
-
-      donnees_entree: entreeData.length,
-      donnees_sortie: sortieData.length,
-      efficacite_dbo5,
-      efficacite_dco,
-      efficacite_mes,
-      efficacite_nitrates,
-      efficacite_coliformes,
-      dernier_mesure: dernierMesure,
-      statut,
-      scorePerformance: scoreDetails.totalScore,
-      detailsScore: {
-        pointsDBO5: scoreDetails.pointsDBO5,
-        pointsMES: scoreDetails.pointsMES,
-        pointsNitrates: scoreDetails.pointsNitrates,
-        pointsColiformes: scoreDetails.pointsColiformes,
-        pointsPH: scoreDetails.pointsPH,
-        pointsDonnees: scoreDetails.pointsDonnees,
-        stabilityPH: stabilityPH,
-        tauxValeursManquantes: tauxValeursManquantes
-      },
-      latitude: 0,
-      longitude: 0
-    };
-  }
 
   private calculateKPIScore(
     efficaciteDBO5: number,
@@ -974,55 +1130,57 @@ getCycleVie(filtreId: string): CycleVieFiltre | null {
       'General': 'Filtre général',
       'FV1': 'Filtre vertical',
       'FV2': 'Filtre vertical',
-      'FH': 'Filtre horizontal'
+      'FH': 'Filtre horizontal',
+
     };
     return typeMap[filterId] || 'Type inconnu';
   }
 
-  private createBasicPerformance(filterId: string, dataArray: WaterQualityData[]): FilterPerformance {
-    const efficacite_estimee = 50;
-    const stabilityPH = 0.8;
-    const tauxValeursManquantes = 0.4;
 
-    const scoreDetails = this.calculateKPIScore(
-      efficacite_estimee,
-      efficacite_estimee,
-      efficacite_estimee,
-      efficacite_estimee,
-      stabilityPH,
-      tauxValeursManquantes
-    );
+private createBasicPerformance(filterId: string, dataArray: WaterQualityData[]): FilterPerformance {
+  const efficacite_estimee = 50;
+  const stabilityPH = 0.8;
+  const tauxValeursManquantes = 0.4;
 
-    const type_filtre = dataArray[0]?.body.type_filtre || this.determineFilterType(filterId);
+  const scoreDetails = this.calculateKPIScore(
+    efficacite_estimee,
+    efficacite_estimee,
+    efficacite_estimee,
+    efficacite_estimee,
+    stabilityPH,
+    tauxValeursManquantes
+  );
 
-    return {
-      id_filtre: filterId,
-      type_filtre: type_filtre,
-      station: dataArray[0]?.body.id_station || 'Sanar_Station',
-      donnees_entree: dataArray.filter(d => d.body.phase === 'Entree').length,
-      donnees_sortie: dataArray.filter(d => d.body.phase === 'Sortie').length,
-      efficacite_dbo5: efficacite_estimee,
-      efficacite_dco: efficacite_estimee,
-      efficacite_mes: efficacite_estimee,
-      efficacite_nitrates: efficacite_estimee,
-      efficacite_coliformes: efficacite_estimee,
-      dernier_mesure: dataArray[0]?.body.date || 'N/A',
-      statut: this.determineStatusFromScore(scoreDetails.totalScore),
-      scorePerformance: scoreDetails.totalScore,
-      detailsScore: {
-        pointsDBO5: scoreDetails.pointsDBO5,
-        pointsMES: scoreDetails.pointsMES,
-        pointsNitrates: scoreDetails.pointsNitrates,
-        pointsColiformes: scoreDetails.pointsColiformes,
-        pointsPH: scoreDetails.pointsPH,
-        pointsDonnees: scoreDetails.pointsDonnees,
-        stabilityPH: stabilityPH,
-        tauxValeursManquantes: tauxValeursManquantes
-      },
-      latitude: 0,
-      longitude: 0
-    };
-  }
+  const type_filtre = dataArray[0]?.body.type_filtre || this.determineFilterType(filterId);
+
+  return {
+    id_filtre: filterId,
+    type_filtre: type_filtre,
+    station: '', // ✅ Sera assignée dans calculateFilterPerformances()
+    donnees_entree: dataArray.filter(d => d.body.phase === 'Entree').length,
+    donnees_sortie: dataArray.filter(d => d.body.phase === 'Sortie').length,
+    efficacite_dbo5: efficacite_estimee,
+    efficacite_dco: efficacite_estimee,
+    efficacite_mes: efficacite_estimee,
+    efficacite_nitrates: efficacite_estimee,
+    efficacite_coliformes: efficacite_estimee,
+    dernier_mesure: dataArray[0]?.body.date || 'N/A',
+    statut: this.determineStatusFromScore(scoreDetails.totalScore),
+    scorePerformance: scoreDetails.totalScore,
+    detailsScore: {
+      pointsDBO5: scoreDetails.pointsDBO5,
+      pointsMES: scoreDetails.pointsMES,
+      pointsNitrates: scoreDetails.pointsNitrates,
+      pointsColiformes: scoreDetails.pointsColiformes,
+      pointsPH: scoreDetails.pointsPH,
+      pointsDonnees: scoreDetails.pointsDonnees,
+      stabilityPH: stabilityPH,
+      tauxValeursManquantes: tauxValeursManquantes
+    },
+    latitude: 0,
+    longitude: 0
+  };
+}
 
   private calculateAverageValues(data: WaterQualityData[]): {
     dbo5: number;
@@ -1304,76 +1462,77 @@ createPerformanceChart() {
   }
 
   createTimelineChart() {
-    const ctx = document.getElementById('timelineChart') as HTMLCanvasElement;
-    if (!ctx) return;
+  const ctx = document.getElementById('timelineChart') as HTMLCanvasElement;
+  if (!ctx) return;
 
-    if (this.timelineChart) {
-      this.timelineChart.destroy();
-    }
+  if (this.timelineChart) {
+    this.timelineChart.destroy();
+  }
 
-    const dates = [...new Set(this.waterQualityData
-      .map(d => d.body.date)
-      .filter(d => d !== null && d !== undefined)
-    )].sort();
+  const dates = [...new Set(this.waterQualityData
+    .map(d => d.body.date)
+    .filter(d => d !== null && d !== undefined)
+  )].sort();
 
-    const filters = [...new Set(this.waterQualityData.map(d => d.body.id_filtre))];
+  // 👇 MODIFICATION ICI : Utiliser les filtres déjà filtrés
+  const filters = this.filterPerformances.map(f => f.id_filtre);
 
-    const datasets: ChartDataset[] = filters.map(filterId => {
-      const data = dates.map(date => {
-        const filterData = this.waterQualityData.filter(d =>
-          d.body.id_filtre === filterId &&
-          d.body.date === date &&
-          d.body.dbo5_mg_l !== null
-        );
-        return filterData.length > 0 ?
-          filterData.reduce((sum, d) => sum + (d.body.dbo5_mg_l || 0), 0) / filterData.length : 0;
-      });
-
-      return {
-        label: `Filtre ${filterId}`,
-        data: data,
-        borderColor: this.getColorForFilter(filterId),
-        backgroundColor: this.getColorForFilter(filterId) + '20',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.4
-      };
+  const datasets: ChartDataset[] = filters.map(filterId => {
+    const data = dates.map(date => {
+      const filterData = this.waterQualityData.filter(d =>
+        d.body.id_filtre === filterId &&
+        d.body.date === date &&
+        d.body.dbo5_mg_l !== null
+      );
+      return filterData.length > 0 ?
+        filterData.reduce((sum, d) => sum + (d.body.dbo5_mg_l || 0), 0) / filterData.length : 0;
     });
 
-    this.timelineChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: datasets
+    return {
+      label: `Filtre ${filterId}`,
+      data: data,
+      borderColor: this.getColorForFilter(filterId),
+      backgroundColor: this.getColorForFilter(filterId) + '20',
+      borderWidth: 2,
+      fill: false,
+      tension: 0.4
+    };
+  });
+
+  this.timelineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Évolution de la DBO5 dans le Temps'
+        },
+        legend: {
+          position: 'top',
+        }
       },
-      options: {
-        responsive: true,
-        plugins: {
+      scales: {
+        y: {
           title: {
             display: true,
-            text: 'Évolution de la DBO5 dans le Temps'
-          },
-          legend: {
-            position: 'top',
+            text: 'DBO5 (mg/L)'
           }
         },
-        scales: {
-          y: {
-            title: {
-              display: true,
-              text: 'DBO5 (mg/L)'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Date'
-            }
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
           }
         }
       }
-    });
-  }
+    }
+  });
+}
 
   private getColorForParameter(param: string): string {
     const colors: { [key: string]: string } = {
@@ -1391,7 +1550,8 @@ createPerformanceChart() {
       'General': 'rgba(255, 99, 132, 1)',
       'FV1': 'rgba(54, 162, 235, 1)',
       'FV2': 'rgba(255, 206, 86, 1)',
-      'FH': 'rgba(75, 192, 192, 1)'
+      'FH': 'rgba(75, 192, 192, 1)',
+
     };
     return colors[filterId] || 'rgba(201, 203, 207, 1)';
   }
@@ -1650,9 +1810,22 @@ get uniqueTypes(): string[] {
 }
 
 
-  get uniqueStations(): string[] {
-    return [...new Set(this.filterPerformances.map(f => f.station))];
-  }
+
+get uniqueStations(): string[] {
+  return Array.from(this.stations.values()).sort();
+}
+
+hasStationData(stationName: string): boolean {
+  return this.filterPerformances.some(f => f.station === stationName);
+}
+
+getStationDisplayLabel(stationName: string): string {
+  const hasData = this.hasStationData(stationName);
+  return hasData ? `${stationName} ✓` : `${stationName} (Sans données)`;
+}
+    get stationsCount(): number {
+  return this.stations.size;
+}
 
   getStatusColor(statut: string): string {
     const colors: { [key: string]: string } = {
@@ -1860,7 +2033,8 @@ getFilterLabel(filterId: string): string {
     'General': '🌊 Filtre général',
     'FV1': '⬇️ Filtre vertical 1',
     'FV2': '⬇️ Filtre vertical 2',
-    'FH': '↔️ Filtre horizontal'
+    'FH': '↔️ Filtre horizontal',
+
   };
   return labels[filterId] || filterId;
 }

@@ -6,10 +6,13 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import reportsRoutes from './routes/reports.routes';
-import activityLogRoutes from './routes/activity-log.routes';  // ✅ AJOUTÉ
+import activityLogRoutes from './routes/activity-log.routes';
+import sensorRoutes from './routes/sensor.routes';
+import waterQualityRoutes from './routes/water-quality.routes'; 
 import { SchedulerService } from './services/scheduler.service';
 import { EmailService } from './services/email.service';
-import { activityLoggerMiddleware } from './middlewares/activity-logger.middleware';  // ✅ AJOUTÉ
+import { activityLoggerMiddleware } from './middlewares/activity-logger.middleware';
+
 
 dotenv.config();
 
@@ -60,8 +63,12 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportsRoutes);
-app.use('/api/activity-logs', activityLogRoutes);  // ✅ AJOUTÉ
+app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/sensors', sensorRoutes);
+app.use('/api/water-quality', waterQualityRoutes); 
 
+
+// Route 404
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -103,7 +110,9 @@ async function initializeReporting() {
 app.listen(PORT, async () => {
   console.log(`🚀 Serveur démarré sur le port ${PORT}`);
   console.log(`📊 Reports API: http://localhost:${PORT}/api/reports`);
-  console.log(`📋 Activity Logs API: http://localhost:${PORT}/api/activity-logs`);  // ✅ AJOUTÉ
+  console.log(`📋 Activity Logs API: http://localhost:${PORT}/api/activity-logs`);
+  console.log(`📡 Sensors API: http://localhost:${PORT}/api/sensors`);
+  console.log(`💧 Water Quality API: http://localhost:${PORT}/api/water-quality`); // ✅ NOUVEAU
   
   await initializeReporting();
 });
